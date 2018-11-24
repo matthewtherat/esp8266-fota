@@ -13,7 +13,7 @@
 
 
 #ifndef FOTA_TASK_PRIO
-#define FOTA_TASK_PRIO			1
+#define FOTA_TASK_PRIO			2
 #endif
 
 

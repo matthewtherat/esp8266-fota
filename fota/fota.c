@@ -118,6 +118,7 @@ _fota_proto_connect() {
     fs.tcpconn->proto.tcp = (esp_tcp *)os_zalloc(sizeof(esp_tcp));
     fs.tcpconn->proto.tcp->local_port = espconn_port();
     fs.tcpconn->proto.tcp->remote_port = fs.port;
+	fs.tcpconn->reverse = &fs;
     espconn_regist_connectcb(fs.tcpconn, _fota_tcpclient_connect_cb);
     espconn_regist_reconcb(fs.tcpconn, _fota_tcpclient_connection_error_cb);
 
@@ -248,6 +249,10 @@ fota_start() {
  */
 void ICACHE_FLASH_ATTR 
 fota_init(const char *hostname, uint8_t hostname_len, uint16_t port) {
+	if (fs.hostname) {
+		ERROR("FOTA ALready initialized\r\n");
+		return;
+	}
 	fs.hostname = (char *)os_zalloc(hostname_len + 1);
 	os_strncpy(fs.hostname, hostname, hostname_len);
 
@@ -263,12 +268,11 @@ fota_init(const char *hostname, uint8_t hostname_len, uint16_t port) {
 	fs.ok = false;
 	//system_soft_wdt_stop();
 	//wifi_fpm_close();
-
-	bool fp = spi_flash_erase_protect_disable();
-	if (!fp) {
-		INFO("Cannot disable the flash protection\r\n");
-		return;
-	}
+	//bool fp = spi_flash_erase_protect_disable();
+	//if (!fp) {
+	//	INFO("Cannot disable the flash protection\r\n");
+	//	return;
+	//}
 
 	INFO("FOTA: Init %s:%d Sector: %X\r\n", fs.hostname, fs.port, fs.sector);
     system_os_task(_fota_task_cb, FOTA_TASK_PRIO, fota_task_queue, 

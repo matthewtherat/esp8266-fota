@@ -51,12 +51,15 @@ easyq_message_cb(void *arg, const char *queue, const char *msg,
 			colon[0] = 0;	
 			
 			INFO("INIT FOTA: %s %d\r\n", server, port);
+			os_timer_disarm(&status_timer);
+			easyq_delete(&eq);
 			fota_init(server, hostname_len, port);
-
+			fota_start();
 			// TODO: decide about delete easyq ?
 			easyq_disconnect(&eq);
 		}
 		else if (msg[0] == 'R') {
+			os_timer_disarm(&status_timer);
 			system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 			system_upgrade_reboot();
 		}
@@ -77,6 +80,7 @@ void ICACHE_FLASH_ATTR
 easyq_connect_cb(void *arg) {
 	INFO("EASYQ: Connected to %s:%d\r\n", eq.hostname, eq.port);
 	INFO("\r\n***** OTA ****\r\n");
+	INFO("Device: "EASYQ_LOGIN"\r\n");
 	const char * queues[] = {FOTA_QUEUE};
 	easyq_pull_all(&eq, queues, 1);
     os_timer_disarm(&status_timer);
@@ -98,7 +102,6 @@ void easyq_disconnect_cb(void *arg)
 	EasyQSession *e = (EasyQSession*) arg;
 	INFO("EASYQ: Disconnected from %s:%d\r\n", e->hostname, e->port);
 	easyq_delete(&eq);
-	fota_start();
 }
 
 
