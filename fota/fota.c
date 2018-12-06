@@ -133,7 +133,6 @@ _fota_proto_connect() {
 
 LOCAL void
 _fota_proto_get_sector() {
-	int8_t err;
 	char b[24];
 	ets_snprintf(b, 24, "GET 0x%06X:0x%06X;\n\0", 
 			fs.chunk_index * FOTA_CHUNK_SIZE, FOTA_CHUNK_SIZE); 
@@ -203,6 +202,8 @@ _fota_task_cb(os_event_t *e)
 
 	case FOTA_SIG_DISCONNECT:
 		fs.status = FOTA_DISCONNECTING;
+		//char b[1] = {0};
+		//espconn_send(fs.tcpconn, b, 1); 
 		espconn_disconnect(fs.tcpconn);
 		break;
 
