@@ -32,9 +32,9 @@
 #endif
 
 
-#ifndef FOTA_PARTITION_OTA2_ADDR
-#define FOTA_PARTITION_OTA2_ADDR		0x81000	
-#endif
+//#ifndef FOTA_PARTITION_OTA2_ADDR
+//#define FOTA_PARTITION_OTA2_ADDR		0x81000	
+//#endif
 
 
 #define FOTA_CHUNKS_PER_SECTOR	4
