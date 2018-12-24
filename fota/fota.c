@@ -9,7 +9,7 @@
 
 #include "fota.h"
 #include "debug.h"
-
+#include "partition.h"
 
 LOCAL struct fota_session fs;
 
@@ -18,7 +18,7 @@ LOCAL os_event_t fota_task_queue[FOTA_TASK_QUEUE_SIZE];
 
 void
 _fota_task_post(enum fota_signal signal) {
-    system_os_post(FOTA_TASK_PRIO, signal, NULL);
+    system_os_post(FOTA_TASK_PRIO, signal, 0);
 }
 
 
@@ -263,7 +263,9 @@ fota_init(const char *hostname, uint8_t hostname_len, uint16_t port) {
 	fs.reconnect_ticks = 0;
 	fs.status = FOTA_IDLE;
 	fs.sector = system_upgrade_userbin_check() == UPGRADE_FW_BIN1 ?
-		FOTA_PARTITION_OTA2_ADDR / FOTA_SECTOR_SIZE: 1;
+		SYSTEM_PARTITION_OTA2_ADDR / FOTA_SECTOR_SIZE: 1;
+
+//		FOTA_PARTITION_OTA2_ADDR / FOTA_SECTOR_SIZE: 1;
 
 	fs.chunk_index = 0;
 	fs.ok = false;
