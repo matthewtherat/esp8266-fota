@@ -133,28 +133,30 @@ sinclude $(PDIR)Makefile
 
 .PHONY: flash flash_user2 fota
 
-ESPTOOL = esptool.py --baud 57600 write_flash -u --flash_size 1MB  --flash_mode qio --flash_freq 40m
+ESPTOOL = esptool.py --baud 115200 write_flash -u --flash_mode qio --flash_freq 40m
+
+flash_erase:
+	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
 
 
-flash:
-	 $(ESPTOOL) \
+flash_map2_user1:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
+	$(ESPTOOL) --flash_size 1MB  \
 		0x0 	../bin/boot_v1.7.bin \
 		0x1000  ../bin/upgrade/user1.1024.new.2.bin \
 		0xfc000 ../bin/esp_init_data_default_v08.bin \
 		0xfb000 ../bin/blank.bin \
 		0xfe000 ../bin/blank.bin
 
-flash_user2:
-	 $(ESPTOOL) 0x81000 ../bin/upgrade/user2.1024.new.2.bin
 
-flash_user1:
-	 $(ESPTOOL) 0x01000 ../bin/upgrade/user1.1024.new.2.bin
-
-flash_erase:
-	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
-
-fota: 
-	$(HOME)/.virtualenvs/easyq/bin/python3.6 fota.py \
-		../bin/upgrade/user2.1024.new.2.bin ampsupply:fota ha:1085 \
-		-b 192.168.8.214:6666
+flash_map3_user1:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=3
+	$(ESPTOOL) --flash_size 2MB  \
+		0x0 	../bin/boot_v1.7.bin \
+		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
+		0x1fc000 ../bin/esp_init_data_default_v08.bin \
+		0x1fb000 ../bin/blank.bin \
+		0x1fe000 ../bin/blank.bin
 
