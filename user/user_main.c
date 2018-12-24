@@ -3,6 +3,8 @@
 #include "partition.h"
 #include "wifi.h"
 #include "config.h"
+#include "io_config.h"
+#include "fota.h"
 
 // SDK
 #include <ets_sys.h>
@@ -117,6 +119,14 @@ void wifi_connect_cb(uint8_t status) {
 void user_init(void) {
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_delay_us(60000);
+	Params p;
+	int err = params_load(&p);
+	if (err) {
+		INFO("Cannot load params\r\n");
+	}
+	INFO("Params loaded sucessfully: ssid: %s psk: %s\r\n", p.wifi_ssid, 
+			p.wifi_psk);
+	return;
 
 	EasyQError err = easyq_init(&eq, EASYQ_HOSTNAME, EASYQ_PORT, EASYQ_LOGIN);
 	if (err != EASYQ_OK) {

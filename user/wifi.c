@@ -8,8 +8,9 @@
 #include "user_config.h"
 
 static ETSTimer WiFiLinker;
-WifiCallback wifiCb = NULL;
 static uint8_t wifiStatus = STATION_IDLE, lastWifiStatus = STATION_IDLE;
+WifiCallback wifiCb = NULL;
+
 static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg)
 {
 	struct ip_info ipConfig;
@@ -58,7 +59,6 @@ void ICACHE_FLASH_ATTR WIFI_Connect(uint8_t* ssid, uint8_t* pass, WifiCallback c
 	wifi_set_sleep_type(NONE_SLEEP_T);
 	//wifi_set_sleep_type(MODEM_SLEEP_T);
 	//wifi_set_sleep_type(LIGHT_SLEEP_T);
-
 	//wifi_station_set_auto_connect(FALSE);
 	wifiCb = cb;
 
