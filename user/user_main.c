@@ -136,10 +136,13 @@ void user_init(void) {
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_delay_us(60000);
 	Params p;
-	int err = params_load(&p);
-	if (err) {
-		INFO("Cannot load params\r\n");
+//	bool ok = system_param_save_with_protect(PARAMS_SECTOR, &params, 
+//			sizeof(Params));
+	bool ok = params_load(&p);
+	if (!ok) {
+		ERROR("Cannot load Params\r\n");
 		firstboot_start();
+		return;
 	}
 	INFO("Params loaded sucessfully: ssid: %s psk: %s\r\n", p.wifi_ssid, 
 			p.wifi_psk);

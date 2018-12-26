@@ -7,7 +7,8 @@
 
 #ifndef USER_WIFI_H_
 #define USER_WIFI_H_
-#include "os_type.h"
+#include <os_type.h>
+
 
 
 typedef void (*WifiCallback)(uint8_t);

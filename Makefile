@@ -72,13 +72,13 @@ LINKFLAGS_eagle.app.v6 = \
 	-lmain	\
 	-ljson	\
 	-lupgrade\
-	-lmbedtls	\
 	-ldriver \
-	-lsmartconfig \
 	-lhal					\
 	$(DEP_LIBS_eagle.app.v6)					\
 	-Wl,--end-group
 
+#	-lsmartconfig \
+#	-lmbedtls	\
 #	-lpwm	\
 	
 DEPENDS_eagle.app.v6 = \
@@ -133,7 +133,7 @@ sinclude $(PDIR)Makefile
 
 .PHONY: flash flash_user2 fota
 
-ESPTOOL = esptool.py --baud 115200 write_flash -u --flash_mode qio --flash_freq 40m
+ESPTOOL = esptool.py --baud 576000 write_flash -u --flash_mode qio --flash_freq 40m
 
 flash_erase:
 	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
@@ -156,6 +156,16 @@ flash_map3_user1:
 	$(ESPTOOL) --flash_size 2MB  \
 		0x0 	../bin/boot_v1.7.bin \
 		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
+		0x1fc000 ../bin/esp_init_data_default_v08.bin \
+		0x1fb000 ../bin/blank.bin \
+		0x1fe000 ../bin/blank.bin
+
+flash_map5_user1:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=5
+	$(ESPTOOL) --flash_size 2MB  \
+		0x0 	../bin/boot_v1.7.bin \
+		0x1000  ../bin/upgrade/user1.2048.new.5.bin \
 		0x1fc000 ../bin/esp_init_data_default_v08.bin \
 		0x1fb000 ../bin/blank.bin \
 		0x1fe000 ../bin/blank.bin
