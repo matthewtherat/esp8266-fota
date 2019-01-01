@@ -5,9 +5,7 @@
 #include "config.h"
 #include "io_config.h"
 #include "fota.h"
-#include "params.h"
-
-
+#include "params.h" 
 // SDK
 #include <ets_sys.h>
 #include <osapi.h>
@@ -136,8 +134,6 @@ void user_init(void) {
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_delay_us(60000);
 	Params p;
-//	bool ok = system_param_save_with_protect(PARAMS_SECTOR, &params, 
-//			sizeof(Params));
 	bool ok = params_load(&p);
 	if (!ok) {
 		ERROR("Cannot load Params\r\n");

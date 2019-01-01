@@ -1,5 +1,5 @@
-# smart-outlet
-A simple EasyQ controlled power line outlet.
+# FOTA 
+Formware over the air transmission using easyQ.
 
 
 
@@ -13,8 +13,8 @@ to setup your environment.
 source esp-env/nonos/activate.sh
 
 cd esp-env/nonos/sdk/
-git clone git@github.com:easyqiot/smart-outlet.git
-cd smart-outlet
+git clone git@github.com:easyqiot/fota.git
+cd fota 
 bash ./gen_misc.sh
 ```
 
