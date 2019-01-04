@@ -144,7 +144,7 @@ void user_init(void) {
 			p.wifi_psk);
 	return;
 	//setup_easyq(&p);
-    WIFI_Connect(WIFI_SSID, WIFI_PSK, wifi_connect_cb);
+    wifi_connect(WIFI_SSID, WIFI_PSK, wifi_connect_cb);
     INFO("System started ...\r\n");
 }
 

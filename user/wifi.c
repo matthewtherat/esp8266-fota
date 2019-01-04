@@ -50,7 +50,7 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg)
 	}
 }
 
-void ICACHE_FLASH_ATTR WIFI_Connect(uint8_t* ssid, uint8_t* pass, WifiCallback cb)
+void ICACHE_FLASH_ATTR wifi_connect(uint8_t* ssid, uint8_t* pass, WifiCallback cb)
 {
 	struct station_config stationConf;
 

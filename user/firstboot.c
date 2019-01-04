@@ -4,6 +4,7 @@
 #include <ets_sys.h>
 #include <c_types.h>
 #include <os_type.h>
+#include <espconn.h>
 
 #include "debug.h"
 #include "wifi.h"
@@ -351,7 +352,7 @@
 //
 //
 //static ICACHE_FLASH_ATTR
-//void webserver_discon(void *arg)
+//void fb_webserver_disconnect(void *arg)
 //{
 //    struct espconn *pesp_conn = arg;
 //
@@ -362,7 +363,7 @@
 //
 //
 //static ICACHE_FLASH_ATTR
-//void webserver_listen(void *arg)
+//void fb_webserver_listen(void *arg)
 //{
 //    struct espconn *pesp_conn = arg;
 //    espconn_regist_recvcb(pesp_conn, webserver_recv);
@@ -389,7 +390,25 @@
 void ICACHE_FLASH_ATTR
 fb_start() {
 	uint8_t mac[6];
-    wifi_set_opmode(SOFTAP_MODE);
+
+	/***add by tzx for saving ip_info to avoid dhcp_client start****/
+    struct dhcp_client_info dhcp_info;
+    struct ip_info sta_info;
+    system_rtc_mem_read(64, &dhcp_info, sizeof(struct dhcp_client_info));
+	if(dhcp_info.flag == 0x01 ) {
+		if (true == wifi_station_dhcpc_status()) {
+			wifi_station_dhcpc_stop();
+		}
+		sta_info.ip = dhcp_info.ip_addr;
+		sta_info.gw = dhcp_info.gw;
+		sta_info.netmask = dhcp_info.netmask;
+		if ( true != wifi_set_ip_info(STATION_IF, &sta_info)) {
+			os_printf("set default ip wrong\n");
+		}
+	}
+    os_memset(&dhcp_info, 0, sizeof(struct dhcp_client_info));
+    system_rtc_mem_write(64, &dhcp_info, sizeof(struct rst_info));
+
 
 	// Get the device mac address
 	bool ok = wifi_get_macaddr(SOFTAP_IF, &mac[0]);
@@ -421,6 +440,7 @@ fb_start() {
 		ERROR("Cannot set softap config\r\n");
 		return;
 	}
+    wifi_set_opmode(SOFTAP_MODE);
 
     struct station_info * station = wifi_softap_get_station_info();
     while (station) {
