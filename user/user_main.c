@@ -138,6 +138,7 @@ void user_init(void) {
 	if (!ok) {
 		ERROR("Cannot load Params\r\n");
 		fb_start();
+		fb_webserver_init(80);
 		return;
 	}
 	INFO("Params loaded sucessfully: ssid: %s psk: %s\r\n", p.wifi_ssid, 
