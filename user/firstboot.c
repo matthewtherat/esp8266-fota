@@ -34,7 +34,7 @@
 	"<form method=\"post\">" \
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
 	"PSK: <input name=\"psk\"/><br/>" \
-	"EASYQ: <input name=\"easq\"/><br/>" \
+	"EASYQ: <input name=\"easyq\"/><br/>" \
 	"NAME: <input name=\"name\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
@@ -102,7 +102,7 @@ fb_update_params_field(Params *out, const char *field, const char *value) {
 	else if (os_strcmp(field, "easyq") == 0) {
 		target = (char*)&out->easyq_host;
 	}
-	else if (os_strcmp(field, "device_name") == 0) {
+	else if (os_strcmp(field, "name") == 0) {
 		target = (char*)&out->device_name;
 	}
 	else return;

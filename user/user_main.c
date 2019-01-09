@@ -83,7 +83,10 @@ easyq_connect_cb(void *arg) {
 	INFO("EASYQ: Connected to %s:%d\r\n", eq.hostname, eq.port);
 	INFO("\r\n***** OTA ****\r\n");
 	INFO("Device: %s\r\n", params.device_name);
-	const char * queues[] = {FOTA_QUEUE};
+	
+	char fota_queue[32];
+	os_sprintf(fota_queue, "%s"FOTA_QUEUE, params.device_name);
+	const char * queues[] = {fota_queue};
 	easyq_pull_all(&eq, queues, 1);
     os_timer_disarm(&status_timer);
     os_timer_setfn(&status_timer, (os_timer_func_t *)status_timer_func, NULL);
@@ -143,8 +146,11 @@ void user_init(void) {
 		fb_webserver_init(80);
 		return;
 	}
-	INFO("Params loaded sucessfully: ssid: %s psk: %s\r\n", params.wifi_ssid, 
-			params.wifi_psk);
+	INFO("Params loaded sucessfully: ssid: %s psk: %s easyq: %s name: %s\r\n",
+			params.wifi_ssid, 
+			params.wifi_psk,
+			params.easyq_host,
+			params.device_name);
 	setup_easyq();
     wifi_connect(params.wifi_ssid, params.wifi_psk, wifi_connect_cb);
     INFO("System started ...\r\n");
