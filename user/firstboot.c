@@ -32,7 +32,7 @@
 #define HTML_FORM \
 	HTML_HEADER \
 	"<form method=\"post\">" \
-	"SSID: <input name=\"ssid\"/><br/>" \
+	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
 	"PSK: <input name=\"psk\"/><br/>" \
 	"EASYQ: <input name=\"easq\"/><br/>" \
 	"NAME: <input name=\"name\"/><br/>" \
@@ -46,7 +46,7 @@ static esp_tcp esptcp;
 
 
 static void ICACHE_FLASH_ATTR
-send_response(bool ok, char *response_buffer) {
+send_response(bool ok, const char *response_buffer) {
 	uint16_t total_length = 0;
 	uint16_t head_length = 0;
     char *send_buffer = NULL;
@@ -73,16 +73,64 @@ send_response(bool ok, char *response_buffer) {
 
 	espconn_sent(&esp_conn, send_buffer, total_length);
     os_free(send_buffer);
-    os_free(response_buffer);
 }
 
 
 static void ICACHE_FLASH_ATTR
 fb_serve_form() {
 	char *buffer = (char*) os_zalloc(1024);
-	os_sprintf(buffer, HTML_FORM);
+	Params params;
+	if (!params_load(&params)) {
+		params.wifi_ssid[0] = 0;
+	}
+	os_sprintf(buffer, HTML_FORM, params.wifi_ssid);
 	send_response(true, buffer);	
+    os_free(buffer);
 }
+
+
+static void ICACHE_FLASH_ATTR
+fb_update_params_field(Params *out, const char *field, const char *value) {
+	INFO("Updating Field: %s with value: %s\r\n", field, value);
+	char *target;
+	if (os_strcmp(field, "ssid") == 0) {
+		target = (char*)&out->wifi_ssid;
+	}
+	else if (os_strcmp(field, "psk") == 0) {
+		target = (char*)&out->wifi_psk;
+	}
+	else if (os_strcmp(field, "easyq") == 0) {
+		target = (char*)&out->easyq_host;
+	}
+	else if (os_strcmp(field, "device_name") == 0) {
+		target = (char*)&out->device_name;
+	}
+	else return;
+	os_strcpy(target, value);
+}
+
+
+static void ICACHE_FLASH_ATTR
+fb_parse_form(const char *form, Params *out) {
+	char *field = (char*)&form[0];
+	char *value;
+	char *tmp;
+
+	while (true) {
+		value = os_strstr(field, "=") + 1;
+		(value-1)[0] = 0;
+		tmp  = os_strstr(value, "&");
+		if (tmp != NULL) {
+			tmp[0] = 0;
+		}
+		fb_update_params_field(out, field, value);
+		if (tmp == NULL) {
+			return;
+		}
+		field = tmp + 1;
+	}
+}
+
 
 static Error ICACHE_FLASH_ATTR
 fb_parse_request(char *data, uint16_t length, Request *req) {
@@ -104,19 +152,6 @@ fb_parse_request(char *data, uint16_t length, Request *req) {
 		req->body_length = length - (req->body - data);	
 		return OK;
 	}
-	
-/*
-GET / HTTP/1.1
-Host: 192.168.43.1
-Connection: keep-alive
-Cache-Control: max-age=0
-Upgrade-Insecure-Requests: 1
-Save-Data: on
-User-Agent: Mozilla/5.0 (Linux; Android 8.0.0; SM-G955F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.99 Mobile Safari/537.36
-Accept-Encoding: gzip, deflate
-Accept-Language: en-US,en;q=0.9,fa;q=0.8,ru;q=0.7
-
-*/
 
 error:
 	req->body_length = 0;
@@ -142,7 +177,15 @@ fb_webserver_recv(void *arg, char *data, uint16_t length) {
 		fb_serve_form();
 	}
 	else {
-		send_response(true, NULL);
+		Params params;
+		fb_parse_form(req.body, &params);
+		if(!params_save(&params)) {
+			ERROR("Cannot save params\r\n");
+			send_response(false, "Error Saving parameters");
+		}
+		
+		send_response(true, "Update Successfull, Rebooting...");
+		system_restart();
 	}
 }
 
@@ -230,6 +273,7 @@ fb_start() {
 	}
 
 	// initialization
+	// TODO: free ?
     struct softap_config *config = (struct softap_config *) \
 			os_zalloc(sizeof(struct softap_config));
 
