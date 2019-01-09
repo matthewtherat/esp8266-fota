@@ -9,23 +9,102 @@
 #include "debug.h"
 #include "wifi.h"
 #include "firstboot.h"
+#include "params.h"
 
 
 #define FB_RESPONSE_HEADER_FORMAT \
 	"HTTP/1.0 200 OK\r\n"\
 	"Content-Length: %d\r\n"\
-	"Server: lwIP/1.4.0\r\n"
-
-#define FB_CONTENT_LENGTH_FORMAT \
-	"Content-type: application/json\r\n"\
+	"Server: lwIP/1.4.0\r\n"\
+	"Content-type: text/html\r\n"\
 	"Expires: Fri, 10 Apr 2008 14:00:00 GMT\r\n"\
 	"Pragma: no-cache\r\n\r\n"
 
 #define FB_BAD_REQUEST_FORMAT \
 	"HTTP/1.0 400 BadRequest\r\n"\
 	"Content-Length: 0\r\n"\
-	"Server: lwIP/1.4.0\r\n\n"
+	"Server: lwIP/1.4.0\r\n"
 
+#define HTML_HEADER \
+	"<!DOCTYPE html><html>" \
+	"<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
+#define HTML_FOOTER "\r\n</body></html>\r\n"
+#define HTML_FORM \
+	HTML_HEADER \
+	"<form method=\"post\">" \
+	"SSID: <input name=\"ssid\"/><br/>" \
+	"PSK: <input name=\"psk\"/><br/>" \
+	"EASYQ: <input name=\"easq\"/><br/>" \
+	"NAME: <input name=\"name\"/><br/>" \
+	"<input type=\"submit\" value=\"Reboot\" />" \
+	"</form>" \
+	HTML_FOOTER
+
+
+static struct espconn esp_conn;
+static esp_tcp esptcp;
+
+
+static void ICACHE_FLASH_ATTR
+send_response(bool ok, char *response_buffer) {
+	uint16_t total_length = 0;
+	uint16_t head_length = 0;
+    char *send_buffer = NULL;
+    char httphead[256];
+    os_memset(httphead, 0, 256);
+	uint16_t response_length = (ok && response_buffer != NULL) ? \
+		os_strlen(response_buffer): 0;
+
+	os_sprintf(
+			httphead, 
+			ok? FB_RESPONSE_HEADER_FORMAT: FB_BAD_REQUEST_FORMAT, 
+			response_length
+		);
+	head_length = os_strlen(httphead);	
+    total_length = head_length + response_length;
+    send_buffer = (char *)os_zalloc(total_length + 1);
+	// Write head
+    os_memcpy(send_buffer, httphead, head_length);
+
+	// Body
+    if (response_length > 0) {
+        os_memcpy(send_buffer+head_length, response_buffer, response_length);
+    }
+
+	espconn_sent(&esp_conn, send_buffer, total_length);
+    os_free(send_buffer);
+    os_free(response_buffer);
+}
+
+
+static void ICACHE_FLASH_ATTR
+fb_serve_form() {
+	char *buffer = (char*) os_zalloc(1024);
+	os_sprintf(buffer, HTML_FORM);
+	send_response(true, buffer);	
+}
+
+static Error ICACHE_FLASH_ATTR
+fb_parse_request(char *data, uint16_t length, Request *req) {
+	char *cursor;
+	if (os_strncmp(data, "GET", 3) == 0) {
+		req->verb = GET;
+		req->body_length = 0;
+		req->body =  NULL; 	
+		return OK;
+	}
+	
+	if (os_strncmp(data, "POST", 4) == 0) {
+		req->verb = POST;
+		req->body = (char*)os_strstr(data, "\r\n\r\n");
+		if (req->body == NULL) {
+			goto error;
+		}
+		req->body += 4;
+		req->body_length = length - (req->body - data);	
+		return OK;
+	}
+	
 /*
 GET / HTTP/1.1
 Host: 192.168.43.1
@@ -39,74 +118,32 @@ Accept-Language: en-US,en;q=0.9,fa;q=0.8,ru;q=0.7
 
 */
 
-static void ICACHE_FLASH_ATTR
-data_send(void *arg, bool responseOK, char *body) {
-    uint16 length = 0;
-    char *pbuf = NULL;
-    char httphead[256];
-    struct espconn *ptrespconn = arg;
-    os_memset(httphead, 0, 256);
+error:
+	req->body_length = 0;
+	send_response(false, NULL);
+	return 1;
 
-    if (responseOK) {
-        os_sprintf(
-				httphead, 
-				FB_RESPONSE_HEADER_FORMAT,
-                body ? os_strlen(body) : 0
-			);
-
-        if (body) {
-            os_sprintf(
-					httphead + os_strlen(httphead),
-                    FB_CONTENT_LENGTH_FORMAT
-				);
-            length = os_strlen(httphead) + os_strlen(body);
-            pbuf = (char *)os_zalloc(length + 1);
-            os_memcpy(pbuf, httphead, os_strlen(httphead));
-            os_memcpy(pbuf + os_strlen(httphead), body, os_strlen(body));
-        } else {
-            os_sprintf(httphead + os_strlen(httphead), "\n");
-            length = os_strlen(httphead);
-        }
-    } else {
-        os_sprintf(httphead, FB_BAD_REQUEST_FORMAT);
-        length = os_strlen(httphead);
-    }
-
-    if (body) {
-        espconn_sent(ptrespconn, pbuf, length);
-    } else {
-        espconn_sent(ptrespconn, httphead, length);
-    }
-
-    if (pbuf) {
-        os_free(pbuf);
-        pbuf = NULL;
-    }
-}
-
-typedef enum httpverb {
-	GET,
-	POST
-} HTTPVerb;
-
-typedef struct request {
-	HTTPVerb verb;
-	char *body;
-	uint32_t body_length;
-} Request;
-
-static void ICACHE_FLASH_ATTR
-parse_request(char *data, uint32_t length, Request *req) {
 }
 
 
 static void ICACHE_FLASH_ATTR
-fb_webserver_recv(void *arg, char *data, unsigned short length) {
-	//os_printf("-%u-> %s\r\n", length, data);
-	//Request *req = (Request*)zalloc(sizeof(Request));
-	//parse_request(data, length, req);
-	//os_strncpy(req, data, length);
-	//os_printf("--> %s\r\n", length, data);
+fb_webserver_recv(void *arg, char *data, uint16_t length) {
+	Request req;
+	if(OK != fb_parse_request(data, length, &req)) {
+		return;
+	}
+
+	os_printf("--> Verb: %s Length: %d Body: %s\r\n", 
+			req.verb == 0 ? "GET" : "POST", 
+			req.body_length, 
+			req.body
+	);
+	if (req.verb == GET) {
+		fb_serve_form();
+	}
+	else {
+		send_response(true, NULL);
+	}
 }
 
 
@@ -153,8 +190,6 @@ void fb_webserver_listen(void *arg)
 void ICACHE_FLASH_ATTR
 fb_webserver_init(uint32 port)
 {
-    LOCAL struct espconn esp_conn;
-    LOCAL esp_tcp esptcp;
 
     esp_conn.type = ESPCONN_TCP;
     esp_conn.state = ESPCONN_NONE;
