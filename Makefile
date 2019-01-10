@@ -22,9 +22,9 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
-	user \
 	easyq \
-	fota
+	fota \
+	user 
 
 endif # } PDIR
 
@@ -48,9 +48,9 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
-	user/libuser.a  \
 	easyq/libeasyq.a \
-	fota/libfota.a
+	fota/libfota.a \
+	user/libuser.a 
 
 LINKFLAGS_eagle.app.v6 = \
 	-L../lib        \
@@ -70,13 +70,13 @@ LINKFLAGS_eagle.app.v6 = \
 	-lwpa	\
 	-lcrypto	\
 	-lmain	\
-	-ljson	\
 	-lupgrade\
 	-ldriver \
 	-lhal					\
 	$(DEP_LIBS_eagle.app.v6)					\
 	-Wl,--end-group
 
+#	-ljson	\
 #	-lsmartconfig \
 #	-lmbedtls	\
 #	-lpwm	\
@@ -87,8 +87,7 @@ DEPENDS_eagle.app.v6 = \
 
 #############################################################
 # Configuration i.e. compile options etc.
-# Target specific stuff (defines etc.) goes in here!
-# Generally values applying to a tree are captured in the
+# Target specific stuff (defines etc.) goes in here!  # Generally values applying to a tree are captured in the
 #   makefile at its root level - these are then overridden
 #   for a subtree within the makefile rooted therein
 #
@@ -124,9 +123,9 @@ DDEFINES +=				\
 #
 
 INCLUDES := $(INCLUDES) \
-	-I $(PDIR)include \
 	-I $(PDIR)easyq/include \
-	-I $(PDIR)fota/include 
+	-I $(PDIR)fota/include \
+	-I $(PDIR)include
 
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile

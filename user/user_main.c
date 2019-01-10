@@ -1,8 +1,8 @@
 
 // Internal 
+#include "io_config.h"
 #include "partition.h"
 #include "wifi.h"
-#include "io_config.h"
 #include "fota.h"
 #include "params.h" 
 // SDK
@@ -73,12 +73,6 @@ easyq_message_cb(void *arg, const char *queue, const char *msg,
 
 
 void ICACHE_FLASH_ATTR
-status_timer_func() {
-	fota_report_status();
-}
-
-
-void ICACHE_FLASH_ATTR
 easyq_connect_cb(void *arg) {
 	INFO("EASYQ: Connected to %s:%d\r\n", eq.hostname, eq.port);
 	INFO("\r\n***** OTA ****\r\n");
@@ -87,8 +81,8 @@ easyq_connect_cb(void *arg) {
 	const char * queues[] = {FOTA_QUEUE};
 	easyq_pull_all(&eq, queues, 1);
     os_timer_disarm(&status_timer);
-    os_timer_setfn(&status_timer, (os_timer_func_t *)status_timer_func, NULL);
-    os_timer_arm(&status_timer, 1000, 0);
+    os_timer_setfn(&status_timer, (os_timer_func_t *)fota_report_status, NULL);
+    os_timer_arm(&status_timer, 3000, 1);
 }
 
 
@@ -104,10 +98,6 @@ void easyq_disconnect_cb(void *arg)
 {
 	EasyQSession *e = (EasyQSession*) arg;
 	INFO("EASYQ: Disconnected from %s:%d\r\n", e->hostname, e->port);
-	EasyQError err = easyq_reconnect(&eq);
-    if (EASYQ_OK != err) {
-		ERROR("Cannot schedule reconnect sig: %d\r\n", err);
-	}
 }
 
 
@@ -150,7 +140,7 @@ void user_init(void) {
 			params.wifi_psk,
 			params.easyq_host
 		);
-	setup_easyq();
+	setup_easyq(&params);
     wifi_connect(params.wifi_ssid, params.wifi_psk, wifi_connect_cb);
     INFO("System started ...\r\n");
 }
