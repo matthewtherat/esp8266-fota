@@ -104,7 +104,10 @@ void easyq_disconnect_cb(void *arg)
 {
 	EasyQSession *e = (EasyQSession*) arg;
 	INFO("EASYQ: Disconnected from %s:%d\r\n", e->hostname, e->port);
-	easyq_delete(&eq);
+	EasyQError err = easyq_reconnect(&eq);
+    if (EASYQ_OK != err) {
+		ERROR("Cannot schedule reconnect sig: %d\r\n", err);
+	}
 }
 
 
