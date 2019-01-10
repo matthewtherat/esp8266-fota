@@ -82,7 +82,7 @@ easyq_connect_cb(void *arg) {
 	easyq_pull_all(&eq, queues, 1);
     os_timer_disarm(&status_timer);
     os_timer_setfn(&status_timer, (os_timer_func_t *)fota_report_status, NULL);
-    os_timer_arm(&status_timer, 3000, 1);
+    os_timer_arm(&status_timer, 1000, 0);
 }
 
 

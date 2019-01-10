@@ -138,7 +138,7 @@ flash_erase:
 	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
 
 
-flash_map2_user1:
+flash_map2:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
 	$(ESPTOOL) --flash_size 1MB  \
@@ -154,7 +154,7 @@ flash_map2_user1:
 #		0x7b000 ../bin/blank.bin 
 
 
-flash_map3_user1:
+flash_map3:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=3
 	$(ESPTOOL) --flash_size 2MB  \
@@ -169,7 +169,7 @@ flash_map3_user1:
 #		0x7a000 ../bin/blank.bin \
 #		0x7b000 ../bin/blank.bin 
 
-flash_map5_user1:
+flash_map5:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=5
 	$(ESPTOOL) --flash_size 2MB  \
