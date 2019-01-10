@@ -12,7 +12,6 @@ typedef struct {
 	uint8_t wifi_ssid[32];
 	uint8_t wifi_psk[32];
 	uint8_t easyq_host[32];
-	uint8_t device_name[16];
 } Params;
 
 

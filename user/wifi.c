@@ -8,8 +8,10 @@
 #include "user_config.h"
 
 static ETSTimer WiFiLinker;
-static uint8_t wifiStatus = STATION_IDLE, lastWifiStatus = STATION_IDLE;
+static uint8_t wifiStatus = STATION_IDLE;
+static uint8_t lastWifiStatus = STATION_IDLE;
 WifiCallback wifiCb = NULL;
+
 
 static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg)
 {

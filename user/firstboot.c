@@ -10,6 +10,7 @@
 #include "wifi.h"
 #include "firstboot.h"
 #include "params.h"
+#include "io_config.h"
 
 
 #define FB_RESPONSE_HEADER_FORMAT \
@@ -35,7 +36,6 @@
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
 	"PSK: <input name=\"psk\"/><br/>" \
 	"EASYQ: <input name=\"easyq\"/><br/>" \
-	"NAME: <input name=\"name\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
 	HTML_FOOTER
@@ -101,9 +101,6 @@ fb_update_params_field(Params *out, const char *field, const char *value) {
 	}
 	else if (os_strcmp(field, "easyq") == 0) {
 		target = (char*)&out->easyq_host;
-	}
-	else if (os_strcmp(field, "name") == 0) {
-		target = (char*)&out->device_name;
 	}
 	else return;
 	os_strcpy(target, value);
@@ -281,7 +278,8 @@ fb_start() {
     wifi_softap_get_config(config);     
 
 	// Updating ssid and password
-	os_sprintf(config->ssid, "esp8266_"MACSTR, MAC2STR(mac));
+	os_sprintf(config->ssid, DEVICE_NAME"_%02x%02x%02x%02x%02x%02x", 
+			MAC2STR(mac));
 	INFO("SSID: %s\r\n", config->ssid);
     config->ssid_len = 0; 
     os_sprintf(config->password, FB_SOFTAP_PSK);

@@ -162,12 +162,11 @@ flash_map3_user1:
 		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
 		0x1fc000 ../bin/esp_init_data_default_v08.bin \
 		0x1fb000 ../bin/blank.bin \
-		0x1fe000 ../bin/blank.bin 
-
-#		0x78000 ../bin/blank.bin \
-#		0x79000 ../bin/blank.bin \
-#		0x7a000 ../bin/blank.bin \
-#		0x7b000 ../bin/blank.bin 
+		0x1fe000 ../bin/blank.bin \
+		0x78000 ../bin/blank.bin \
+		0x79000 ../bin/blank.bin \
+		0x7a000 ../bin/blank.bin \
+		0x7b000 ../bin/blank.bin 
 
 flash_map5_user1:
 	make clean
