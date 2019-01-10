@@ -140,7 +140,7 @@ void user_init(void) {
 			params.wifi_psk,
 			params.easyq_host
 		);
-	setup_easyq(&params);
+	setup_easyq();
     wifi_connect(params.wifi_ssid, params.wifi_psk, wifi_connect_cb);
     INFO("System started ...\r\n");
 }
