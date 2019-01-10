@@ -103,7 +103,7 @@ void easyq_disconnect_cb(void *arg)
 
 void setup_easyq() {
 	EasyQError err = \
-			easyq_init(&eq, params.easyq_host, EASYQ_PORT, DEVICE_NAME);
+			easyq_init(&eq, params.easyq_host, EASYQ_PORT, EASYQ_LOGIN);
 	if (err != EASYQ_OK) {
 		ERROR("EASYQ INIT ERROR: %d\r\n", err);
 		return;
