@@ -131,17 +131,25 @@ void user_init(void) {
 	bool ok = params_load(&params);
 	if (!ok) {
 		ERROR("Cannot load Params\r\n");
-		fb_start();
-		fb_webserver_init(80);
+#if !WIFI_ENABLE_SOFTAP
 		return;
+#endif
 	}
-	INFO("Params loaded sucessfully: ssid: %s psk: %s easyq: %s\r\n",
-			params.wifi_ssid, 
-			params.wifi_psk,
-			params.easyq_host
-		);
+	else {
+		INFO("Params loaded sucessfully: ssid: %s psk: %s easyq: %s\r\n",
+				params.wifi_ssid, 
+				params.wifi_psk,
+				params.easyq_host
+			);
+	}
+
+    wifi_connect(STATIONAP_MODE, DEVICE_NAME, params.wifi_ssid, 
+			params.wifi_psk, wifi_connect_cb);
+
+#if WIFI_ENABLE_SOFTAP
+	fb_start();
+#endif
 	setup_easyq();
-    wifi_connect(params.wifi_ssid, params.wifi_psk, wifi_connect_cb);
     INFO("System started ...\r\n");
 }
 

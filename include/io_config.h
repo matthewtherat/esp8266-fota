@@ -11,5 +11,6 @@
 #define FOTA_QUEUE				DEVICE_NAME":fota"
 #define FOTA_STATUS_QUEUE		DEVICE_NAME":fota:status"
 
+#define WIFI_ENABLE_SOFTAP  true
 #endif
 
