@@ -35,7 +35,6 @@
 	"<form method=\"post\">" \
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
 	"PSK: <input name=\"psk\"/><br/>" \
-	"EASYQ: <input name=\"easyq\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
 	HTML_FOOTER
@@ -98,9 +97,6 @@ fb_update_params_field(Params *out, const char *field, const char *value) {
 	}
 	else if (os_strcmp(field, "psk") == 0) {
 		target = (char*)&out->wifi_psk;
-	}
-	else if (os_strcmp(field, "easyq") == 0) {
-		target = (char*)&out->easyq_host;
 	}
 	else return;
 	os_strcpy(target, value);

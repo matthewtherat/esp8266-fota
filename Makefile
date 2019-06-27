@@ -22,8 +22,6 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
-	easyq \
-	fota \
 	user 
 
 endif # } PDIR
@@ -48,8 +46,6 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
-	easyq/libeasyq.a \
-	fota/libfota.a \
 	user/libuser.a 
 
 LINKFLAGS_eagle.app.v6 = \
@@ -123,8 +119,6 @@ DDEFINES +=				\
 #
 
 INCLUDES := $(INCLUDES) \
-	-I $(PDIR)easyq/include \
-	-I $(PDIR)fota/include \
 	-I $(PDIR)include
 
 PDIR := ../$(PDIR)
@@ -137,10 +131,11 @@ ESPTOOL = esptool.py --baud 115200 write_flash -u --flash_mode qio --flash_freq 
 flash_erase:
 	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
 
-
-flash_map2:
+map2user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
+
+flash_map2user1: map2user1
 	$(ESPTOOL) --flash_size 1MB  \
 		0x0 	../bin/boot_v1.7.bin \
 		0x1000  ../bin/upgrade/user1.1024.new.2.bin \
