@@ -33,8 +33,9 @@
 	HTML_HEADER \
 	"<form method=\"post\">" \
 	"name: <input name=\"name\" value=\"%s\"/><br/>" \
+	"AP PSK: <input name=\"ap_psk\" value=\"%s\"/><br/>" \
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
-	"PSK: <input name=\"psk\"/><br/>" \
+	"PSK: <input name=\"psk\" value=\"%s\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
 	HTML_FOOTER
@@ -80,9 +81,10 @@ fb_serve_form() {
 	char *buffer = (char*) os_zalloc(1024);
 	Params params;
 	if (!params_load(&params)) {
-		params.wifi_ssid[0] = 0;
+		params.station_ssid[0] = 0;
 	}
-	os_sprintf(buffer, HTML_FORM, params.device_name, params.wifi_ssid);
+	os_sprintf(buffer, HTML_FORM, params.device_name, params.ap_psk, 
+			params.station_ssid, params.station_psk);
 	send_response(true, buffer);	
     os_free(buffer);
 }
@@ -95,11 +97,14 @@ fb_update_params_field(Params *out, const char *field, const char *value) {
 	if (os_strcmp(field, "name") == 0) {
 		target = (char*)&out->device_name;
 	}
+	else if (os_strcmp(field, "ap_psk") == 0) {
+		target = (char*)&out->ap_psk;
+	}
 	else if (os_strcmp(field, "ssid") == 0) {
-		target = (char*)&out->wifi_ssid;
+		target = (char*)&out->station_ssid;
 	}
 	else if (os_strcmp(field, "psk") == 0) {
-		target = (char*)&out->wifi_psk;
+		target = (char*)&out->station_psk;
 	}
 	else return;
 	os_strcpy(target, value);

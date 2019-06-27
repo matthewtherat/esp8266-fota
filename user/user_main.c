@@ -38,10 +38,7 @@ void user_init(void) {
 #if !WIFI_ENABLE_SOFTAP
 		return;
 #endif
-		os_sprintf(params.device_name, "NewDevice");
-		params.wifi_ssid[0] = 0;
-		params.wifi_psk[0] = 0;
-		if(!params_save(&params)) {
+		if(!params_defaults(&params)) {
 			ERROR("Cannot save params\r\n");
 			return;
 		}
@@ -50,12 +47,11 @@ void user_init(void) {
 
 	INFO("Params: name: %s, ssid: %s psk: %s\r\n",
 			params.device_name,
-			params.wifi_ssid, 
-			params.wifi_psk
+			params.station_ssid, 
+			params.station_psk
 		);
 
-    wifi_start(STATIONAP_MODE, params.device_name, params.wifi_ssid, 
-			params.wifi_psk, wifi_connect_cb);
+    wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);
 
 #if WIFI_ENABLE_SOFTAP
 	fb_start();

@@ -16,12 +16,9 @@
 
 
 #define WIFI_SOFTAP_CHANNEL		7
-#define WIFI_SOFTAP_PSK			"esp-8266"
 
 
 typedef void (*WifiCallback)(uint8_t);
-void ICACHE_FLASH_ATTR wifi_start(uint8_t opmode, const char *device_name, 
-		uint8_t* ssid, uint8_t* pass, WifiCallback cb);
 
 struct dhcp_client_info {
 	ip_addr_t ip_addr;

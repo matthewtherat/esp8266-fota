@@ -19,7 +19,5 @@ typedef err_t Error;
 #define OK 0
 
 
-void user_webserver_init(uint32 port);
-
 
 #endif

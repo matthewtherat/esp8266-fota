@@ -1,6 +1,7 @@
 #include "wifi.h"
 #include "debug.h"
 #include "user_config.h"
+#include "params.h"
 
 #include <user_interface.h>
 #include <osapi.h>
@@ -57,7 +58,7 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 
 
 static void ICACHE_FLASH_ATTR 
-wifi_init_softap(const char *device_name) {
+wifi_init_softap(const char *ssid, const char *psk) {
 	uint8_t mac[6];
 
 	/***add by tzx for saving ip_info to avoid dhcp_client start****/
@@ -95,12 +96,15 @@ wifi_init_softap(const char *device_name) {
 
 	// Updating ssid and password
 	os_sprintf(config->ssid, "%s_%02x%02x%02x%02x%02x%02x", 
-			device_name,
-			MAC2STR(mac));
+			ssid,
+			MAC2STR(mac)
+		);
 	INFO("SSID: %s\r\n", config->ssid);
     config->ssid_len = 0; 
-    os_sprintf(config->password, WIFI_SOFTAP_PSK);
-    config->authmode = AUTH_WPA_WPA2_PSK;
+	if (os_strlen(psk)) {
+		os_sprintf(config->password, psk);
+    	config->authmode = AUTH_WPA_WPA2_PSK;
+	}
     config->max_connection = 4;
 	config->channel = 5;	
 	config->beacon_interval = 120;
@@ -137,13 +141,13 @@ wifi_init_softap(const char *device_name) {
 }
 
 
-void ICACHE_FLASH_ATTR wifi_start(uint8_t opmode, const char* device_name,
-		uint8_t* ssid, uint8_t* pass, WifiCallback cb) {
+void ICACHE_FLASH_ATTR wifi_start(uint8_t opmode, Params *params, 
+		WifiCallback cb) {
 	struct station_config stationConf;
 
 	INFO("WIFI_INIT\r\n");
 	if (opmode == STATIONAP_MODE) {
-		wifi_init_softap(device_name);
+		wifi_init_softap(params->device_name, params->ap_psk);
 	}
 	wifi_set_opmode_current(opmode);
 	//wifi_set_sleep_type(NONE_SLEEP_T);
@@ -154,8 +158,8 @@ void ICACHE_FLASH_ATTR wifi_start(uint8_t opmode, const char* device_name,
 
 	os_memset(&stationConf, 0, sizeof(struct station_config));
 
-	os_sprintf(stationConf.ssid, "%s", ssid);
-	os_sprintf(stationConf.password, "%s", pass);
+	os_sprintf(stationConf.ssid, "%s", params->station_ssid);
+	os_sprintf(stationConf.password, "%s", params->station_psk);
 
 	wifi_station_set_config_current(&stationConf);
 

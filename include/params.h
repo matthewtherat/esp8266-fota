@@ -6,12 +6,14 @@
 
 #define PARAMS_SECTOR SYSTEM_PARTITION_PARAMS_ADDR / 4096 
 
+#define MAGIC 'I'
 
 typedef struct {
-	 char magic;
 	 char device_name[16];
-	 char wifi_ssid[32];
-	 char wifi_psk[32];
+	 char ap_psk[32];
+	 char station_ssid[32];
+	 char station_psk[32];
+	 char magic;
 } Params;
 
 
