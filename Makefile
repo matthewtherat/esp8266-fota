@@ -124,11 +124,10 @@ INCLUDES := $(INCLUDES) \
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 
-.PHONY: flash flash_user2 fota
 
 ESPTOOL = esptool.py --baud 115200 write_flash -u --flash_mode qio --flash_freq 40m
 
-flash_erase:
+erase_flash:
 	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
 
 map2user1:
@@ -148,10 +147,11 @@ flash_map2user1: map2user1
 #		0x7a000 ../bin/blank.bin \
 #		0x7b000 ../bin/blank.bin 
 
-
-flash_map3:
+map3user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=3
+
+flash_map3user1:
 	$(ESPTOOL) --flash_size 2MB  \
 		0x0 	../bin/boot_v1.7.bin \
 		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
@@ -163,9 +163,11 @@ flash_map3:
 		0x7a000 ../bin/blank.bin \
 		0x7b000 ../bin/blank.bin 
 
-flash_map5:
+map5user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=5
+
+flash_map5user1: map5user1
 	$(ESPTOOL) --flash_size 2MB  \
 		0x0 	../bin/boot_v1.7.bin \
 		0x1000  ../bin/upgrade/user1.2048.new.5.bin \
@@ -173,3 +175,5 @@ flash_map5:
 		0x1fb000 ../bin/blank.bin \
 		0x1fe000 ../bin/blank.bin \
 
+
+.PHONY: 
