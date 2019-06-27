@@ -124,8 +124,8 @@ INCLUDES := $(INCLUDES) \
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 
-
-ESPTOOL = esptool.py --baud 115200 write_flash -u --flash_mode qio --flash_freq 40m
+BAUDRATE = 576000
+ESPTOOL = esptool.py --baud $(BAUDRATE) write_flash -u --flash_mode qio --flash_freq 40m
 
 erase_flash:
 	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
@@ -174,6 +174,18 @@ flash_map5user1: map5user1
 		0x1fc000 ../bin/esp_init_data_default_v08.bin \
 		0x1fb000 ../bin/blank.bin \
 		0x1fe000 ../bin/blank.bin \
+
+map6user1:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
+
+flash_map6user1: map6user1
+	$(ESPTOOL) --flash_size 4MB-c1  \
+		0x0 	../bin/boot_v1.7.bin \
+		0x1000  ../bin/upgrade/user1.4096.new.6.bin \
+		0x3fc000 ../bin/esp_init_data_default_v08.bin \
+		0x3fb000 ../bin/blank.bin \
+		0x3fe000 ../bin/blank.bin \
 
 
 .PHONY: 

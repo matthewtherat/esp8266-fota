@@ -10,7 +10,6 @@
 #include "wifi.h"
 #include "firstboot.h"
 #include "params.h"
-#include "io_config.h"
 
 
 #define FB_RESPONSE_HEADER_FORMAT \
@@ -33,6 +32,7 @@
 #define HTML_FORM \
 	HTML_HEADER \
 	"<form method=\"post\">" \
+	"name: <input name=\"name\" value=\"%s\"/><br/>" \
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
 	"PSK: <input name=\"psk\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
@@ -82,7 +82,7 @@ fb_serve_form() {
 	if (!params_load(&params)) {
 		params.wifi_ssid[0] = 0;
 	}
-	os_sprintf(buffer, HTML_FORM, params.wifi_ssid);
+	os_sprintf(buffer, HTML_FORM, params.device_name, params.wifi_ssid);
 	send_response(true, buffer);	
     os_free(buffer);
 }
@@ -92,7 +92,10 @@ static void ICACHE_FLASH_ATTR
 fb_update_params_field(Params *out, const char *field, const char *value) {
 	INFO("Updating Field: %s with value: %s\r\n", field, value);
 	char *target;
-	if (os_strcmp(field, "ssid") == 0) {
+	if (os_strcmp(field, "name") == 0) {
+		target = (char*)&out->device_name;
+	}
+	else if (os_strcmp(field, "ssid") == 0) {
 		target = (char*)&out->wifi_ssid;
 	}
 	else if (os_strcmp(field, "psk") == 0) {
@@ -214,12 +217,13 @@ void fb_webserver_disconnected(void *arg)
 
 
 static ICACHE_FLASH_ATTR
-void fb_webserver_listen(void *arg)
+void fb_webserver_connected(void *arg)
 {
     struct espconn *pesp_conn = arg;
     espconn_regist_recvcb(pesp_conn, fb_webserver_recv);
     espconn_regist_reconcb(pesp_conn, fb_webserver_recon);
     espconn_regist_disconcb(pesp_conn, fb_webserver_disconnected);
+
 }
 
 
@@ -229,7 +233,15 @@ fb_start() {
     esp_conn.state = ESPCONN_NONE;
     esp_conn.proto.tcp = &esptcp;
     esp_conn.proto.tcp->local_port = 80;
-    espconn_regist_connectcb(&esp_conn, fb_webserver_listen);
+    os_printf("First boot webserver is listening on: %d.%d.%d.%d:%d\n", 
+			esp_conn.proto.tcp->local_ip[0],
+        	esp_conn.proto.tcp->local_ip[1],
+			esp_conn.proto.tcp->local_ip[2],
+        	esp_conn.proto.tcp->local_ip[3],
+			esp_conn.proto.tcp->local_port
+	);
+
+    espconn_regist_connectcb(&esp_conn, fb_webserver_connected);
     espconn_accept(&esp_conn);
 }
 

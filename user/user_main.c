@@ -1,6 +1,6 @@
 
 // Internal 
-#include "io_config.h"
+#include "user_config.h"
 #include "partition.h"
 #include "wifi.h"
 #include "fota.h"
@@ -38,15 +38,23 @@ void user_init(void) {
 #if !WIFI_ENABLE_SOFTAP
 		return;
 #endif
-	}
-	else {
-		INFO("Params loaded sucessfully: ssid: %s psk: %s\r\n",
-				params.wifi_ssid, 
-				params.wifi_psk
-			);
+		os_sprintf(params.device_name, "NewDevice");
+		params.wifi_ssid[0] = 0;
+		params.wifi_psk[0] = 0;
+		if(!params_save(&params)) {
+			ERROR("Cannot save params\r\n");
+			return;
+		}
+	
 	}
 
-    wifi_start(STATIONAP_MODE, DEVICE_NAME, params.wifi_ssid, 
+	INFO("Params: name: %s, ssid: %s psk: %s\r\n",
+			params.device_name,
+			params.wifi_ssid, 
+			params.wifi_psk
+		);
+
+    wifi_start(STATIONAP_MODE, params.device_name, params.wifi_ssid, 
 			params.wifi_psk, wifi_connect_cb);
 
 #if WIFI_ENABLE_SOFTAP

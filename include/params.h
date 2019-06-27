@@ -8,9 +8,10 @@
 
 
 typedef struct {
-	uint8_t magic;
-	uint8_t wifi_ssid[32];
-	uint8_t wifi_psk[32];
+	 char magic;
+	 char device_name[16];
+	 char wifi_ssid[32];
+	 char wifi_psk[32];
 } Params;
 
 
