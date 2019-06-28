@@ -22,6 +22,7 @@ static Params params;
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
 		fb_start();
+		fb_mdns_init(&params);
     } else {
 		fb_stop();
     }

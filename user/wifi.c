@@ -150,6 +150,7 @@ void ICACHE_FLASH_ATTR wifi_start(uint8_t opmode, Params *params,
 		wifi_init_softap(params->device_name, params->ap_psk);
 	}
 	wifi_set_opmode_current(opmode);
+	wifi_set_broadcast_if(STATIONAP_MODE);
 	//wifi_set_sleep_type(NONE_SLEEP_T);
 	//wifi_set_sleep_type(MODEM_SLEEP_T);
 	//wifi_set_sleep_type(LIGHT_SLEEP_T);

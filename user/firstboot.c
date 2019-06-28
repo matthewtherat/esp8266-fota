@@ -232,6 +232,7 @@ void fb_webserver_connected(void *arg)
 }
 
 
+
 void ICACHE_FLASH_ATTR
 fb_start() {
     esp_conn.type = ESPCONN_TCP;
@@ -256,4 +257,24 @@ fb_stop() {
 	espconn_disconnect(&esp_conn);
 	espconn_delete(&esp_conn);
 }
+
+
+static struct mdns_info info;
+
+void ICACHE_FLASH_ATTR
+fb_mdns_init(Params *params) {
+
+	struct ip_info ipconfig;
+	wifi_get_ip_info(STATION_IF, &ipconfig);
+	info.host_name = params->device_name;
+	info.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
+	info.server_name = "firstboot";
+	info.server_port = 80;
+	info.txt_data[0] = "version = 1.0";
+	//info->txt_data[1] = "user1 = data1";
+	//info->txt_data[2] = "user2 = data2";
+	espconn_mdns_init(&info);
+}
+
+
 
