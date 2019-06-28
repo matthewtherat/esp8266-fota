@@ -21,12 +21,11 @@ static Params params;
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-		//fota_server_start()
+		fb_start();
     } else {
-		//fota_server_stop()
+		fb_stop();
     }
 }
-
 
 
 void user_init(void) {
@@ -51,10 +50,10 @@ void user_init(void) {
 			params.station_psk
 		);
 
-    wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);
-
 #if WIFI_ENABLE_SOFTAP
-	fb_start();
+    wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);
+#else
+    wifi_start(STATION_MODE, &params, wifi_connect_cb);
 #endif
     INFO("System started ...\r\n");
 }

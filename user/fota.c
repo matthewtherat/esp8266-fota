@@ -265,8 +265,6 @@ fota_init(const char *hostname, uint8_t hostname_len, uint16_t port) {
 	fs.sector = system_upgrade_userbin_check() == UPGRADE_FW_BIN1 ?
 		SYSTEM_PARTITION_OTA2_ADDR / FOTA_SECTOR_SIZE: 1;
 
-//		FOTA_PARTITION_OTA2_ADDR / FOTA_SECTOR_SIZE: 1;
-
 	fs.chunk_index = 0;
 	fs.ok = false;
 	//system_soft_wdt_stop();

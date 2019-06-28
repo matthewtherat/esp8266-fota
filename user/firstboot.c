@@ -250,3 +250,10 @@ fb_start() {
     espconn_accept(&esp_conn);
 }
 
+
+void ICACHE_FLASH_ATTR
+fb_stop() {
+	espconn_disconnect(&esp_conn);
+	espconn_delete(&esp_conn);
+}
+
