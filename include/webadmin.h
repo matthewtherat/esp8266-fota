@@ -1,5 +1,5 @@
-#ifndef _FIRSTBOOT_H__
-#define _FIRSTBOOT_H__
+#ifndef _WEBADMIN_H__
+#define _WEBADMIN_H__
 
 #define FB_HTTPSERVER_PORT 80
 #define FB_URL_SIZE 10
@@ -11,9 +11,19 @@ typedef enum httpverb {
 
 typedef struct request {
 	HTTPVerb verb;
-	char *body;
+	char *path;
+	char *content_type;
 	uint16_t body_length;
+	char *body;
 } Request;
+
+typedef enum {
+	IDLE,
+
+	MULTIPART,
+
+
+typedef struct {
 
 typedef err_t Error;
 #define OK 0

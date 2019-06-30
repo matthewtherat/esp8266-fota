@@ -32,11 +32,17 @@
 #define HTML_FORM \
 	HTML_HEADER \
 	"<form method=\"post\">" \
+	"<h4>Settings</h4>" \
 	"name: <input name=\"name\" value=\"%s\"/><br/>" \
 	"AP PSK: <input name=\"ap_psk\" value=\"%s\"/><br/>" \
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
 	"PSK: <input name=\"psk\" value=\"%s\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
+	"</form>" \
+	"<h4>Firmware</h4>" \
+	"<form method=\"upgrade\">" \
+	"<input name=\"firmware\" type=\"file\"/><br/>" \
+	"<input type=\"submit\" value=\"Upgrade\" />" \
 	"</form>" \
 	HTML_FOOTER
 
@@ -228,7 +234,6 @@ void fb_webserver_connected(void *arg)
     espconn_regist_recvcb(pesp_conn, fb_webserver_recv);
     espconn_regist_reconcb(pesp_conn, fb_webserver_recon);
     espconn_regist_disconcb(pesp_conn, fb_webserver_disconnected);
-
 }
 
 
@@ -249,6 +254,8 @@ fb_start() {
 
     espconn_regist_connectcb(&esp_conn, fb_webserver_connected);
     espconn_accept(&esp_conn);
+	espconn_tcp_set_max_con_allow(&esp_conn, 1);
+	espconn_regist_time(&esp_conn, WA_TIMEOUT, 1);
 }
 
 
