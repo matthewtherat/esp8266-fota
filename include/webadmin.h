@@ -1,6 +1,9 @@
 #ifndef _WEBADMIN_H__
 #define _WEBADMIN_H__
 
+#include "httpserver.h"
+
+
 #define FB_HTTPSERVER_PORT 80
 #define FB_URL_SIZE 10
 
