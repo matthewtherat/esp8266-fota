@@ -60,9 +60,9 @@ httpserver_init(HttpServer *s) {
 	);
 
 	espconn_regist_connectcb(&s->connection, httpserver_connected);
-	espconn_accept(s->connection);
-	espconn_tcp_set_max_con_allow(s->connection, 1);
-	espconn_regist_time(s->connection, HTTPSERVER_TIMEOUT, 1);
+	espconn_accept(&s->connection);
+	espconn_tcp_set_max_con_allow(&s->connection, 1);
+	espconn_regist_time(&s->connection, HTTPSERVER_TIMEOUT, 1);
 	return OK;
 }
 
