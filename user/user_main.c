@@ -3,9 +3,9 @@
 #include "user_config.h"
 #include "partition.h"
 #include "wifi.h"
-#include "fota.h"
 #include "params.h" 
 #include "debug.h"
+#include "webadmin.h"
 
 // SDK
 #include <ets_sys.h>
@@ -41,13 +41,13 @@ void user_init(void) {
 			ERROR("Cannot save params\r\n");
 			return;
 		}
-	
 	}
 
-	INFO("Params: name: %s, ssid: %s psk: %s\r\n",
+	INFO("\r\nParams: name: %s, ssid: %s psk: %s ap-psk: %s\r\n",
 			params.device_name,
 			params.station_ssid, 
-			params.station_psk
+			params.station_psk,
+			params.ap_psk
 		);
 
 #if WIFI_ENABLE_SOFTAP

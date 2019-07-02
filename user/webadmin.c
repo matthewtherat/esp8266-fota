@@ -212,14 +212,6 @@
 //}
 //
 //
-//static ICACHE_FLASH_ATTR
-//void fb_webserver_connected(void *arg)
-//{
-//    struct espconn *pesp_conn = arg;
-//    espconn_regist_recvcb(pesp_conn, fb_webserver_recv);
-//    espconn_regist_reconcb(pesp_conn, fb_webserver_recon);
-//    espconn_regist_disconcb(pesp_conn, fb_webserver_disconnected);
-//}
 //
 #include "params.h"
 #include "httpserver.h"
@@ -230,7 +222,6 @@ static HttpServer httpserver;
 int ICACHE_FLASH_ATTR
 webadmin_start(Params *params) {
 	httpserver.hostname = params->device_name;
-	httpserver_mdns_init(&httpserver); 
 	httpserver_init(&httpserver);
 	return OK;
 }
@@ -238,7 +229,7 @@ webadmin_start(Params *params) {
 
 void ICACHE_FLASH_ATTR
 webadmin_stop() {
-	httpserver_stop();
+	httpserver_stop(&httpserver);
 }
 
 

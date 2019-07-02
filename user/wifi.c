@@ -49,6 +49,7 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 		os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
 		os_timer_arm(&WiFiLinker, 500, 0);
 	}
+	
 	if(wifiStatus != lastWifiStatus){
 		lastWifiStatus = wifiStatus;
 		if(wifiCb)

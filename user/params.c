@@ -28,3 +28,4 @@ params_defaults(Params* params) {
 	params->station_psk[0] = 0;
 	return params_save(params);
 }
+
