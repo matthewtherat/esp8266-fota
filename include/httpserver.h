@@ -43,7 +43,6 @@ typedef struct {
 typedef struct {
 	struct espconn connection;
 	esp_tcp esptcp;
-	struct mdns_info mdns;
 	char *hostname;
 	HttpRoute routes[];
 } HttpServer;

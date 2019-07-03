@@ -153,66 +153,6 @@
 //}
 //
 //
-//static void ICACHE_FLASH_ATTR
-//fb_webserver_recv(void *arg, char *data, uint16_t length) {
-//	Request req;
-//	if(OK != fb_parse_request(data, length, &req)) {
-//		return;
-//	}
-//
-//	os_printf("--> Verb: %s Length: %d Body: %s\r\n", 
-//			req.verb == 0 ? "GET" : "POST", 
-//			req.body_length, 
-//			req.body
-//	);
-//	if (req.verb == GET) {
-//		fb_serve_form();
-//	}
-//	else {
-//		Params params;
-//		fb_parse_form(req.body, &params);
-//		if(!params_save(&params)) {
-//			ERROR("Cannot save params\r\n");
-//			send_response(false, "Error Saving parameters");
-//		}
-//		
-//		send_response(true, "Update Successfull, Rebooting...");
-//		system_restart();
-//	}
-//}
-//
-//
-//static ICACHE_FLASH_ATTR
-//void fb_webserver_recon(void *arg, sint8 err)
-//{
-//    struct espconn *pesp_conn = arg;
-//    os_printf("webserver's %d.%d.%d.%d:%d err %d reconnect\n", 
-//			pesp_conn->proto.tcp->remote_ip[0],
-//    		pesp_conn->proto.tcp->remote_ip[1],
-//			pesp_conn->proto.tcp->remote_ip[2],
-//    		pesp_conn->proto.tcp->remote_ip[3],
-//			pesp_conn->proto.tcp->remote_port, 
-//			err
-//	);
-//}
-//
-//
-//static ICACHE_FLASH_ATTR
-//void fb_webserver_disconnected(void *arg)
-//{
-//    struct espconn *pesp_conn = arg;
-//
-//    os_printf("webserver's %d.%d.%d.%d:%d disconnect\n", 
-//			pesp_conn->proto.tcp->remote_ip[0],
-//        	pesp_conn->proto.tcp->remote_ip[1],
-//			pesp_conn->proto.tcp->remote_ip[2],
-//        	pesp_conn->proto.tcp->remote_ip[3],
-//			pesp_conn->proto.tcp->remote_port
-//	);
-//}
-//
-//
-//
 #include "params.h"
 #include "httpserver.h"
 

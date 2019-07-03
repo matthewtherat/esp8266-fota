@@ -130,50 +130,50 @@ ESPTOOL = esptool.py --baud $(BAUDRATE) write_flash -u --flash_mode qio --flash_
 erase_flash:
 	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
 
-map2user1:
-	make clean
-	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
-
-flash_map2user1: map2user1
-	$(ESPTOOL) --flash_size 1MB  \
-		0x0 	../bin/boot_v1.7.bin \
-		0x1000  ../bin/upgrade/user1.1024.new.2.bin \
-		0xfc000 ../bin/esp_init_data_default_v08.bin \
-		0xfb000 ../bin/blank.bin \
-		0xfe000 ../bin/blank.bin
-
+#map2user1:
+#	make clean
+#	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
+#
+#flash_map2user1: map2user1
+#	$(ESPTOOL) --flash_size 1MB  \
+#		0x0 	../bin/boot_v1.7.bin \
+#		0x1000  ../bin/upgrade/user1.1024.new.2.bin \
+#		0xfc000 ../bin/esp_init_data_default_v08.bin \
+#		0xfb000 ../bin/blank.bin \
+#		0xfe000 ../bin/blank.bin
+#
+##		0x78000 ../bin/blank.bin \
+##		0x79000 ../bin/blank.bin \
+##		0x7a000 ../bin/blank.bin \
+##		0x7b000 ../bin/blank.bin 
+#
+#map3user1:
+#	make clean
+#	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=3
+#
+#flash_map3user1:
+#	$(ESPTOOL) --flash_size 2MB  \
+#		0x0 	../bin/boot_v1.7.bin \
+#		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
+#		0x1fc000 ../bin/esp_init_data_default_v08.bin \
+#		0x1fb000 ../bin/blank.bin \
+#		0x1fe000 ../bin/blank.bin \
 #		0x78000 ../bin/blank.bin \
 #		0x79000 ../bin/blank.bin \
 #		0x7a000 ../bin/blank.bin \
 #		0x7b000 ../bin/blank.bin 
-
-map3user1:
-	make clean
-	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=3
-
-flash_map3user1:
-	$(ESPTOOL) --flash_size 2MB  \
-		0x0 	../bin/boot_v1.7.bin \
-		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
-		0x1fc000 ../bin/esp_init_data_default_v08.bin \
-		0x1fb000 ../bin/blank.bin \
-		0x1fe000 ../bin/blank.bin \
-		0x78000 ../bin/blank.bin \
-		0x79000 ../bin/blank.bin \
-		0x7a000 ../bin/blank.bin \
-		0x7b000 ../bin/blank.bin 
-
-map5user1:
-	make clean
-	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=5
-
-flash_map5user1: map5user1
-	$(ESPTOOL) --flash_size 2MB  \
-		0x0 	../bin/boot_v1.7.bin \
-		0x1000  ../bin/upgrade/user1.2048.new.5.bin \
-		0x1fc000 ../bin/esp_init_data_default_v08.bin \
-		0x1fb000 ../bin/blank.bin \
-		0x1fe000 ../bin/blank.bin \
+#
+#map5user1:
+#	make clean
+#	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=5
+#
+#flash_map5user1: map5user1
+#	$(ESPTOOL) --flash_size 2MB  \
+#		0x0 	../bin/boot_v1.7.bin \
+#		0x1000  ../bin/upgrade/user1.2048.new.5.bin \
+#		0x1fc000 ../bin/esp_init_data_default_v08.bin \
+#		0x1fb000 ../bin/blank.bin \
+#		0x1fe000 ../bin/blank.bin \
 
 map6user1:
 	make clean

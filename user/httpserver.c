@@ -10,42 +10,89 @@
 #include <os_type.h>
 
 
-int ICACHE_FLASH_ATTR 
-static httpserver_mdns_init(HttpServer *s) {
+static HttpServer *server;
+static struct mdns_info mdns;
+static struct mdns_info mdns2;
+
+
+static void ICACHE_FLASH_ATTR
+void _client_recv(void *arg, char *data, uint16_t length) {
+	Request req;
+	if(OK != _parse_request(data, length, &req)) {
+		return;
+	}
+
+	os_printf("--> Verb: %s Length: %d Body: %s\r\n", 
+			req.verb, 
+			req.body_length, 
+			req.body
+	);
+	
+	// Dispatch
+}
+
+
+static ICACHE_FLASH_ATTR 
+void _mdns_init(HttpServer *s) {
 	struct ip_info ipconfig;
+	wifi_set_broadcast_if(STATIONAP_MODE);
+
 	wifi_get_ip_info(STATION_IF, &ipconfig);
-	s->mdns.host_name = s->hostname;
-	s->mdns.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
-	s->mdns.server_name = HTTPSERVER_NAME;
-	s->mdns.server_port = HTTPSERVER_PORT;
-	s->mdns.txt_data[0] = "version = "HTTPSERVER_VERSION;
-	//info->txt_data[1] = "user1 = data1";
-	//info->txt_data[2] = "user2 = data2";
-	espconn_mdns_init(&s->mdns);
-	return OK;
+	mdns.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
+	mdns.host_name = s->hostname;
+	mdns.server_name = HTTPSERVER_NAME;
+	mdns.server_port = HTTPSERVER_PORT;
+	mdns.txt_data[0] = "version = "HTTPSERVER_VERSION;
+	espconn_mdns_init(&mdns);
 }
 
 
 static ICACHE_FLASH_ATTR
-void httpserver_connected(void *arg)
+void _client_recon(void *arg, char err)
 {
-    //struct espconn *pesp_conn = arg;
-    //espconn_regist_recvcb(pesp_conn, fb_webserver_recv);
-    //espconn_regist_reconcb(pesp_conn, fb_webserver_recon);
-    //espconn_regist_disconcb(pesp_conn, fb_webserver_disconnected);
+    struct espconn *pesp_conn = arg;
+    os_printf("webserver's %d.%d.%d.%d:%d err %d reconnect\n", 
+			pesp_conn->proto.tcp->remote_ip[0],
+    		pesp_conn->proto.tcp->remote_ip[1],
+			pesp_conn->proto.tcp->remote_ip[2],
+    		pesp_conn->proto.tcp->remote_ip[3],
+			pesp_conn->proto.tcp->remote_port, 
+			err
+	);
 }
 
 
-int ICACHE_FLASH_ATTR 
-httpserver_init(HttpServer *s) {
+
+static ICACHE_FLASH_ATTR
+void _client_disconnected(void *arg)
+{
+    struct espconn *conn = arg;
+    os_printf("Client %d.%d.%d.%d:%d disconnect\n", 
+			conn->proto.tcp->remote_ip[0],
+        	conn->proto.tcp->remote_ip[1],
+			conn->proto.tcp->remote_ip[2],
+        	conn->proto.tcp->remote_ip[3],
+			conn->proto.tcp->remote_port
+	);
+}
+
+
+static ICACHE_FLASH_ATTR
+void _client_connected(void *arg)
+{
+    struct espconn *conn = arg;
+    espconn_regist_recvcb(conn, _client_recv);
+    espconn_regist_reconcb(conn, _client_recon);
+    espconn_regist_disconcb(conn, _client_disconnected);
+}
+
+
+ICACHE_FLASH_ATTR 
+int httpserver_init(HttpServer *s) {
 	int err; 
+	server = s;
 #ifdef HTTPSERVER_MDNS
-	err = httpserver_mdns_init(s);
-	if (err) {
-		ERROR("Cannot start mDNS: %d\r\n", err);
-		return err;
-	}
-	INFO("mDNS started sucessfully\r\n");
+	_mdns_init(s);
 #endif
     s->connection.type = ESPCONN_TCP;
     s->connection.state = ESPCONN_NONE;
@@ -59,7 +106,7 @@ httpserver_init(HttpServer *s) {
 			s->connection.proto.tcp->local_port
 	);
 
-	espconn_regist_connectcb(&s->connection, httpserver_connected);
+	espconn_regist_connectcb(&s->connection, _client_connected);
 	espconn_accept(&s->connection);
 	espconn_tcp_set_max_con_allow(&s->connection, 1);
 	espconn_regist_time(&s->connection, HTTPSERVER_TIMEOUT, 1);
@@ -68,9 +115,10 @@ httpserver_init(HttpServer *s) {
 
 
 void ICACHE_FLASH_ATTR
-httpserver_stop(HttpServer *s) {
-	espconn_disconnect(&s->connection);
-	espconn_delete(&s->connection);
+httpserver_stop() {
+	espconn_disconnect(&server->connection);
+	espconn_delete(&server->connection);
+	server = NULL;
 }
 
 
