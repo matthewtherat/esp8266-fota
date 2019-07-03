@@ -122,37 +122,6 @@
 //		field = tmp + 1;
 //	}
 //}
-//
-//
-//static Error ICACHE_FLASH_ATTR
-//fb_parse_request(char *data, uint16_t length, Request *req) {
-//	char *cursor;
-//	if (os_strncmp(data, "GET", 3) == 0) {
-//		req->verb = GET;
-//		req->body_length = 0;
-//		req->body =  NULL; 	
-//		return OK;
-//	}
-//	
-//	if (os_strncmp(data, "POST", 4) == 0) {
-//		req->verb = POST;
-//		req->body = (char*)os_strstr(data, "\r\n\r\n");
-//		if (req->body == NULL) {
-//			goto error;
-//		}
-//		req->body += 4;
-//		req->body_length = length - (req->body - data);	
-//		return OK;
-//	}
-//
-//error:
-//	req->body_length = 0;
-//	send_response(false, NULL);
-//	return 1;
-//
-//}
-//
-//
 #include "params.h"
 #include "httpserver.h"
 
@@ -169,7 +138,7 @@ webadmin_start(Params *params) {
 
 void ICACHE_FLASH_ATTR
 webadmin_stop() {
-	httpserver_stop(&httpserver);
+	httpserver_stop();
 }
 
 
