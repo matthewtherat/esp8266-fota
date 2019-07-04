@@ -74,6 +74,7 @@ typedef struct {
 	char *hostname;
 	Request request;
 	HttpServerStatus status;
+	uint8_t routes_length;
 	HttpRoute routes[];
 } HttpServer;
 

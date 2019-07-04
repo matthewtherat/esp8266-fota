@@ -9,12 +9,32 @@
 #include <c_types.h>
 #include <os_type.h>
 
+
 // TODO: Max connection: 1
 
 static HttpServer *server;
 static struct mdns_info mdns;
-static struct mdns_info mdns2;
 static char *buff_header;
+
+
+static ICACHE_FLASH_ATTR
+int _dispatch(int remaining) {
+	Request *req = &server->request;
+
+//	if (req->content_length == 0) {
+//		_cleanup_request();
+//		return;
+//	}
+//
+//	// Consuming body
+//	uint32_t needed = (req->content_length + 2) - req->body_read_size;
+//	os_printf("Reading body: %d\r\n", remaining);
+//	req->body_read_size += remaining;
+//	if (remaining >= needed) {
+//		os_printf("Cleaning up: %d\r\n", req->body_read_size);
+//		_cleanup_request();
+//	}
+}
 
 
 static ICACHE_FLASH_ATTR
@@ -61,8 +81,7 @@ int _read_header(char *data, uint16_t length) {
 		}
 	}
 
-	// Terminating the strings
-	
+	// Terminating strings
 	if (req->content_type != NULL) {
 		req->content_type[content_type_len] = 0;
 	}
@@ -115,24 +134,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		remaining = length;
 	}
 	
-	if (req->content_length == 0) {
-		_cleanup_request();
-		return;
-	}
-
-	// Consuming body
-	uint32_t needed = (req->content_length + 2) - req->body_read_size;
-	os_printf("Reading body: %d\r\n", remaining);
-	req->body_read_size += remaining;
-	if (remaining >= needed) {
-		os_printf("Cleaning up: %d\r\n", req->body_read_size);
-		_cleanup_request();
-	}
-
-	// TODO: Dispatch
-	//_dispatch(&server->req);
-	
-
+	_dispatch(remaining);
 }
 
 
