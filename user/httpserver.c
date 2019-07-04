@@ -14,63 +14,28 @@
 static HttpServer *server;
 static struct mdns_info mdns;
 static struct mdns_info mdns2;
-
-
-static ICACHE_FLASH_ATTR
-int _parse_request(char *data, uint16_t length, Request *req) {
-	char *cursor;
-
-	req->verb = data;
-	cursor = os_strchr(data, ' ');
-	cursor[0] = 0;
-
-	req->path = ++cursor;
-	cursor = os_strchr(cursor, ' ');
-	cursor[0] = 0;
-
-	req->content_type = os_strstr(++cursor, "Content-Type:");
-	if (req->content_type != NULL) {
-		cursor = os_strstr(++cursor, "\r\n");
-		cursor[0] = 0;
-		cursor += 2;
-	}
-
-	req->content_type = os_strstr(++cursor, "Content-Length:");
-	if (req->content_length != NULL) {
-		cursor = os_strstr(++cursor, "\r\n");
-		cursor[0] = 0;
-		cursor += 2;
-	}
-
-	req->body = (char*)os_strstr(cursor, "\r\n\r\n");
-	if (req->body != NULL) {
-		req->body += 4;
-		req->body_length = length - (req->body - data);	
-	}
-	return OK;
-}
+static char *buff_header;
 
 
 static ICACHE_FLASH_ATTR
 int _read_header(char *data, uint16_t length) {
 	// TODO: max header length check !
-	char *buff = server->buff_header;
 	char *cursor = os_strstr(data, "\r\n\r\n");
 	char *headers;
 	uint16_t content_type_len;
+	Request *req = &server->request;
 
 	uint16_t l = (cursor == NULL)? length: (cursor - data) + 4;
-	os_memcpy(&buff[server->buff_header_length], data, l);
-	server->buff_header_length += l;
+	os_memcpy(buff_header + req->buff_header_length, data, l);
+	req->buff_header_length += l;
 
 	if (cursor == NULL) {
 		// Request for more data, incomplete http header
 		return 0;
 	}
 	
-	Request *req = &server->request;
-	req->verb = buff;
-	cursor = os_strchr(buff, ' ');
+	req->verb = buff_header;
+	cursor = os_strchr(buff_header, ' ');
 	cursor[0] = 0;
 
 	req->path = ++cursor;
@@ -107,10 +72,9 @@ int _read_header(char *data, uint16_t length) {
 
 static ICACHE_FLASH_ATTR
 void _cleanup_request() {
-	os_memset(server->buff_header, 0, HTTP_HEADER_BUFFER_SIZE);
-	os_memset(&server->request, 0, sizeof(Request));
-	server->body_read_size = 0;
-	server->buff_header_length = 0;
+	Request *req = &server->request;
+	os_memset(buff_header, 0, HTTP_HEADER_BUFFER_SIZE);
+	os_memset(req, 0, sizeof(Request));
 	server->status = HSS_IDLE;
 }
 
@@ -151,9 +115,16 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		remaining = length;
 	}
 	
-	server->body_read_size += remaining;
-	uint32_t needed = req->content_length - server->body_read_size;
+	if (req->content_length == 0) {
+		_cleanup_request();
+		return;
+	}
+
+	uint32_t needed = (req->content_length + 2) - req->body_read_size;
+	os_printf("Reading body: %d\r\n", remaining);
+	req->body_read_size += remaining;
 	if (remaining >= needed) {
+		os_printf("Cleaning up: %d\r\n", req->body_read_size);
 		_cleanup_request();
 	}
 	// TODO: Dispatch
@@ -218,7 +189,7 @@ void _client_connected(void *arg)
 
 ICACHE_FLASH_ATTR 
 int httpserver_init(HttpServer *s) {
-	s->buff_header = (char*)os_zalloc(HTTP_HEADER_BUFFER_SIZE);
+	buff_header = (char*)os_zalloc(HTTP_HEADER_BUFFER_SIZE);
 	s->status = HSS_IDLE;
 	server = s;
 #ifdef HTTPSERVER_MDNS
@@ -251,8 +222,8 @@ void httpserver_stop() {
 	}
 	espconn_disconnect(&server->connection);
 	espconn_delete(&server->connection);
-	if (server->buff_header != NULL) {
-		os_free(server->buff_header);
+	if (buff_header != NULL) {
+		os_free(buff_header);
 	}
 	server = NULL;
 }

@@ -38,8 +38,10 @@ typedef struct {
 	char *path;
 	char *content_type;
 	uint32_t content_length;
-	char *body;
 	uint16_t body_length;
+
+	uint16_t buff_header_length;
+	uint16_t body_read_size;
 } Request;
 
 typedef int (*Handler)(Request *req);
@@ -64,10 +66,6 @@ typedef struct {
 	char *hostname;
 	Request request;
 	HttpServerStatus status;
-	// TODO: Move them to Request struct
-	char *buff_header;
-	uint16_t buff_header_length;
-	uint16_t body_read_size;
 	HttpRoute routes[];
 } HttpServer;
 
