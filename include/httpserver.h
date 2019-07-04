@@ -32,6 +32,14 @@
 
 #define OK	0
 
+#define IP_FORMAT	"%d.%d.%d.%d:%d"
+
+#define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]
+#define unpack_tcp(tcp) \
+	tcp->local_ip[0], tcp->local_ip[1], \
+	tcp->local_ip[2], tcp->local_ip[3], \
+	tcp->local_port
+
 
 typedef struct {
 	char *verb;

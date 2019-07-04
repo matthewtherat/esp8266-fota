@@ -120,6 +120,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		return;
 	}
 
+	// Consuming body
 	uint32_t needed = (req->content_length + 2) - req->body_read_size;
 	os_printf("Reading body: %d\r\n", remaining);
 	req->body_read_size += remaining;
@@ -127,6 +128,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		os_printf("Cleaning up: %d\r\n", req->body_read_size);
 		_cleanup_request();
 	}
+
 	// TODO: Dispatch
 	//_dispatch(&server->req);
 	
@@ -150,30 +152,21 @@ void _mdns_init(HttpServer *s) {
 
 
 static ICACHE_FLASH_ATTR
-void _client_recon(void *arg, char err) {
+void _client_recon(void *arg, int8_t err) {
     struct espconn *conn = arg;
-    os_printf("webserver's %d.%d.%d.%d:%d err %d reconnect\n", 
-			conn->proto.tcp->remote_ip[0],
-    		conn->proto.tcp->remote_ip[1],
-			conn->proto.tcp->remote_ip[2],
-    		conn->proto.tcp->remote_ip[3],
-			conn->proto.tcp->remote_port, 
+	os_printf("HTTPServer "IP_FORMAT" err %d reconnecting...\r\n",  
+			unpack_tcp(conn->proto.tcp),
 			err
-	);
+		);
 }
-
 
 
 static ICACHE_FLASH_ATTR
 void _client_disconnected(void *arg) {
     struct espconn *conn = arg;
-    os_printf("Client %d.%d.%d.%d:%d disconnect\n", 
-			conn->proto.tcp->remote_ip[0],
-        	conn->proto.tcp->remote_ip[1],
-			conn->proto.tcp->remote_ip[2],
-        	conn->proto.tcp->remote_ip[3],
-			conn->proto.tcp->remote_port
-	);
+	os_printf("Client "IP_FORMAT" has been disconnected.\r\n",  
+			unpack_tcp(conn->proto.tcp)
+		);
 }
 
 
@@ -199,12 +192,8 @@ int httpserver_init(HttpServer *s) {
     s->connection.state = ESPCONN_NONE;
     s->connection.proto.tcp = &s->esptcp;
     s->connection.proto.tcp->local_port = HTTPSERVER_PORT;
-    os_printf("HTTP Server is listening on: %d.%d.%d.%d:%d\n", 
-			s->connection.proto.tcp->local_ip[0],
-        	s->connection.proto.tcp->local_ip[1],
-			s->connection.proto.tcp->local_ip[2],
-        	s->connection.proto.tcp->local_ip[3],
-			s->connection.proto.tcp->local_port
+	os_printf("HTTP Server is listening on: "IP_FORMAT"\r\n",  
+			unpack_tcp(s->connection.proto.tcp)
 	);
 
 	espconn_regist_connectcb(&s->connection, _client_connected);
@@ -227,5 +216,4 @@ void httpserver_stop() {
 	}
 	server = NULL;
 }
-
 
