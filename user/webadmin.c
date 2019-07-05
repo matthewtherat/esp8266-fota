@@ -37,37 +37,6 @@
 //
 //
 //static void ICACHE_FLASH_ATTR
-//send_response(bool ok, const char *response_buffer) {
-//	uint16_t total_length = 0;
-//	uint16_t head_length = 0;
-//    char *send_buffer = NULL;
-//    char httphead[256];
-//    os_memset(httphead, 0, 256);
-//	uint16_t response_length = (ok && response_buffer != NULL) ? \
-//		os_strlen(response_buffer): 0;
-//
-//	os_sprintf(
-//			httphead, 
-//			ok? FB_RESPONSE_HEADER_FORMAT: FB_BAD_REQUEST_FORMAT, 
-//			response_length
-//		);
-//	head_length = os_strlen(httphead);	
-//    total_length = head_length + response_length;
-//    send_buffer = (char *)os_zalloc(total_length + 1);
-//	// Write head
-//    os_memcpy(send_buffer, httphead, head_length);
-//
-//	// Body
-//    if (response_length > 0) {
-//        os_memcpy(send_buffer+head_length, response_buffer, response_length);
-//    }
-//
-//	espconn_sent(&esp_conn, send_buffer, total_length);
-//    os_free(send_buffer);
-//}
-//
-//
-//static void ICACHE_FLASH_ATTR
 //fb_serve_form() {
 //	char *buffer = (char*) os_zalloc(1024);
 //	Params params;

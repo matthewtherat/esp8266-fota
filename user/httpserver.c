@@ -17,21 +17,79 @@ static struct mdns_info mdns;
 static char *buff_header;
 
 
-static ICACHE_FLASH_ATTR
-int _dispatch(int remaining) {
-	Request *req = &server->request;
+//static void ICACHE_FLASH_ATTR
+//send_response(bool ok, const char *response_buffer) {
+//	uint16_t total_length = 0;
+//	uint16_t head_length = 0;
+//    char *send_buffer = NULL;
+//    char httphead[256];
+//    os_memset(httphead, 0, 256);
+//	uint16_t response_length = (ok && response_buffer != NULL) ? \
+//		os_strlen(response_buffer): 0;
+//
+//	os_sprintf(
+//			httphead, 
+//			ok? FB_RESPONSE_HEADER_FORMAT: FB_BAD_REQUEST_FORMAT, 
+//			response_length
+//		);
+//	head_length = os_strlen(httphead);	
+//    total_length = head_length + response_length;
+//    send_buffer = (char *)os_zalloc(total_length + 1);
+//	// Write head
+//    os_memcpy(send_buffer, httphead, head_length);
+//
+//	// Body
+//    if (response_length > 0) {
+//        os_memcpy(send_buffer+head_length, response_buffer, response_length);
+//    }
+//
+//	espconn_sent(&esp_conn, send_buffer, total_length);
+//    os_free(send_buffer);
+//}
+//
+//
 
+
+static ICACHE_FLASH_ATTR
+int _dispatch(char *body, uint32_t body_length) {
+	Request *req = &server->request;
+	Route *route = NULL;
+	Handler handler;
+	int16_t statuscode;
+	
+	for (int i = 0; i < server->routes_length) {
+		route = &server->routes[i];
+		if (matchroute(route, req)) {
+			break;
+		}
+	}
+	
+	if (route == NULL) {
+		httpserver_response_write_status(HTTPSTATUS_NOTFOUND);
+		httpserver_response_write_header(HTTPHEADER_CONTENTTYPE_TEXT);
+		httpserver_response_finalize();
+		return;
+	}
+
+	uint32_t more = (req->content_length + 2) - req->body_cursor;
+	bool last = (more - body_length) == 0;
+	route->handler(
+			req, 
+			body, 
+			last? body_length - 2: body_length, 
+			more - 2
+		);
 //	if (req->content_length == 0) {
 //		_cleanup_request();
 //		return;
 //	}
 //
 //	// Consuming body
-//	uint32_t needed = (req->content_length + 2) - req->body_read_size;
+//	uint32_t needed = (req->content_length + 2) - req->body_cursor;
 //	os_printf("Reading body: %d\r\n", remaining);
-//	req->body_read_size += remaining;
+//	req->body_cursor += remaining;
 //	if (remaining >= needed) {
-//		os_printf("Cleaning up: %d\r\n", req->body_read_size);
+//		os_printf("Cleaning up: %d\r\n", req->body_cursor);
 //		_cleanup_request();
 //	}
 }
@@ -105,8 +163,8 @@ void _client_recv(void *arg, char *data, uint16_t length) {
     struct espconn *conn = arg;
 	Request *req = &server->request;
 
-	if (server->status < HSS_BODY) {
-		server->status = HSS_HEADER;
+	if (server->status < HSS_REQ_BODY) {
+		server->status = HSS_REQ_HEADER;
 		readsize = _read_header(data, length);
 		if (readsize < 0) {
 			os_printf("Invalid Header: %d\r\n", readsize);
@@ -128,13 +186,13 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 				readsize,
 				remaining
 		);
-		server->status = HSS_BODY;
+		server->status = HSS_REQ_BODY;
 	}
 	else {
 		remaining = length;
 	}
 	
-	_dispatch(remaining);
+	_dispatch(data + (length-remaining), remaining);
 }
 
 
