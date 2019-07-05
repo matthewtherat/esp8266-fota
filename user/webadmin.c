@@ -1,17 +1,4 @@
 
-//#define FB_RESPONSE_HEADER_FORMAT \
-//	"HTTP/1.0 200 OK\r\n"\
-//	"Content-Length: %d\r\n"\
-//	"Server: lwIP/1.4.0\r\n"\
-//	"Content-type: text/html\r\n"\
-//	"Expires: Fri, 10 Apr 2008 14:00:00 GMT\r\n"\
-//	"Pragma: no-cache\r\n\r\n"
-//
-//#define FB_BAD_REQUEST_FORMAT \
-//	"HTTP/1.0 400 BadRequest\r\n"\
-//	"Content-Length: 0\r\n"\
-//	"Server: lwIP/1.4.0\r\n"
-//
 //#define HTML_HEADER \
 //	"<!DOCTYPE html><html>" \
 //	"<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
