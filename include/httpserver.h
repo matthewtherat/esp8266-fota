@@ -30,11 +30,17 @@
 #endif
 
 #define HTTPSTATUS_NOTFOUND		"404 Not Found"
+#define HTTPSTATUS_BADREQUEST	"400 Bad Request"
 #define HTTPSTATUS_OK			"200 Ok"
 
 #define HTTPHEADERKEY_CONTENTTYPE		"Content-Type: "
+#define HTTPHEADERKEY_CONTENTLENGTH		"Content-Length: "
+
 #define HTTPHEADER_CONTENTTYPE_TEXT		HTTPHEADERKEY_CONTENTTYPE"text/plain"
+#define HTTPHEADER_CONTENTLENGTH_ZERO	HTTPHEADERKEY_CONTENTLENGTH"0"
 #define OK	0
+#define HTTPVERB_ANY	NULL
+#define HTTP_RESPONSE_HEADER_BUFFER_SIZE	1024
 
 
 #define IP_FORMAT	"%d.%d.%d.%d:%d"
@@ -52,7 +58,7 @@
 
 
 #define matchroute(route, req) (\
-	(route->verb == VERB_ANY || strcmp(route->verb, reqverb) == 0) \
+	(route->verb == HTTPVERB_ANY || strcmp(route->verb, req->verb) == 0) \
 	&& startswith(req->path, route->pattern) \
 )
 
@@ -62,7 +68,8 @@ typedef struct {
 	char *content_type;
 	uint32_t content_length;
 	uint16_t body_length;
-
+	
+	struct espconn *conn;
 	uint16_t buff_header_length;
 	uint16_t body_cursor;
 } Request;

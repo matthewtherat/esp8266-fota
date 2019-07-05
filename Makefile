@@ -185,7 +185,7 @@ flash_map6user1: map6user1
 		0x1000  ../bin/upgrade/user1.4096.new.6.bin \
 		0x3fc000 ../bin/esp_init_data_default_v08.bin \
 		0x3fb000 ../bin/blank.bin \
-		0x3fe000 ../bin/blank.bin \
+		0x3fe000 ../bin/blank.bin 
 
 
 .PHONY: 

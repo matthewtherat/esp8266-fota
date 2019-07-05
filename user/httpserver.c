@@ -11,7 +11,6 @@
 
 
 // TODO: Max connection: 1
-
 static HttpServer *server;
 static struct mdns_info mdns;
 static char *buff_header;
@@ -46,18 +45,71 @@ static char *buff_header;
 //	espconn_sent(&esp_conn, send_buffer, total_length);
 //    os_free(send_buffer);
 //}
-//
-//
+
+// TODO: content length optional
+
+#define HTTP_RESPONSE_HEADER_FORMAT \
+	"HTTP/1.0 %s\r\n"\
+	"Server: lwIP/1.4.0\r\n"\
+	"Expires: Fri, 10 Apr 2008 14:00:00 GMT\r\n"\
+	"Pragma: no-cache\r\n"
+
+
+static ICACHE_FLASH_ATTR
+int httpserver_start_response(char *status, char **headers, 
+		uint8_t headers_count) {
+	int i;
+	int cursor;
+	char buffer[HTTP_RESPONSE_HEADER_BUFFER_SIZE];
+	cursor += os_sprintf(buffer, HTTP_RESPONSE_HEADER_FORMAT, status);
+
+	for (i = 0; i < headers_count; i++) {
+		cursor += os_sprintf(buffer + cursor, "%s\r\n", headers[i]);
+	}
+	cursor += os_sprintf(buffer + cursor, "\r\n");
+	
+	os_printf("%d\r\n%s", cursor, buffer);
+	espconn_send(server->request.conn, buffer, cursor);
+	return OK;
+}
+
+
+static ICACHE_FLASH_ATTR
+int httpserver_finalize_response(char *body) {
+	char buffer[2] = {"\r\n"};
+	espconn_send(server->request.conn, buffer, 2);
+	return OK;
+}
+
+
+static ICACHE_FLASH_ATTR
+int httpserver_send_response(char *status, char **headers, 
+		uint8_t headers_count, char *body) {
+	httpserver_start_response(HTTPSTATUS_NOTFOUND, headers, headers_count);
+	httpserver_finalize_response(body);
+	return OK;
+}
+
+
+static ICACHE_FLASH_ATTR
+int httpserver_send_response_head(char *status) {
+	char *headers[2] = {
+		HTTPHEADER_CONTENTTYPE_TEXT,
+		HTTPHEADER_CONTENTLENGTH_ZERO,
+	};
+	return httpserver_send_response(HTTPSTATUS_NOTFOUND, headers, 2, NULL);
+}
 
 
 static ICACHE_FLASH_ATTR
 int _dispatch(char *body, uint32_t body_length) {
 	Request *req = &server->request;
-	Route *route = NULL;
+	HttpRoute *route = NULL;
 	Handler handler;
 	int16_t statuscode;
+	int i;
 	
-	for (int i = 0; i < server->routes_length) {
+	for (i = 0; i < server->routes_length; i++) {
 		route = &server->routes[i];
 		if (matchroute(route, req)) {
 			break;
@@ -65,10 +117,8 @@ int _dispatch(char *body, uint32_t body_length) {
 	}
 	
 	if (route == NULL) {
-		httpserver_response_write_status(HTTPSTATUS_NOTFOUND);
-		httpserver_response_write_header(HTTPHEADER_CONTENTTYPE_TEXT);
-		httpserver_response_finalize();
-		return;
+		os_printf("Not found: %s\r\n", req->path);
+		return httpserver_send_response_head(HTTPSTATUS_NOTFOUND);
 	}
 
 	uint32_t more = (req->content_length + 2) - req->body_cursor;
@@ -150,6 +200,7 @@ int _read_header(char *data, uint16_t length) {
 static ICACHE_FLASH_ATTR
 void _cleanup_request() {
 	Request *req = &server->request;
+	espconn_disconnect(req->conn);
 	os_memset(buff_header, 0, HTTP_HEADER_BUFFER_SIZE);
 	os_memset(req, 0, sizeof(Request));
 	server->status = HSS_IDLE;
@@ -162,20 +213,23 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 	int readsize;
     struct espconn *conn = arg;
 	Request *req = &server->request;
+	req->conn = (struct espconn*) arg; 
 
 	if (server->status < HSS_REQ_BODY) {
 		server->status = HSS_REQ_HEADER;
 		readsize = _read_header(data, length);
 		if (readsize < 0) {
 			os_printf("Invalid Header: %d\r\n", readsize);
-			_cleanup_request();
-			espconn_disconnect(conn);
+			httpserver_send_response_head(HTTPSTATUS_BADREQUEST);
+			return;
 		}
-		else if (readsize == 0) {
+
+		if (readsize == 0) {
 			// Incomplete header
 			os_printf("Incomplete Header: %d\r\n", readsize);
 			return;
 		}
+
 		remaining = length - readsize;
 		os_printf("--> %s %s type: %s length: %d, remaining: %d-%d=%d\r\n", 
 				req->verb,
@@ -235,7 +289,6 @@ void _client_connected(void *arg)
 {
     struct espconn *conn = arg;
     espconn_regist_recvcb(conn, _client_recv);
-    espconn_regist_reconcb(conn, _client_recon);
     espconn_regist_disconcb(conn, _client_disconnected);
 }
 
@@ -257,9 +310,11 @@ int httpserver_init(HttpServer *s) {
 	);
 
 	espconn_regist_connectcb(&s->connection, _client_connected);
-	espconn_accept(&s->connection);
+    espconn_regist_reconcb(&s->connection, _client_recon);
 	espconn_tcp_set_max_con_allow(&s->connection, 1);
 	espconn_regist_time(&s->connection, HTTPSERVER_TIMEOUT, 1);
+	espconn_set_opt(&s->connection, ESPCONN_NODELAY);
+	espconn_accept(&s->connection);
 	return OK;
 }
 
