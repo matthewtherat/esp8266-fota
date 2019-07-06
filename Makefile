@@ -187,5 +187,17 @@ flash_map6user1: map6user1
 		0x3fb000 ../bin/blank.bin \
 		0x3fe000 ../bin/blank.bin 
 
+cleanup_map6user1:
+	$(ESPTOOL) --flash_size 4MB-c1  \
+		0xf8000 ../bin/blank.bin \
+		0xf9000 ../bin/blank.bin \
+		0xfa000 ../bin/blank.bin 
+
+
+assets_map6user1:
+	$(ESPTOOL) --flash_size 4MB-c1  \
+		0x200000 assets/favicon-16x16.png 
+
+
 
 .PHONY: 

@@ -29,8 +29,9 @@
 #define HTTP_HEADER_BUFFER_SIZE		4 * 1024
 #endif
 
-#define HTTPSTATUS_NOTFOUND			"404 Not Found"
+#define HTTPSTATUS_SERVERERROR		"500 Internal Server Error"
 #define HTTPSTATUS_BADREQUEST		"400 Bad Request"
+#define HTTPSTATUS_NOTFOUND			"404 Not Found"
 #define HTTPSTATUS_OK				"200 Ok"
 
 #define HTTPHEADER_CONTENTTYPE_TEXT		"text/plain"
@@ -41,24 +42,23 @@
 
 #define IP_FORMAT	"%d.%d.%d.%d:%d"
 
-#define httpserver_response(status, content_type, content_length, \
-		headers, headers_count, body) \
+#define httpserver_response(status, content_type, content_length, body, \
+		headers, headers_count) \
 	httpserver_start_response(status, content_type,  \
 			content_length, headers, headers_count, body, content_length)
 
 
-
 #define httpserver_response_text(status, content_length, content) \
 	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
-		content_length, NULL, 0, content)
+		content_length, content, NULL, 0)
 
 #define httpserver_response_head(status) \
 	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
-		0, NULL, 0, NULL)
+		0, NULL, NULL, 0)
 
 #define httpserver_response_html(status, content_length, content) \
 	httpserver_response(status, HTTPHEADER_CONTENTTYPE_HTML, \
-		content_length, NULL, 0, content)
+		content_length, content, NULL, 0)
 
 
 #define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]

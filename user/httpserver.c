@@ -16,36 +16,6 @@ static struct mdns_info mdns;
 static char *buff_header;
 static char *response_buffer;
 
-//static void ICACHE_FLASH_ATTR
-//send_response(bool ok, const char *response_buffer) {
-//	uint16_t total_length = 0;
-//	uint16_t head_length = 0;
-//    char *send_buffer = NULL;
-//    char httphead[256];
-//    os_memset(httphead, 0, 256);
-//	uint16_t response_length = (ok && response_buffer != NULL) ? \
-//		os_strlen(response_buffer): 0;
-//
-//	os_sprintf(
-//			httphead, 
-//			ok? FB_RESPONSE_HEADER_FORMAT: FB_BAD_REQUEST_FORMAT, 
-//			response_length
-//		);
-//	head_length = os_strlen(httphead);	
-//    total_length = head_length + response_length;
-//    send_buffer = (char *)os_zalloc(total_length + 1);
-//	// Write head
-//    os_memcpy(send_buffer, httphead, head_length);
-//
-//	// Body
-//    if (response_length > 0) {
-//        os_memcpy(send_buffer+head_length, response_buffer, response_length);
-//    }
-//
-//	espconn_sent(&esp_conn, send_buffer, total_length);
-//    os_free(send_buffer);
-//}
-
 
 #define HTTP_RESPONSE_HEADER_FORMAT \
 	"HTTP/1.0 %s\r\n" \
@@ -54,6 +24,29 @@ static char *response_buffer;
 	"Pragma: no-cache\r\n" \
 	"Content-Length: %d\r\n" \
 	"Content-Type: %s\r\n" 
+
+ICACHE_FLASH_ATTR
+void http_parse_form(const char *form, 
+		void (*callback)(const char*, const char*)) {
+	char *field = (char*)&form[0];
+	char *value;
+	char *tmp;
+
+	while (true) {
+		value = os_strstr(field, "=") + 1;
+		(value-1)[0] = 0;
+		tmp  = os_strstr(value, "&");
+		if (tmp != NULL) {
+			tmp[0] = 0;
+		}
+		callback(field, value);
+		if (tmp == NULL) {
+			return;
+		}
+		field = tmp + 1;
+	}
+}
+
 
 
 static ICACHE_FLASH_ATTR
@@ -69,7 +62,6 @@ void _cleanup_request() {
 
 static ICACHE_FLASH_ATTR
 int httpserver_send(Request *req, char *data, uint32_t length) {
-	os_printf("%s\r\n", data);
 	int err = espconn_send(req->conn, data, length);
 	if (err == ESPCONN_MEM) {
 		os_printf("TCP Send: Out of memory\r\n");
@@ -123,7 +115,6 @@ int _dispatch(char *body, uint32_t body_length) {
 	
 	for (i = 0; i < server->routes_length; i++) {
 		route = &server->routes[i];
-		os_printf("Checking %s == %s\r\n", route->pattern, req->path);
 		if (matchroute(route, req)) {
 			break;
 		}
@@ -143,6 +134,7 @@ int _dispatch(char *body, uint32_t body_length) {
 			last? body_length - 2: body_length, 
 			more - 2
 		);
+// TODO: !
 //	if (req->content_length == 0) {
 //		_cleanup_request();
 //		return;
@@ -172,8 +164,11 @@ int _read_header(char *data, uint16_t length) {
 	req->buff_header_length += l;
 
 	if (cursor == NULL) {
-		// Request for more data, incomplete http header
-		return 0;
+		cursor = os_strstr(data, "\r\n");
+		if (cursor == NULL) {
+			// Request for more data, incomplete http header
+			return 0;
+		}
 	}
 	
 	req->verb = buff_header;

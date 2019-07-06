@@ -20,9 +20,9 @@ static Params params;
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-		webadmin_start(&params);
+		//webadmin_start(&params);
     } else {
-		webadmin_stop();
+		//webadmin_stop();
     }
 }
 
@@ -54,6 +54,7 @@ void user_init(void) {
 #else
     wifi_start(STATION_MODE, &params, wifi_connect_cb);
 #endif
+	webadmin_start(&params);
     INFO("System started ...\r\n");
 }
 

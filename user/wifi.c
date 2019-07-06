@@ -106,6 +106,10 @@ wifi_init_softap(const char *ssid, const char *psk) {
 		os_sprintf(config->password, psk);
     	config->authmode = AUTH_WPA_WPA2_PSK;
 	}
+	else {
+    	config->authmode = AUTH_OPEN;
+	}
+
     config->max_connection = 4;
 	config->channel = 5;	
 	config->beacon_interval = 120;
