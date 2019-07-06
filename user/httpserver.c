@@ -14,7 +14,7 @@
 static HttpServer *server;
 static struct mdns_info mdns;
 static char *buff_header;
-
+static char *response_buffer;
 
 //static void ICACHE_FLASH_ATTR
 //send_response(bool ok, const char *response_buffer) {
@@ -46,58 +46,70 @@ static char *buff_header;
 //    os_free(send_buffer);
 //}
 
-// TODO: content length optional
 
 #define HTTP_RESPONSE_HEADER_FORMAT \
-	"HTTP/1.0 %s\r\n"\
-	"Server: lwIP/1.4.0\r\n"\
-	"Expires: Fri, 10 Apr 2008 14:00:00 GMT\r\n"\
-	"Pragma: no-cache\r\n"
+	"HTTP/1.0 %s\r\n" \
+	"Server: lwIP/1.4.0\r\n" \
+	"Expires: Fri, 10 Apr 2008 14:00:00 GMT\r\n" \
+	"Pragma: no-cache\r\n" \
+	"Content-Length: %d\r\n" \
+	"Content-Type: %s\r\n" 
 
 
 static ICACHE_FLASH_ATTR
-int httpserver_start_response(char *status, char **headers, 
-		uint8_t headers_count) {
+void _cleanup_request() {
+	Request *req = &server->request;
+	espconn_disconnect(req->conn);
+	os_memset(buff_header, 0, HTTP_HEADER_BUFFER_SIZE);
+	os_memset(req, 0, sizeof(Request));
+	server->status = HSS_IDLE;
+}
+
+
+
+static ICACHE_FLASH_ATTR
+int httpserver_send(Request *req, char *data, uint32_t length) {
+	os_printf("%s\r\n", data);
+	int err = espconn_send(req->conn, data, length);
+	if (err == ESPCONN_MEM) {
+		os_printf("TCP Send: Out of memory\r\n");
+	}
+	else if (err == ESPCONN_ARG) {
+		os_printf("illegal argument; cannot find network transmission accordingto structure espconn\r\n");
+	}
+	else if (err == ESPCONN_MAXNUM) {
+		os_printf("buffer (or 8 packets at most) of sending data is full\r\n");
+	}
+	else {
+		return OK;
+	}
+}
+
+
+ICACHE_FLASH_ATTR
+int httpserver_start_response(char *status, char *content_type, 
+		uint32_t content_length, char **headers, uint8_t headers_count, 
+		char *body, uint32_t body_length) {
 	int i;
 	int cursor;
-	char buffer[HTTP_RESPONSE_HEADER_BUFFER_SIZE];
-	cursor += os_sprintf(buffer, HTTP_RESPONSE_HEADER_FORMAT, status);
+	cursor += os_sprintf(response_buffer, HTTP_RESPONSE_HEADER_FORMAT, status,
+			content_length, content_type);
 
 	for (i = 0; i < headers_count; i++) {
-		cursor += os_sprintf(buffer + cursor, "%s\r\n", headers[i]);
+		cursor += os_sprintf(response_buffer + cursor, "%s\r\n", headers[i]);
 	}
-	cursor += os_sprintf(buffer + cursor, "\r\n");
-	
-	os_printf("%d\r\n%s", cursor, buffer);
-	espconn_send(server->request.conn, buffer, cursor);
+	cursor += os_sprintf(response_buffer + cursor, "\r\n");
+
+	if (body_length > 0) {
+		os_memcpy(response_buffer + cursor, body, body_length);
+		cursor += body_length;
+		cursor += os_sprintf(response_buffer + cursor, "\r\n");
+	}
+	cursor += os_sprintf(response_buffer + cursor, "\r\n");
+
+	httpserver_send(&server->request, response_buffer, cursor);
+	_cleanup_request();
 	return OK;
-}
-
-
-static ICACHE_FLASH_ATTR
-int httpserver_finalize_response(char *body) {
-	char buffer[2] = {"\r\n"};
-	espconn_send(server->request.conn, buffer, 2);
-	return OK;
-}
-
-
-static ICACHE_FLASH_ATTR
-int httpserver_send_response(char *status, char **headers, 
-		uint8_t headers_count, char *body) {
-	httpserver_start_response(HTTPSTATUS_NOTFOUND, headers, headers_count);
-	httpserver_finalize_response(body);
-	return OK;
-}
-
-
-static ICACHE_FLASH_ATTR
-int httpserver_send_response_head(char *status) {
-	char *headers[2] = {
-		HTTPHEADER_CONTENTTYPE_TEXT,
-		HTTPHEADER_CONTENTLENGTH_ZERO,
-	};
-	return httpserver_send_response(HTTPSTATUS_NOTFOUND, headers, 2, NULL);
 }
 
 
@@ -111,6 +123,7 @@ int _dispatch(char *body, uint32_t body_length) {
 	
 	for (i = 0; i < server->routes_length; i++) {
 		route = &server->routes[i];
+		os_printf("Checking %s == %s\r\n", route->pattern, req->path);
 		if (matchroute(route, req)) {
 			break;
 		}
@@ -118,9 +131,10 @@ int _dispatch(char *body, uint32_t body_length) {
 	
 	if (route == NULL) {
 		os_printf("Not found: %s\r\n", req->path);
-		return httpserver_send_response_head(HTTPSTATUS_NOTFOUND);
+		return httpserver_response_head(HTTPSTATUS_NOTFOUND);
 	}
-
+	
+	os_printf("Route found: %s %s\r\n", route->verb, route->pattern);
 	uint32_t more = (req->content_length + 2) - req->body_cursor;
 	bool last = (more - body_length) == 0;
 	route->handler(
@@ -198,16 +212,6 @@ int _read_header(char *data, uint16_t length) {
 
 
 static ICACHE_FLASH_ATTR
-void _cleanup_request() {
-	Request *req = &server->request;
-	espconn_disconnect(req->conn);
-	os_memset(buff_header, 0, HTTP_HEADER_BUFFER_SIZE);
-	os_memset(req, 0, sizeof(Request));
-	server->status = HSS_IDLE;
-}
-
-
-static ICACHE_FLASH_ATTR
 void _client_recv(void *arg, char *data, uint16_t length) {
 	uint16_t remaining;
 	int readsize;
@@ -220,7 +224,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		readsize = _read_header(data, length);
 		if (readsize < 0) {
 			os_printf("Invalid Header: %d\r\n", readsize);
-			httpserver_send_response_head(HTTPSTATUS_BADREQUEST);
+			httpserver_response_head(HTTPSTATUS_BADREQUEST);
 			return;
 		}
 
@@ -296,6 +300,8 @@ void _client_connected(void *arg)
 ICACHE_FLASH_ATTR 
 int httpserver_init(HttpServer *s) {
 	buff_header = (char*)os_zalloc(HTTP_HEADER_BUFFER_SIZE);
+	response_buffer = (char*)os_zalloc(HTTP_RESPONSE_BUFFER_SIZE);
+
 	s->status = HSS_IDLE;
 	server = s;
 #ifdef HTTPSERVER_MDNS
@@ -329,6 +335,11 @@ void httpserver_stop() {
 	if (buff_header != NULL) {
 		os_free(buff_header);
 	}
+
+	if (response_buffer != NULL) {
+		os_free(response_buffer);
+	}
+
 	server = NULL;
 }
 

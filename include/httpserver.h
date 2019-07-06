@@ -26,24 +26,39 @@
 
 
 #ifndef HTTP_HEADER_BUFFER_SIZE
-#define HTTP_HEADER_BUFFER_SIZE	8*1024
+#define HTTP_HEADER_BUFFER_SIZE		4 * 1024
 #endif
 
-#define HTTPSTATUS_NOTFOUND		"404 Not Found"
-#define HTTPSTATUS_BADREQUEST	"400 Bad Request"
-#define HTTPSTATUS_OK			"200 Ok"
+#define HTTPSTATUS_NOTFOUND			"404 Not Found"
+#define HTTPSTATUS_BADREQUEST		"400 Bad Request"
+#define HTTPSTATUS_OK				"200 Ok"
 
-#define HTTPHEADERKEY_CONTENTTYPE		"Content-Type: "
-#define HTTPHEADERKEY_CONTENTLENGTH		"Content-Length: "
-
-#define HTTPHEADER_CONTENTTYPE_TEXT		HTTPHEADERKEY_CONTENTTYPE"text/plain"
-#define HTTPHEADER_CONTENTLENGTH_ZERO	HTTPHEADERKEY_CONTENTLENGTH"0"
+#define HTTPHEADER_CONTENTTYPE_TEXT		"text/plain"
+#define HTTPHEADER_CONTENTTYPE_HTML		"text/html"
 #define OK	0
 #define HTTPVERB_ANY	NULL
-#define HTTP_RESPONSE_HEADER_BUFFER_SIZE	1024
-
+#define HTTP_RESPONSE_BUFFER_SIZE	2 * 1024
 
 #define IP_FORMAT	"%d.%d.%d.%d:%d"
+
+#define httpserver_response(status, content_type, content_length, \
+		headers, headers_count, body) \
+	httpserver_start_response(status, content_type,  \
+			content_length, headers, headers_count, body, content_length)
+
+
+
+#define httpserver_response_text(status, content_length, content) \
+	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
+		content_length, NULL, 0, content)
+
+#define httpserver_response_head(status) \
+	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
+		0, NULL, 0, NULL)
+
+#define httpserver_response_html(status, content_length, content) \
+	httpserver_response(status, HTTPHEADER_CONTENTTYPE_HTML, \
+		content_length, NULL, 0, content)
 
 
 #define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]
@@ -96,13 +111,14 @@ typedef enum {
 
 
 typedef struct {
+	char *hostname;
+
 	struct espconn connection;
 	esp_tcp esptcp;
-	char *hostname;
 	Request request;
 	HttpServerStatus status;
 	uint8_t routes_length;
-	HttpRoute routes[];
+	HttpRoute *routes;
 } HttpServer;
 
 
