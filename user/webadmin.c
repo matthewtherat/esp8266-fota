@@ -5,6 +5,8 @@
 #include <mem.h>
 
 
+#define FAVICON_SIZE	495
+#define FAVICON_FLASH_SECTOR	0x200	
 #define HTML_HEADER \
 	"<!DOCTYPE html><html>" \
 	"<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
@@ -35,9 +37,9 @@
 
 static Params *params;
 
+
 static ICACHE_FLASH_ATTR
 void _update_params_field(const char *field, const char *value) {
-	os_printf("Updating Field: %s with value: %s\r\n", field, value);
 	char *target;
 	if (os_strcmp(field, "name") == 0) {
 		target = (char*)&params->device_name;
@@ -55,10 +57,10 @@ void _update_params_field(const char *field, const char *value) {
 	os_strcpy(target, value);
 }
 
+
 static ICACHE_FLASH_ATTR
 void webadmin_get_params(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
-	os_printf("Handling: %s %s\r\n", req->verb, req->path);
 
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_FORM, 
@@ -73,7 +75,6 @@ void webadmin_get_params(Request *req, char *body, uint32_t body_length,
 static ICACHE_FLASH_ATTR
 void webadmin_set_params(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
-	os_printf("Handling: %s %s\r\n", req->verb, req->path);
 	body[body_length] = 0;
 	http_parse_form(body, _update_params_field);  
 	if (!params_save(params)) {
@@ -83,8 +84,6 @@ void webadmin_set_params(Request *req, char *body, uint32_t body_length,
 	system_restart();
 }
 
-#define FAVICON_SIZE	495
-#define FAVICON_FLASH_SECTOR	0x200	
 
 static ICACHE_FLASH_ATTR
 void webadmin_favicon(Request *req, char *body, uint32_t body_length, 
@@ -108,7 +107,6 @@ void webadmin_favicon(Request *req, char *body, uint32_t body_length,
 static ICACHE_FLASH_ATTR
 void webadmin_index(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
-	os_printf("Handling: %s %s\r\n", req->verb, req->path);
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_INDEX, params->device_name);
 	httpserver_response_html(HTTPSTATUS_OK, buffer, len);

@@ -27,28 +27,6 @@ static uint32_t response_buffer_length;
 	"Content-Type: %s\r\n" 
 
 
-ICACHE_FLASH_ATTR
-void http_parse_form(const char *form, 
-		void (*callback)(const char*, const char*)) {
-	char *field = (char*)&form[0];
-	char *value;
-	char *tmp;
-
-	while (true) {
-		value = os_strstr(field, "=") + 1;
-		(value-1)[0] = 0;
-		tmp  = os_strstr(value, "&");
-		if (tmp != NULL) {
-			tmp[0] = 0;
-		}
-		callback(field, value);
-		if (tmp == NULL) {
-			return;
-		}
-		field = tmp + 1;
-	}
-}
-
 
 static ICACHE_FLASH_ATTR
 void _cleanup_request(bool disconnect) {
@@ -77,54 +55,6 @@ int httpserver_send(Request *req, char *data, uint32_t length) {
 	else {
 		return OK;
 	}
-}
-
-
-ICACHE_FLASH_ATTR
-int httpserver_response_start(char *status, char *content_type, 
-		uint32_t content_length, char **headers, uint8_t headers_count) {
-	int i;
-	response_buffer_length = os_sprintf(response_buffer, 
-			HTTP_RESPONSE_HEADER_FORMAT, status, content_length, 
-			content_type);
-
-	for (i = 0; i < headers_count; i++) {
-		response_buffer_length += os_sprintf(
-				response_buffer + response_buffer_length, "%s\r\n", 
-				headers[i]);
-	}
-	response_buffer_length += os_sprintf(
-			response_buffer + response_buffer_length, "\r\n");
-
-	return OK;
-}
-
-
-ICACHE_FLASH_ATTR
-int httpserver_response_finalize(char *body, uint32_t body_length) {
-	if (body_length > 0) {
-		os_memcpy(response_buffer + response_buffer_length, body, 
-				body_length);
-		response_buffer_length += body_length;
-		response_buffer_length += os_sprintf(
-				response_buffer + response_buffer_length, "\r\n");
-	}
-	response_buffer_length += os_sprintf(
-			response_buffer + response_buffer_length, "\r\n");
-
-	httpserver_send(&server->request, response_buffer, 
-			response_buffer_length);
-	_cleanup_request(false);
-}
-
-
-ICACHE_FLASH_ATTR
-int httpserver_response(char *status, char *content_type, 
-		char *content, uint32_t content_length, char **headers, 
-		uint8_t headers_count) {
-	httpserver_response_start(status, content_type, content_length, headers, 
-			headers_count);
-	httpserver_response_finalize(content, content_length);
 }
 
 
@@ -161,20 +91,6 @@ int _dispatch(char *body, uint32_t body_length) {
 			last? body_length - 2: body_length, 
 			more - 2
 		);
-// TODO: !
-//	if (req->content_length == 0) {
-//		_cleanup_request();
-//		return;
-//	}
-//
-//	// Consuming body
-//	uint32_t needed = (req->content_length + 2) - req->body_cursor;
-//	os_printf("Reading body: %d\r\n", remaining);
-//	req->body_cursor += remaining;
-//	if (remaining >= needed) {
-//		os_printf("Cleaning up: %d\r\n", req->body_cursor);
-//		_cleanup_request();
-//	}
 }
 
 
@@ -301,6 +217,77 @@ void _client_connected(void *arg)
     struct espconn *conn = arg;
     espconn_regist_recvcb(conn, _client_recv);
     espconn_regist_disconcb(conn, _client_disconnected);
+}
+
+
+ICACHE_FLASH_ATTR
+int httpserver_response_start(char *status, char *content_type, 
+		uint32_t content_length, char **headers, uint8_t headers_count) {
+	int i;
+	response_buffer_length = os_sprintf(response_buffer, 
+			HTTP_RESPONSE_HEADER_FORMAT, status, content_length, 
+			content_type);
+
+	for (i = 0; i < headers_count; i++) {
+		response_buffer_length += os_sprintf(
+				response_buffer + response_buffer_length, "%s\r\n", 
+				headers[i]);
+	}
+	response_buffer_length += os_sprintf(
+			response_buffer + response_buffer_length, "\r\n");
+
+	return OK;
+}
+
+
+ICACHE_FLASH_ATTR
+int httpserver_response_finalize(char *body, uint32_t body_length) {
+	if (body_length > 0) {
+		os_memcpy(response_buffer + response_buffer_length, body, 
+				body_length);
+		response_buffer_length += body_length;
+		response_buffer_length += os_sprintf(
+				response_buffer + response_buffer_length, "\r\n");
+	}
+	response_buffer_length += os_sprintf(
+			response_buffer + response_buffer_length, "\r\n");
+
+	httpserver_send(&server->request, response_buffer, 
+			response_buffer_length);
+	_cleanup_request(false);
+}
+
+
+ICACHE_FLASH_ATTR
+int httpserver_response(char *status, char *content_type, 
+		char *content, uint32_t content_length, char **headers, 
+		uint8_t headers_count) {
+	httpserver_response_start(status, content_type, content_length, headers, 
+			headers_count);
+	httpserver_response_finalize(content, content_length);
+}
+
+
+ICACHE_FLASH_ATTR
+void http_parse_form(const char *form, 
+		void (*callback)(const char*, const char*)) {
+	char *field = (char*)&form[0];
+	char *value;
+	char *tmp;
+
+	while (true) {
+		value = os_strstr(field, "=") + 1;
+		(value-1)[0] = 0;
+		tmp  = os_strstr(value, "&");
+		if (tmp != NULL) {
+			tmp[0] = 0;
+		}
+		callback(field, value);
+		if (tmp == NULL) {
+			return;
+		}
+		field = tmp + 1;
+	}
 }
 
 

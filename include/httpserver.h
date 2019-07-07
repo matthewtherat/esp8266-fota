@@ -103,4 +103,31 @@ typedef struct {
 } HttpServer;
 
 
+void http_parse_form(
+		const char *form, 
+		void (*callback)(const char*, const char*)
+	);
+
+int httpserver_response_start(
+		char *status, 
+		char *content_type, 
+		uint32_t content_length, 
+		char **headers, 
+		uint8_t headers_count
+	);
+
+int httpserver_response_finalize(char *body, uint32_t body_length);
+
+int httpserver_response(
+		char *status,
+		char *content_type, 
+		char *content, 
+		uint32_t content_length, 
+		char **headers, 
+		uint8_t headers_count
+	);
+
+int httpserver_init(uint16_t port, HttpRoute routes_[]);
+void httpserver_stop();
+
 #endif
