@@ -73,6 +73,7 @@ int _dispatch(char *body, uint32_t body_length) {
 			break;	
 		}
 		if (matchroute(route, req)) {
+			os_printf("Route found: %s %s\r\n", route->verb, route->pattern);
 			break;
 		}
 	}
@@ -82,15 +83,11 @@ int _dispatch(char *body, uint32_t body_length) {
 		return httpserver_response_notfound();
 	}
 	
-	os_printf("Route found: %s %s\r\n", route->verb, route->pattern);
-	uint32_t more = (req->content_length + 2) - req->body_cursor;
-	bool last = (more - body_length) == 0;
-	route->handler(
-			req, 
-			body, 
-			last? body_length - 2: body_length, 
-			more - 2
-		);
+	bool last = (body_length - req->content_length) == 2;
+	uint32_t chunklen = last? body_length - 2: body_length;
+	req->body_cursor += chunklen;
+	uint32_t more = req->content_length - req->body_cursor;
+	route->handler(req, body, chunklen, more);
 }
 
 
@@ -156,7 +153,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
     struct espconn *conn = arg;
 	Request *req = &server->request;
 	req->conn = (struct espconn*) arg; 
-
+	
 	if (server->status < HSS_REQ_BODY) {
 		server->status = HSS_REQ_HEADER;
 		readsize = _read_header(data, length);

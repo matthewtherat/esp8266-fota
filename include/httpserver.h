@@ -71,7 +71,7 @@ typedef struct {
 	
 	struct espconn *conn;
 	uint16_t buff_header_length;
-	uint16_t body_cursor;
+	uint32_t body_cursor;
 } Request;
 
 

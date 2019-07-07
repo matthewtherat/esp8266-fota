@@ -29,13 +29,24 @@
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
 	"<h4>Firmware</h4>" \
-	"<form method=\"upgrade\">" \
+	"<form action=\"/firmware\" method=\"post\">" \
 	"<input name=\"firmware\" type=\"file\"/><br/>" \
 	"<input type=\"submit\" value=\"Upgrade\" />" \
 	"</form>" \
 	HTML_FOOTER
 
 static Params *params;
+
+
+static ICACHE_FLASH_ATTR
+void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
+		uint32_t more) {
+	os_printf("Recv: %d bytes, more: %d\r\n", body_length, more);
+	if (more <= 0) {
+		httpserver_response_text(HTTPSTATUS_OK, "Done", 4);
+	}
+}
+
 
 
 static ICACHE_FLASH_ATTR
@@ -114,6 +125,7 @@ void webadmin_index(Request *req, char *body, uint32_t body_length,
 
 
 static HttpRoute routes[] = {
+	{"POST", "/firmware", webadmin_upgrade_firmware},
 	{"POST", "/params", webadmin_set_params},
 	{"GET", "/params", webadmin_get_params},
 	{"GET", "/favicon.ico", webadmin_favicon},
