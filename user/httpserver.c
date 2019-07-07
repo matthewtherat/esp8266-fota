@@ -47,7 +47,8 @@ int httpserver_send(Request *req, char *data, uint32_t length) {
 		os_printf("TCP Send: Out of memory\r\n");
 	}
 	else if (err == ESPCONN_ARG) {
-		os_printf("illegal argument; cannot find network transmission accordingto structure espconn\r\n");
+		os_printf("illegal argument; cannot find network transmission \
+				accordingto structure espconn\r\n");
 	}
 	else if (err == ESPCONN_MAXNUM) {
 		os_printf("buffer (or 8 packets at most) of sending data is full\r\n");
@@ -265,7 +266,7 @@ int httpserver_response(char *status, char *content_type,
 
 
 ICACHE_FLASH_ATTR
-void http_parse_form(const char *form, 
+void http_parse_form(const char *form,
 		void (*callback)(const char*, const char*)) {
 	char *field = (char*)&form[0];
 	char *value;

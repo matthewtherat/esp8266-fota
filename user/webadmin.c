@@ -125,11 +125,11 @@ void webadmin_index(Request *req, char *body, uint32_t body_length,
 
 
 static HttpRoute routes[] = {
-	{"POST", "/firmware", webadmin_upgrade_firmware},
-	{"POST", "/params", webadmin_set_params},
-	{"GET", "/params", webadmin_get_params},
-	{"GET", "/favicon.ico", webadmin_favicon},
-	{"GET", "/", webadmin_index},
+	{"POST",	"/firmware",		webadmin_upgrade_firmware		},
+	{"POST", 	"/params",			webadmin_set_params				},
+	{"GET",  	"/params",			webadmin_get_params				},
+	{"GET",  	"/favicon.ico",		webadmin_favicon				},
+	{"GET",  	"/",				webadmin_index					},
 	{ NULL }
 };
 
