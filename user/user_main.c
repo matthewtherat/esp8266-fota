@@ -38,9 +38,9 @@ void _mdns_init() {
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-		//webadmin_start(&params);
+		_mdns_init();
     } else {
-		//webadmin_stop();
+		espconn_mdns_close();
     }
 }
 
@@ -72,7 +72,6 @@ void user_init(void) {
 #else
     wifi_start(STATION_MODE, &params, wifi_connect_cb);
 #endif
-	_mdns_init();
 	webadmin_start(&params);
     INFO("System started ...\r\n");
 }

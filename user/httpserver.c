@@ -11,7 +11,7 @@
 
 
 // TODO: Max connection: 1
-static HttpRoute **routes;
+static HttpRoute *routes;
 static HttpServer *server;
 static char *buff_header;
 static char *response_buffer;
@@ -137,7 +137,7 @@ int _dispatch(char *body, uint32_t body_length) {
 	int i;
 	
 	while (true) {
-		route = routes[i++];
+		route = &(routes[i++]);
 		if (route->pattern == NULL){
 			route = NULL;
 			break;	
@@ -306,10 +306,10 @@ void _client_connected(void *arg)
 
 ICACHE_FLASH_ATTR 
 int httpserver_init(uint16_t port, HttpRoute routes_[]) {
-	routes = &routes_;
+	routes = routes_;
 	buff_header = (char*)os_zalloc(HTTP_HEADER_BUFFER_SIZE);
 	response_buffer = (char*)os_zalloc(HTTP_RESPONSE_BUFFER_SIZE);
-	server = os_malloc(sizeof(HttpServer));
+	server = os_zalloc(sizeof(HttpServer));
 
 	server->status = HSS_IDLE;
     server->connection.type = ESPCONN_TCP;

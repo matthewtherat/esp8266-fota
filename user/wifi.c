@@ -26,7 +26,7 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	wifiStatus = wifi_station_get_connect_status();
 	if (wifiStatus == STATION_GOT_IP && ipConfig.ip.addr != 0) {
 		os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
-		os_timer_arm(&WiFiLinker, 2000, 0);
+		os_timer_arm(&WiFiLinker, 3000, 0);
 	}
 	else
 	{
@@ -52,8 +52,9 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
 	
 	if(wifiStatus != lastWifiStatus){
 		lastWifiStatus = wifiStatus;
-		if(wifiCb)
+		if(wifiCb) {
 			wifiCb(wifiStatus);
+		}
 	}
 }
 
