@@ -62,23 +62,22 @@ static ICACHE_FLASH_ATTR
 int _dispatch(char *body, uint32_t body_length) {
 	Request *req = &server->request;
 	HttpRoute *route = NULL;
-	Handler handler;
 	int16_t statuscode;
 	int i;
 	
-	while (true) {
+	while (req->handler == NULL) {
 		route = &(routes[i++]);
 		if (route->pattern == NULL){
-			route = NULL;
 			break;	
 		}
 		if (matchroute(route, req)) {
+			req->handler = route->handler;
 			os_printf("Route found: %s %s\r\n", route->verb, route->pattern);
 			break;
 		}
 	}
 	
-	if (route == NULL) {
+	if (req->handler == NULL) {
 		os_printf("Not found: %s\r\n", req->path);
 		return httpserver_response_notfound();
 	}
@@ -87,7 +86,7 @@ int _dispatch(char *body, uint32_t body_length) {
 	uint32_t chunklen = last? body_length - 2: body_length;
 	req->body_cursor += chunklen;
 	uint32_t more = req->content_length - req->body_cursor;
-	route->handler(req, body, chunklen, more);
+	((Handler)req->handler)(req, body, chunklen, more);
 }
 
 

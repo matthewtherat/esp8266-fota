@@ -62,6 +62,7 @@
 	&& startswith(req->path, route->pattern) \
 )
 
+
 typedef struct {
 	char *verb;
 	char *path;
@@ -69,6 +70,7 @@ typedef struct {
 	uint32_t content_length;
 	uint16_t body_length;
 	
+	void *handler;
 	struct espconn *conn;
 	uint16_t buff_header_length;
 	uint32_t body_cursor;
