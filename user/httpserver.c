@@ -15,6 +15,7 @@ static HttpServer *server;
 static struct mdns_info mdns;
 static char *buff_header;
 static char *response_buffer;
+static uint32_t response_buffer_length;
 
 
 #define HTTP_RESPONSE_HEADER_FORMAT \
@@ -49,16 +50,16 @@ void http_parse_form(const char *form,
 }
 
 
-
 static ICACHE_FLASH_ATTR
-void _cleanup_request() {
+void _cleanup_request(bool disconnect) {
 	Request *req = &server->request;
-	espconn_disconnect(req->conn);
+	if (disconnect) {
+		espconn_disconnect(req->conn);
+	}
 	os_memset(buff_header, 0, HTTP_HEADER_BUFFER_SIZE);
 	os_memset(req, 0, sizeof(Request));
 	server->status = HSS_IDLE;
 }
-
 
 
 static ICACHE_FLASH_ATTR
@@ -80,29 +81,50 @@ int httpserver_send(Request *req, char *data, uint32_t length) {
 
 
 ICACHE_FLASH_ATTR
-int httpserver_start_response(char *status, char *content_type, 
-		uint32_t content_length, char **headers, uint8_t headers_count, 
-		char *body, uint32_t body_length) {
+int httpserver_response_start(char *status, char *content_type, 
+		uint32_t content_length, char **headers, uint8_t headers_count) {
 	int i;
-	int cursor;
-	cursor += os_sprintf(response_buffer, HTTP_RESPONSE_HEADER_FORMAT, status,
-			content_length, content_type);
+	response_buffer_length = os_sprintf(response_buffer, 
+			HTTP_RESPONSE_HEADER_FORMAT, status, content_length, 
+			content_type);
 
 	for (i = 0; i < headers_count; i++) {
-		cursor += os_sprintf(response_buffer + cursor, "%s\r\n", headers[i]);
+		response_buffer_length += os_sprintf(
+				response_buffer + response_buffer_length, "%s\r\n", 
+				headers[i]);
 	}
-	cursor += os_sprintf(response_buffer + cursor, "\r\n");
+	response_buffer_length += os_sprintf(
+			response_buffer + response_buffer_length, "\r\n");
 
-	if (body_length > 0) {
-		os_memcpy(response_buffer + cursor, body, body_length);
-		cursor += body_length;
-		cursor += os_sprintf(response_buffer + cursor, "\r\n");
-	}
-	cursor += os_sprintf(response_buffer + cursor, "\r\n");
-
-	httpserver_send(&server->request, response_buffer, cursor);
-	_cleanup_request();
 	return OK;
+}
+
+
+ICACHE_FLASH_ATTR
+int httpserver_response_finalize(char *body, uint32_t body_length) {
+	if (body_length > 0) {
+		os_memcpy(response_buffer + response_buffer_length, body, 
+				body_length);
+		response_buffer_length += body_length;
+		response_buffer_length += os_sprintf(
+				response_buffer + response_buffer_length, "\r\n");
+	}
+	response_buffer_length += os_sprintf(
+			response_buffer + response_buffer_length, "\r\n");
+
+	httpserver_send(&server->request, response_buffer, 
+			response_buffer_length);
+	_cleanup_request(false);
+}
+
+
+ICACHE_FLASH_ATTR
+int httpserver_response(char *status, char *content_type, 
+		char *content, uint32_t content_length, char **headers, 
+		uint8_t headers_count) {
+	httpserver_response_start(status, content_type, content_length, headers, 
+			headers_count);
+	httpserver_response_finalize(content, content_length);
 }
 
 
@@ -114,8 +136,12 @@ int _dispatch(char *body, uint32_t body_length) {
 	int16_t statuscode;
 	int i;
 	
-	for (i = 0; i < server->routes_length; i++) {
-		route = &server->routes[i];
+	while (true) {
+		route = &server->routes[i++];
+		if (route->pattern == NULL){
+			route = NULL;
+			break;	
+		}
 		if (matchroute(route, req)) {
 			break;
 		}
@@ -123,7 +149,7 @@ int _dispatch(char *body, uint32_t body_length) {
 	
 	if (route == NULL) {
 		os_printf("Not found: %s\r\n", req->path);
-		return httpserver_response_head(HTTPSTATUS_NOTFOUND);
+		return httpserver_response_notfound();
 	}
 	
 	os_printf("Route found: %s %s\r\n", route->verb, route->pattern);
@@ -220,7 +246,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		readsize = _read_header(data, length);
 		if (readsize < 0) {
 			os_printf("Invalid Header: %d\r\n", readsize);
-			httpserver_response_head(HTTPSTATUS_BADREQUEST);
+			httpserver_response_badrequest();
 			return;
 		}
 

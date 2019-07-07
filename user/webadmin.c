@@ -68,7 +68,7 @@ void webadmin_get_params(Request *req, char *body, uint32_t body_length,
 			params->ap_psk, 
 			params->station_ssid, 
 			params->station_psk);
-	httpserver_response_html(HTTPSTATUS_OK, len, buffer);
+	httpserver_response_html(HTTPSTATUS_OK, buffer, len);
 }
 
 
@@ -79,7 +79,7 @@ void webadmin_set_params(Request *req, char *body, uint32_t body_length,
 	body[body_length] = 0;
 	http_parse_form(body, _update_params_field);  
 	if (!params_save(params)) {
-		httpserver_response_head(HTTPSTATUS_SERVERERROR);
+		httpserver_response_notok(HTTPSTATUS_SERVERERROR);
 		return;
 	}
 	system_restart();
@@ -100,10 +100,10 @@ void webadmin_favicon(Request *req, char *body, uint32_t body_length,
 		);
 	if (result != SPI_FLASH_RESULT_OK) {
 		os_printf("SPI Flash write failed: %d\r\n", result);
-		httpserver_response_head(HTTPSTATUS_SERVERERROR);
+		httpserver_response_notok(HTTPSTATUS_SERVERERROR);
 		return;
 	}
-	httpserver_response(HTTPSTATUS_OK, "image/x-icon", 495, buffer, NULL, 0);
+	httpserver_response(HTTPSTATUS_OK, "image/x-icon", buffer, 495, NULL, 0);
 }
 
 
@@ -113,7 +113,7 @@ void webadmin_index(Request *req, char *body, uint32_t body_length,
 	os_printf("Handling: %s %s\r\n", req->verb, req->path);
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_INDEX, params->device_name);
-	httpserver_response_html(HTTPSTATUS_OK, len, buffer);
+	httpserver_response_html(HTTPSTATUS_OK, buffer, len);
 }
 
 
@@ -122,7 +122,7 @@ static HttpRoute routes[] = {
 	{"GET", "/params", webadmin_get_params},
 	{"GET", "/favicon.ico", webadmin_favicon},
 	{"GET", "/", webadmin_index},
-	NULL
+	{ NULL }
 };
 
 
@@ -130,7 +130,6 @@ int ICACHE_FLASH_ATTR
 webadmin_start(Params *_params) {
 	params = _params;
 	httpserver.hostname = params->device_name;
-	httpserver.routes_length = 4;
 	httpserver.routes = routes;
 	httpserver_init(&httpserver);
 	return OK;

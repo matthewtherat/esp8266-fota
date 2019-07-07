@@ -42,23 +42,24 @@
 
 #define IP_FORMAT	"%d.%d.%d.%d:%d"
 
-#define httpserver_response(status, content_type, content_length, body, \
-		headers, headers_count) \
-	httpserver_start_response(status, content_type,  \
-			content_length, headers, headers_count, body, content_length)
 
-
-#define httpserver_response_text(status, content_length, content) \
+#define httpserver_response_text(status, content, content_length) \
 	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
-		content_length, content, NULL, 0)
+		content, content_length, NULL, 0)
 
-#define httpserver_response_head(status) \
-	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
-		0, NULL, NULL, 0)
-
-#define httpserver_response_html(status, content_length, content) \
+#define httpserver_response_html(status, content, content_length) \
 	httpserver_response(status, HTTPHEADER_CONTENTTYPE_HTML, \
-		content_length, content, NULL, 0)
+		content, content_length, NULL, 0)
+
+#define httpserver_response_notok(status) \
+	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
+		status, strlen(status), NULL, 0)
+
+#define httpserver_response_notfound() \
+	httpserver_response_notok(HTTPSTATUS_NOTFOUND)
+
+#define httpserver_response_badrequest() \
+	httpserver_response_notok(HTTPSTATUS_BADREQUEST)
 
 
 #define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]
@@ -117,7 +118,6 @@ typedef struct {
 	esp_tcp esptcp;
 	Request request;
 	HttpServerStatus status;
-	uint8_t routes_length;
 	HttpRoute *routes;
 } HttpServer;
 
