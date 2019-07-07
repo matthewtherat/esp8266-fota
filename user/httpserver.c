@@ -11,8 +11,8 @@
 
 
 // TODO: Max connection: 1
+static HttpRoute **routes;
 static HttpServer *server;
-static struct mdns_info mdns;
 static char *buff_header;
 static char *response_buffer;
 static uint32_t response_buffer_length;
@@ -137,7 +137,7 @@ int _dispatch(char *body, uint32_t body_length) {
 	int i;
 	
 	while (true) {
-		route = &server->routes[i++];
+		route = routes[i++];
 		if (route->pattern == NULL){
 			route = NULL;
 			break;	
@@ -276,21 +276,6 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 }
 
 
-static ICACHE_FLASH_ATTR 
-void _mdns_init(HttpServer *s) {
-	struct ip_info ipconfig;
-	wifi_set_broadcast_if(STATIONAP_MODE);
-
-	wifi_get_ip_info(STATION_IF, &ipconfig);
-	mdns.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
-	mdns.host_name = s->hostname;
-	mdns.server_name = HTTPSERVER_NAME;
-	mdns.server_port = HTTPSERVER_PORT;
-	mdns.txt_data[0] = "version = "HTTPSERVER_VERSION;
-	espconn_mdns_init(&mdns);
-}
-
-
 static ICACHE_FLASH_ATTR
 void _client_recon(void *arg, int8_t err) {
     struct espconn *conn = arg;
@@ -320,38 +305,33 @@ void _client_connected(void *arg)
 
 
 ICACHE_FLASH_ATTR 
-int httpserver_init(HttpServer *s) {
+int httpserver_init(uint16_t port, HttpRoute routes_[]) {
+	routes = &routes_;
 	buff_header = (char*)os_zalloc(HTTP_HEADER_BUFFER_SIZE);
 	response_buffer = (char*)os_zalloc(HTTP_RESPONSE_BUFFER_SIZE);
+	server = os_malloc(sizeof(HttpServer));
 
-	s->status = HSS_IDLE;
-	server = s;
-#ifdef HTTPSERVER_MDNS
-	_mdns_init(s);
-#endif
-    s->connection.type = ESPCONN_TCP;
-    s->connection.state = ESPCONN_NONE;
-    s->connection.proto.tcp = &s->esptcp;
-    s->connection.proto.tcp->local_port = HTTPSERVER_PORT;
+	server->status = HSS_IDLE;
+    server->connection.type = ESPCONN_TCP;
+    server->connection.state = ESPCONN_NONE;
+    server->connection.proto.tcp = &server->esptcp;
+    server->connection.proto.tcp->local_port = port;
 	os_printf("HTTP Server is listening on: "IP_FORMAT"\r\n",  
-			unpack_tcp(s->connection.proto.tcp)
+			unpack_tcp(server->connection.proto.tcp)
 	);
 
-	espconn_regist_connectcb(&s->connection, _client_connected);
-    espconn_regist_reconcb(&s->connection, _client_recon);
-	espconn_tcp_set_max_con_allow(&s->connection, 1);
-	espconn_regist_time(&s->connection, HTTPSERVER_TIMEOUT, 1);
-	espconn_set_opt(&s->connection, ESPCONN_NODELAY);
-	espconn_accept(&s->connection);
+	espconn_regist_connectcb(&server->connection, _client_connected);
+    espconn_regist_reconcb(&server->connection, _client_recon);
+	espconn_tcp_set_max_con_allow(&server->connection, 1);
+	espconn_regist_time(&server->connection, HTTPSERVER_TIMEOUT, 1);
+	espconn_set_opt(&server->connection, ESPCONN_NODELAY);
+	espconn_accept(&server->connection);
 	return OK;
 }
 
 
 ICACHE_FLASH_ATTR
 void httpserver_stop() {
-	if (server == NULL) {
-		return;
-	}
 	espconn_disconnect(&server->connection);
 	espconn_delete(&server->connection);
 	if (buff_header != NULL) {
@@ -362,6 +342,9 @@ void httpserver_stop() {
 		os_free(response_buffer);
 	}
 
-	server = NULL;
+	if (server != NULL) {
+		os_free(server);
+		server = NULL;
+	}
 }
 

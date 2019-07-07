@@ -13,9 +13,27 @@
 #include <user_interface.h>
 #include <driver/uart.h>
 #include <upgrade.h>
+#include <c_types.h>
+#include <ip_addr.h> 
+#include <espconn.h>
 
 
 static Params params;
+static struct mdns_info mdns;
+
+
+static ICACHE_FLASH_ATTR 
+void _mdns_init() {
+	struct ip_info ipconfig;
+	wifi_set_broadcast_if(STATIONAP_MODE);
+	wifi_get_ip_info(STATION_IF, &ipconfig);
+	mdns.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
+	mdns.host_name = params.device_name;
+	mdns.server_name = "ESPWebAdmin";
+	mdns.server_port = 80;
+	mdns.txt_data[0] = "version = 0.1.0";
+	espconn_mdns_init(&mdns);
+}
 
 
 void wifi_connect_cb(uint8_t status) {
@@ -54,6 +72,7 @@ void user_init(void) {
 #else
     wifi_start(STATION_MODE, &params, wifi_connect_cb);
 #endif
+	_mdns_init();
 	webadmin_start(&params);
     INFO("System started ...\r\n");
 }

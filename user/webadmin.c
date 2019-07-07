@@ -34,8 +34,6 @@
 	HTML_FOOTER
 
 static Params *params;
-static HttpServer httpserver;
-
 
 static ICACHE_FLASH_ATTR
 void _update_params_field(const char *field, const char *value) {
@@ -125,13 +123,10 @@ static HttpRoute routes[] = {
 	{ NULL }
 };
 
-
 int ICACHE_FLASH_ATTR
 webadmin_start(Params *_params) {
 	params = _params;
-	httpserver.hostname = params->device_name;
-	httpserver.routes = routes;
-	httpserver_init(&httpserver);
+	httpserver_init(80, routes);
 	return OK;
 }
 
