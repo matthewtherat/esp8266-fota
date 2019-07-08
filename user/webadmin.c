@@ -51,6 +51,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 
 static ICACHE_FLASH_ATTR
 void _update_params_field(const char *field, const char *value) {
+
 	char *target;
 	if (os_strcmp(field, "name") == 0) {
 		target = (char*)&params->device_name;
@@ -87,7 +88,7 @@ static ICACHE_FLASH_ATTR
 void webadmin_set_params(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	body[body_length] = 0;
-	http_parse_form(body, _update_params_field);  
+	httpserver_parse_querystring(body, _update_params_field);  
 	if (!params_save(params)) {
 		httpserver_response_notok(HTTPSTATUS_SERVERERROR);
 		return;

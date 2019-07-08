@@ -27,7 +27,6 @@ static uint32_t response_buffer_length;
 	"Content-Type: %s\r\n" 
 
 
-
 static ICACHE_FLASH_ATTR
 void _cleanup_request(bool disconnect) {
 	Request *req = &server->request;
@@ -266,7 +265,7 @@ int httpserver_response(char *status, char *content_type,
 
 
 ICACHE_FLASH_ATTR
-void http_parse_form(const char *form,
+void httpserver_parse_querystring(const char *form,
 		void (*callback)(const char*, const char*)) {
 	char *field = (char*)&form[0];
 	char *value;

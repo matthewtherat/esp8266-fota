@@ -105,7 +105,7 @@ typedef struct {
 } HttpServer;
 
 
-void http_parse_form(
+void httpserver_parse_querystring(
 		const char *form, 
 		void (*callback)(const char*, const char*)
 	);
