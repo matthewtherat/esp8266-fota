@@ -82,10 +82,10 @@ int _dispatch(char *body, uint32_t body_length) {
 		return httpserver_response_notfound();
 	}
 	
-	bool last = (body_length - req->content_length) == 2;
+	bool last = (body_length - req->contentlength) == 2;
 	uint32_t chunklen = last? body_length - 2: body_length;
 	req->body_cursor += chunklen;
-	uint32_t more = req->content_length - req->body_cursor;
+	uint32_t more = req->contentlength - req->body_cursor;
 	((Handler)req->handler)(req, body, chunklen, more);
 }
 
@@ -99,8 +99,8 @@ int _read_header(char *data, uint16_t length) {
 	Request *req = &server->request;
 
 	uint16_t l = (cursor == NULL)? length: (cursor - data) + 4;
-	os_memcpy(buff_header + req->buff_header_length, data, l);
-	req->buff_header_length += l;
+	os_memcpy(buff_header + req->buffheader_length, data, l);
+	req->buffheader_length += l;
 
 	if (cursor == NULL) {
 		cursor = os_strstr(data, "\r\n");
@@ -119,18 +119,18 @@ int _read_header(char *data, uint16_t length) {
 	cursor[0] = 0;
 	headers = cursor + 1;
 
-	req->content_type = os_strstr(headers, "Content-Type:");
-	if (req->content_type != NULL) {
-		cursor = os_strstr(req->content_type, "\r\n");
+	req->contenttype = os_strstr(headers, "Content-Type:");
+	if (req->contenttype != NULL) {
+		cursor = os_strstr(req->contenttype, "\r\n");
 		if (cursor == NULL) {
 			return -1;
 		}
-		content_type_len = cursor - req->content_type;
+		content_type_len = cursor - req->contenttype;
 	}
 
 	cursor = os_strstr(headers, "Content-Length:");
 	if (cursor != NULL) {
-		req->content_length = atoi(cursor + 16);
+		req->contentlength = atoi(cursor + 16);
 		cursor = os_strstr(cursor, "\r\n");
 		if (cursor == NULL) {
 			return -2;
@@ -138,8 +138,8 @@ int _read_header(char *data, uint16_t length) {
 	}
 
 	// Terminating strings
-	if (req->content_type != NULL) {
-		req->content_type[content_type_len] = 0;
+	if (req->contenttype != NULL) {
+		req->contenttype[content_type_len] = 0;
 	}
 	return l;
 }
@@ -172,8 +172,8 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		os_printf("--> %s %s type: %s length: %d, remaining: %d-%d=%d\r\n", 
 				req->verb,
 				req->path,
-				req->content_type,
-				req->content_length,
+				req->contenttype,
+				req->contentlength,
 				length,
 				readsize,
 				remaining
@@ -217,12 +217,12 @@ void _client_connected(void *arg)
 
 
 ICACHE_FLASH_ATTR
-int httpserver_response_start(char *status, char *content_type, 
-		uint32_t content_length, char **headers, uint8_t headers_count) {
+int httpserver_response_start(char *status, char *contenttype, 
+		uint32_t contentlength, char **headers, uint8_t headers_count) {
 	int i;
 	response_buffer_length = os_sprintf(response_buffer, 
-			HTTP_RESPONSE_HEADER_FORMAT, status, content_length, 
-			content_type);
+			HTTP_RESPONSE_HEADER_FORMAT, status, contentlength, 
+			contenttype);
 
 	for (i = 0; i < headers_count; i++) {
 		response_buffer_length += os_sprintf(
@@ -255,18 +255,60 @@ int httpserver_response_finalize(char *body, uint32_t body_length) {
 
 
 ICACHE_FLASH_ATTR
-int httpserver_response(char *status, char *content_type, 
-		char *content, uint32_t content_length, char **headers, 
+int httpserver_response(char *status, char *contenttype, 
+		char *content, uint32_t contentlength, char **headers, 
 		uint8_t headers_count) {
-	httpserver_response_start(status, content_type, content_length, headers, 
+	httpserver_response_start(status, contenttype, contentlength, headers, 
 			headers_count);
-	httpserver_response_finalize(content, content_length);
+	httpserver_response_finalize(content, contentlength);
 }
 
 
+//ICACHE_FLASH_ATTR
+//int httpserver_parse_multipart(Request *req, const char *chunk, 
+//		uint16_t chunklen, bool last, MultipartCallback callback) {
+//	char *temp;
+//	if (req->boundary == NULL) {
+//		temp = os_strstr(req->contenttype, "boundary=");
+//		if (temp == NULL) {
+//			return -1;
+//		}
+//		req->boundary = temp + 9;
+//		req->boundarylen = strlen(req->boundary);
+//	}
+//	
+//	if (req->multipartfield == NULL) { 
+//		if (temp = os_strstr(chunk, req->boundary) == NULL) {
+//			return -2;  // More data
+//		}
+//
+//		if (temp = strstr(temp, "\r\n") == NULL) {
+//			return -2;  // More Data
+//		}
+//		
+//		if (temp = strstr(temp + 2, "name=\"") == NULL) {
+//			return -2;  // More Data
+//		}
+//		temp += 6;
+//		
+//		// Field name
+//		req->multipartfield = temp;
+//		if (temp = strstr(temp, "\"") == NULL) {
+//			return -2;
+//		}
+//		temp[0] = '\0';
+//
+//	}
+//	
+//	
+//	
+//
+//}
+
+
 ICACHE_FLASH_ATTR
-void httpserver_parse_querystring(const char *form,
-		void (*callback)(const char*, const char*)) {
+void httpserver_parse_querystring(const char *form, 
+		QueryStringCallback callback) {
 	char *field = (char*)&form[0];
 	char *value;
 	char *tmp;

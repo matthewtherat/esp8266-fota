@@ -66,20 +66,29 @@
 typedef struct {
 	char *verb;
 	char *path;
-	char *content_type;
-	uint32_t content_length;
-	uint16_t body_length;
+	char *contenttype;
+	uint32_t contentlength;
+	uint16_t bodylength;
 	
 	void *handler;
 	struct espconn *conn;
-	uint16_t buff_header_length;
+	uint16_t buffheader_length;
 	uint32_t body_cursor;
+
+
+	char *boundary;
+	uint8_t boundarylen;
+	char *multipartfield;
+	char *multupart_contenttype;
 } Request;
 
 
 typedef void (*Handler)(Request *req, char *body, uint32_t body_length, 
 		uint32_t more);
 
+typedef void (*QueryStringCallback)(const char*, const char*);
+typedef void (*MultipartCallback)(const char *name, const char *filename, 
+		const char *chunk, uint16_t chunklen, bool last);
 
 typedef struct {
 	char *verb;
