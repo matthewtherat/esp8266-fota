@@ -77,11 +77,6 @@ typedef struct {
 	uint32_t body_cursor;
 
 
-	char *boundary;
-	uint8_t boundarylen;
-	char *multipartfield;
-	char *multipartfilename;
-	char *multipart_contenttype;
 } Request;
 
 
