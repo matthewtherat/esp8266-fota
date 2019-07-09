@@ -20,10 +20,11 @@
 
 #define HTTPHEADER_CONTENTTYPE_TEXT		"text/plain"
 #define HTTPHEADER_CONTENTTYPE_HTML		"text/html"
-#define OK	0
 #define HTTPVERB_ANY	NULL
 #define HTTP_RESPONSE_BUFFER_SIZE	2 * 1024
 
+#define OK		0
+#define MORE	-2
 #define IP_FORMAT	"%d.%d.%d.%d:%d"
 
 
@@ -79,7 +80,8 @@ typedef struct {
 	char *boundary;
 	uint8_t boundarylen;
 	char *multipartfield;
-	char *multupart_contenttype;
+	char *multipartfilename;
+	char *multipart_contenttype;
 } Request;
 
 

@@ -39,9 +39,18 @@ static Params *params;
 
 
 static ICACHE_FLASH_ATTR
+void _multipart_field_callback(const char *field, const char *value) {
+
+
+static ICACHE_FLASH_ATTR
 void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
+
 	os_printf("Recv: %d bytes, more: %d\r\n", body_length, more);
+	int len = httpserver_parse_multipart(req, body, body_length, 
+			_multipart_field_callback);
+	if (len == MORE) {
+	}
 	if (more <= 0) {
 		httpserver_response_text(HTTPSTATUS_OK, "Done", 4);
 	}
