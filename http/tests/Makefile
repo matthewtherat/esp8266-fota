@@ -1,0 +1,19 @@
+INCLUDES=-I../ -I./esp
+LIBS=
+CC=gcc
+CFLAGS=-g -Wall
+
+clean:
+	-rm ./*.o
+
+ringbuffer.o: ../ringbuffer.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $^ $(LIBS)
+
+test_ringbuffer: test_ringbuffer.c ringbuffer.o
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
+test: test_ringbuffer
+	./test_ringbuffer
+
+
+.PHONY: test clean
