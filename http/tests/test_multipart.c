@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "multipart.h"
 
@@ -37,12 +38,15 @@ void cb(Multipart *mp) {
 int main() {
 	int err;
 	Multipart mp;
-	mp.callback = cb;
 	if((err = mp_init(&mp, CONTENTTYPE, cb)) != MP_OK) {
 		printf("Cannot init: %d\r\n", err);
 		goto failed;
 	}
 	printf("Boundary: %d:%s\r\n", mp.boundarylen, mp.boundary);
+	
+	char temp[1024];
+	strncpy(temp, sample, 100);
+	printf("%s\r\n", temp);
 	return 0;
 //	if (err = mp_feed(&mp, sample, 100) != MP_MORE) {
 //		goto failed;

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #define os_strstr strstr
+#define os_strcpy strcpy
 
 #endif
 
