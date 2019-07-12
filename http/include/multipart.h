@@ -3,7 +3,6 @@
 
 
 
-typedef void (*MultipartCallback)(void*);
 
 typedef enum {
 	MP_IDLE,
@@ -13,16 +12,21 @@ typedef enum {
 	
 
 typedef struct {
-	MultipartCallback callback;
+	void *callback;
 	char *boundary;
 	unsigned char boundarylen;
 } Multipart;
 
 
+typedef void (*MultipartCallback)(Multipart*);
+
 typedef enum {
 	MP_OK = 0,
-	MP_MORE
+	MP_MORE,
+	MP_NOBOUNDARY
 } MultipartError;
 
+
+int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback);
 
 #endif

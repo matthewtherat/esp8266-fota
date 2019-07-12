@@ -24,12 +24,13 @@ char *sample =
 	"-----------------------------9051914041544843365972754266--\r\n";
 
 
-#define CONTENTTYPE	"Content-Type: multipart/form-data; boundary=\" 
-	"---------------------------9051914041544843365972754266"
+#define CONTENTTYPE	"Content-Type: multipart/form-data; boundary=" \
+	"---------------------------9051914041544843365972754266\r\n"
+
 #define CONTENTLEN	554
 
 
-void cb(Multipart *mp, ) {
+void cb(Multipart *mp) {
 }
 
 
@@ -37,17 +38,21 @@ int main() {
 	int err;
 	Multipart mp;
 	mp.callback = cb;
-	mp_init(&mp, CONTENTTYPE, cb);
-	printf("%d:%s\r\n", mp.boundarylen, mp.boundary);
+	if((err = mp_init(&mp, CONTENTTYPE, cb)) != MP_OK) {
+		printf("Cannot init: %d\r\n", err);
+		goto failed;
+	}
+	printf("Boundary: %d:%s\r\n", mp.boundarylen, mp.boundary);
 	return 0;
-	if (err = mp_feed(&mp, sample, 100) != MP_MORE) {
-		goto failed;
-	}
-	
-	if (err = mp_feed(&mp, sample, strlen(sample)) != MP_OK) {
-		goto failed;
-	}
+//	if (err = mp_feed(&mp, sample, 100) != MP_MORE) {
+//		goto failed;
+//	}
+//	
+//	if (err = mp_feed(&mp, sample, strlen(sample)) != MP_OK) {
+//		goto failed;
+//	}
 
 failed:
 	printf("Fail\r\n");
+	return 1;
 }
