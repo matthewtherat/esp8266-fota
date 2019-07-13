@@ -53,3 +53,14 @@ int rb_safepop(RingBuffer *rb, char *data, Size datalen) {
 	return RB_INSUFFICIENT;
 }
 
+
+ICACHE_FLASH_ATTR
+void rb_drypop(RingBuffer *rb, char *data, Size datalen) {
+	Size i;
+	for (i = 0; i < datalen; i++) {
+		data[i] = rb->blob[rb_calc(rb, rb->head, i)];
+	}
+}
+
+
+

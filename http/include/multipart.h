@@ -2,10 +2,11 @@
 #define MULTIPART_H
 
 #include "common.h"
+#include "ringbuffer.h"
 #include <c_types.h>
 
 #define MP_FIELDNAME_MAXLEN	128
-
+#define MP_BUFFERSIZE	2048
 
 
 typedef enum {
@@ -31,6 +32,7 @@ typedef struct {
 	MultipartField field;
 	char *boundary;
 	unsigned char boundarylen;
+	RingBuffer buffer;
 } Multipart;
 
 
@@ -40,12 +42,13 @@ typedef enum {
 	MP_NOBOUNDARY		= -2,
 	MP_INVALIDBOUNDARY	= -3,
 	MP_INVALIDHEADER	= -4,
-	MP_DONE				= -6
+	MP_DONE				= -6,
+	MP_BUFFERFULL		= -7
 } MultipartError;
 
 
 int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback);
-int mp_feed(Multipart *mp, char *data, Size datalen, Size* used);
+int mp_feed(Multipart *mp, char *data, Size datalen);
 void mp_close(Multipart *mp);
 
 #endif

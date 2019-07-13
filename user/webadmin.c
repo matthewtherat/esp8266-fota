@@ -1,7 +1,6 @@
 #include "params.h"
 #include "httpserver.h"
 #include "multipart.h"
-#include "ringbuffer.h"
 
 #include <osapi.h>
 #include <mem.h>
@@ -40,15 +39,26 @@
 static Params *params;
 
 
-//static ICACHE_FLASH_ATTR
-//void _multipart_field_callback(MutipartField *field, chunk, chunklen, last) {
-//}
-//
-//static MultipartSession *ms;
+static Multipart *mp = NULL;
+
+
+static ICACHE_FLASH_ATTR;
+void _mp_callback(MultipartField *f, char *body, Size bodylen, 
+		bool last) {
+	os_printf("Field: %s,\r\n", f->name);
+}
+
 
 static ICACHE_FLASH_ATTR
 void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
+	
+	if (mp == NULL) {
+		mp = (Multipart*) os_zalloc(sizeof(Multipart));
+		mp_init(mp, req->contenttype, _mp_callback);
+	}
+	
+	
 	
 	os_printf("Recv: %d bytes, more: %d\r\n", body_length, more);
 	if (more <= 0) {

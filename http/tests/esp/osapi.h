@@ -8,5 +8,6 @@
 #define os_strncpy	strncpy
 #define os_strncmp	strncmp
 
+#define ICACHE_FLASH_ATTR
 #endif
 
