@@ -15,6 +15,7 @@ void rb_push(RingBuffer *rb, char *data, Size datalen) {
 	for(i = 0; i < datalen; i++) {
 		rb_pushone(rb, data[i]);
 	}
+	rb->blob[rb->tail] = '\0';
 }
 
 

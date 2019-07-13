@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #define os_malloc	malloc
+#define os_memset	memset
 
 #endif
 
