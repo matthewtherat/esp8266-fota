@@ -1,12 +1,12 @@
 #ifndef MULTIPART_H
 #define MULTIPART_H
 
+#include "common.h"
 #include <c_types.h>
 
 #define MP_FIELDNAME_MAXLEN	128
 
 
-typedef unsigned short Size;
 
 typedef enum {
 	MP_FIELDHEADER,

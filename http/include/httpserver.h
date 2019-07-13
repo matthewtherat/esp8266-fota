@@ -84,8 +84,6 @@ typedef void (*Handler)(Request *req, char *body, uint32_t body_length,
 		uint32_t more);
 
 typedef void (*QueryStringCallback)(const char*, const char*);
-typedef void (*MultipartCallback)(const char *name, const char *filename, 
-		const char *chunk, uint16_t chunklen, bool last);
 
 typedef struct {
 	char *verb;

@@ -4,7 +4,7 @@
 #include "multipart.h"
 
 
-static
+static ICACHE_FLASH_ATTR
 int _parse_header(Multipart *mp, char *data, Size datalen) {
 	char *line = data;
 	char *lineend;
@@ -78,6 +78,7 @@ int _parse_header(Multipart *mp, char *data, Size datalen) {
 }
 
 
+ICACHE_FLASH_ATTR
 int mp_feed(Multipart *mp, char *data, Size datalen, Size *used) {
 	int err;
 	bool last = false;
@@ -133,6 +134,7 @@ int mp_feed(Multipart *mp, char *data, Size datalen, Size *used) {
 }
 
 
+ICACHE_FLASH_ATTR
 int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback) {
 	char *e;
 	char *b = os_strstr(contenttype, "boundary=");
@@ -155,7 +157,8 @@ int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback) {
 	return MP_OK;
 }
 
-
+ 
+ICACHE_FLASH_ATTR
 void mp_close(Multipart *mp) {
 	os_free(mp->boundary);
 }

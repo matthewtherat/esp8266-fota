@@ -1,6 +1,7 @@
 #ifndef RINGBUFFER_H
 #define RINGBUFFER_H
 
+#include "common.h"
 
 typedef struct {
 	const unsigned short size;
@@ -9,7 +10,6 @@ typedef struct {
 	char * const blob;
 } RingBuffer;
 
-typedef unsigned int Size;
 
 void rb_pushone(RingBuffer *rb, char byte);
 void rb_push(RingBuffer *rb, char *data, Size datalen);
