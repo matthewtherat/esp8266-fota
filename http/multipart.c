@@ -157,7 +157,7 @@ int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback) {
 
 
 void mp_close(Multipart *mp) {
-	free(mp->boundary);
+	os_free(mp->boundary);
 }
 
 
