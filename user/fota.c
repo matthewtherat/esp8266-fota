@@ -1,19 +1,5 @@
-#include <mem.h>
-#include <osapi.h>  
-#include <ip_addr.h>
-#include <c_types.h>
-#include <espconn.h>
-#include <string.h>
-#include <spi_flash.h>
-#include <upgrade.h>
-
 #include "fota.h"
-#include "debug.h"
 #include "partition.h"
-
-static struct fota_session fs;
-
-static os_event_t fota_task_queue[FOTA_TASK_QUEUE_SIZE];
 
 
 //void

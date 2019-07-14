@@ -51,7 +51,9 @@ static MultipartField *cf = NULL;
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
 		bool last) {
 	if (cf != f) {
+		// Initialization
 		cf = f;
+		//fota_init();
 		os_printf(
 			"Field: %s, last: %d, type: %s, filename: %s, len: %d\r\n",
 			f->name, last, f->type, f->filename, bodylen);
@@ -68,22 +70,6 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 }
 
 
-//static ICACHE_FLASH_ATTR
-//void _mpt_process(void *arg) {
-//	int err;
-//	Request *req = (Request*) arg;
-//	os_timer_disarm(&mpt);
-//
-//	os_printf("Process feeding\r\n");
-//    err = mp_feedbybuffer(&mp, &rb);
-//	if (err == MP_DONE) {
-//		mp_close(&mp);
-//		httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
-//	}
-//	espconn_recv_unhold(req->conn);
-//}
-
-
 static ICACHE_FLASH_ATTR
 void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
@@ -93,7 +79,6 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 		return;
 	}
 	
-	//os_printf("Recv: %d bytes, more: %d\r\n", body_length, more);
 	if (mp.status == MP_IDLE) {
 		err = mp_init(&mp, req->contenttype, _mp_callback);
 		if (err != MP_OK) {
@@ -101,8 +86,6 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 			goto badrequest;
 		}
 		rb_reset(&rb);
-//		os_timer_disarm(&mpt);
-//		os_timer_setfn(&mpt, (os_timer_func_t*) _mpt_process, req);
 	}
 	
 	if ((err = rb_safepush(&rb, body, body_length)) == RB_FULL) {
@@ -115,8 +98,6 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 		httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
 	}
 
-	//espconn_recv_hold(req->conn);
-	//os_timer_arm(&mpt, 200, 0);
 	return;
 
 badrequest:

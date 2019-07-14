@@ -12,9 +12,17 @@ to setup your environment.
 ```bash
 source esp-env/nonos/activate.sh
 
-cd esp-env/nonos/sdk/
+cd esp-env/sdk/
 git clone git@github.com:easyqiot/fota.git
 cd fota 
-bash ./gen_misc.sh
+bash gen_misc.sh
 ```
 
+Or:
+
+```bash
+make clean
+make assets
+make flash_map6user1 
+
+```
