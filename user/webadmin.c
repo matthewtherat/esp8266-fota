@@ -30,7 +30,8 @@
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
 	"<h4>Firmware</h4>" \
-	"<form action=\"/firmware\" method=\"post\">" \
+	"<form action=\"/firmware\" method=\"post\" " \
+	"enctype=\"multipart/form-data\">" \
 	"<input name=\"firmware\" type=\"file\"/><br/>" \
 	"<input type=\"submit\" value=\"Upgrade\" />" \
 	"</form>" \
