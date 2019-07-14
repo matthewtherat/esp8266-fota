@@ -19,6 +19,7 @@ void rb_drypop(RingBuffer *rb, char *data, Size datalen);
 void rb_skip(RingBuffer *rb, Size datalen);
 int rb_safepush(RingBuffer *rb, char *data, Size datalen);
 int rb_safepop(RingBuffer *rb, char *data, Size datalen);
+void rb_reset(RingBuffer *rb);
 
 #define rb_calc(rb, i, s) ((s + i) % rb->size)
 #define rb_increment(rb, i, s) i = rb_calc(rb, i, s)

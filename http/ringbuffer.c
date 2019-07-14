@@ -1,12 +1,15 @@
 #include <osapi.h>
-
+#include <mem.h>
 
 #include "ringbuffer.h"
 
 
 ICACHE_FLASH_ATTR
 void rb_pushone(RingBuffer *rb, char byte) {
+	//os_printf("inc tail\r\n", rb->tail, byte);
+	//os_printf("inc tail:%d  %d\r\n", rb->tail, byte);
 	rb->blob[rb->tail] = byte;
+	//os_printf("inc tail Done:%d  %d\r\n", rb->tail, byte);
 	rb_increment(rb, rb->tail, 1);
 	if (rb->tail == rb->head) {
 		rb_increment(rb, rb->head, 1);
@@ -60,6 +63,14 @@ void rb_drypop(RingBuffer *rb, char *data, Size datalen) {
 	for (i = 0; i < datalen; i++) {
 		data[i] = rb->blob[rb_calc(rb, rb->head, i)];
 	}
+}
+
+
+ICACHE_FLASH_ATTR
+void rb_reset(RingBuffer *rb) {
+	rb->head = 0;
+	rb->tail = 0;
+	os_memset(rb->blob, 0, rb->size);
 }
 
 

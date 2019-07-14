@@ -7,6 +7,7 @@
 #define os_strcpy	strcpy
 #define os_strncpy	strncpy
 #define os_strncmp	strncmp
+#define os_strlen	strlen
 
 #define ICACHE_FLASH_ATTR
 #endif

@@ -79,7 +79,7 @@ int _dispatch(char *body, uint32_t body_length) {
 	
 	if (req->handler == NULL) {
 		os_printf("Not found: %s\r\n", req->path);
-		return httpserver_response_notfound();
+		return httpserver_response_notfound(req);
 	}
 	
 	bool last = (body_length - req->contentlength) == 2;
@@ -158,7 +158,7 @@ void _client_recv(void *arg, char *data, uint16_t length) {
 		readsize = _read_header(data, length);
 		if (readsize < 0) {
 			os_printf("Invalid Header: %d\r\n", readsize);
-			httpserver_response_badrequest();
+			httpserver_response_badrequest(req);
 			return;
 		}
 
@@ -217,7 +217,7 @@ void _client_connected(void *arg)
 
 
 ICACHE_FLASH_ATTR
-int httpserver_response_start(char *status, char *contenttype, 
+int httpserver_response_start(Request *req, char *status, char *contenttype, 
 		uint32_t contentlength, char **headers, uint8_t headers_count) {
 	int i;
 	response_buffer_length = os_sprintf(response_buffer, 
@@ -237,7 +237,7 @@ int httpserver_response_start(char *status, char *contenttype,
 
 
 ICACHE_FLASH_ATTR
-int httpserver_response_finalize(char *body, uint32_t body_length) {
+int httpserver_response_finalize(Request *req, char *body, uint32_t body_length) {
 	if (body_length > 0) {
 		os_memcpy(response_buffer + response_buffer_length, body, 
 				body_length);
@@ -248,19 +248,18 @@ int httpserver_response_finalize(char *body, uint32_t body_length) {
 	response_buffer_length += os_sprintf(
 			response_buffer + response_buffer_length, "\r\n");
 
-	httpserver_send(&server->request, response_buffer, 
-			response_buffer_length);
+	httpserver_send(req, response_buffer, response_buffer_length);
 	_cleanup_request(false);
 }
 
 
 ICACHE_FLASH_ATTR
-int httpserver_response(char *status, char *contenttype, 
+int httpserver_response(Request *req, char *status, char *contenttype, 
 		char *content, uint32_t contentlength, char **headers, 
 		uint8_t headers_count) {
-	httpserver_response_start(status, contenttype, contentlength, headers, 
+	httpserver_response_start(req, status, contenttype, contentlength, headers, 
 			headers_count);
-	httpserver_response_finalize(content, contentlength);
+	httpserver_response_finalize(req, content, contentlength);
 }
 
 

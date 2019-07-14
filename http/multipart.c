@@ -73,7 +73,6 @@ int _parse_header(Multipart *mp, char *data, Size datalen) {
 		temp += 14;
 		os_strncpy(mp->field.type, temp, lineend - temp);
 	}
-
 	return (lineend + 4) - data;
 }
 
@@ -93,7 +92,6 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 			last = false;
 			body = nextfield;
 		}
-
 		switch (mp->status) {
 			case MP_FIELDHEADER:
 				if ((err = _parse_header(mp, nextfield, datalen)) < MP_OK) {
@@ -106,7 +104,6 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 			
 			case MP_FIELDBODY:
 				if ((nextfield = os_strstr(body, "\r\n--")) != NULL) {
-					
 					if (os_strncmp(nextfield + 4, mp->boundary, 
 								mp->boundarylen) == 0) {
 						bodylen = nextfield - body;
@@ -127,7 +124,10 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 
 				*used += bodylen + (last? 2: 0);
 				mp->callback(&mp->field, body, bodylen, last);
+				break;
 
+			case MP_IDLE:
+				nextfield = NULL;
 		}
 	} while (nextfield != NULL);
 	return MP_MORE;
@@ -135,16 +135,10 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 
 
 ICACHE_FLASH_ATTR
-int mp_feed(Multipart *mp, char *data, Size datalen) {
-	Size used = 0;
-	RingBuffer *b = &mp->buffer;
-	int bufflen;
+int mp_feedbybuffer(Multipart *mp, RingBuffer *b) {
 	int err;
-	if ((err = rb_safepush(&mp->buffer, data, datalen)) != RB_OK) {
-		return MP_BUFFERFULL;
-	}
-	
-	bufflen = rb_used(b);
+	Size used = 0;
+	Size bufflen = rb_used(b);
 	char temp[bufflen + 1];
 	rb_drypop(b, temp, bufflen);
 	temp[bufflen] = '\0';
@@ -154,26 +148,25 @@ int mp_feed(Multipart *mp, char *data, Size datalen) {
 }
 
 
+
 ICACHE_FLASH_ATTR
 int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback) {
 	char *e;
-	char *b = os_strstr(contenttype, "boundary=");
+	char *b = os_strstr(contenttype, "boundary");
 	if (b == NULL) {
 		return MP_NOBOUNDARY;
 	}
+
 	b += 9;
 
 	e = os_strstr(b, "\r\n");
 	if (e == NULL) {
-		return MP_NOBOUNDARY;
+		mp->boundarylen = os_strlen(b);
+	}
+	else {
+		mp->boundarylen = e - b;
 	}
 	
-	mp->buffer.blob = os_zalloc(MP_BUFFERSIZE);
-	mp->buffer.size = MP_BUFFERSIZE;
-	mp->buffer.head = 0;
-	mp->buffer.tail = 0;
-
-	mp->boundarylen = e - b;
 	mp->boundary = (char*)os_malloc(mp->boundarylen + 1);
 	strncpy(mp->boundary, b, mp->boundarylen);
 	mp->boundary[mp->boundarylen] = '\0';
@@ -185,8 +178,8 @@ int mp_init(Multipart *mp, char *contenttype, MultipartCallback callback) {
  
 ICACHE_FLASH_ATTR
 void mp_close(Multipart *mp) {
-	os_free(mp->buffer.blob);
 	os_free(mp->boundary);
+	mp->status = MP_IDLE;
 }
 
 

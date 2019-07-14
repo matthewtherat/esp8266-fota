@@ -28,23 +28,23 @@
 #define IP_FORMAT	"%d.%d.%d.%d:%d"
 
 
-#define httpserver_response_text(status, content, content_length) \
-	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
+#define httpserver_response_text(req, status, content, content_length) \
+	httpserver_response(req, status, HTTPHEADER_CONTENTTYPE_TEXT, \
 		content, content_length, NULL, 0)
 
-#define httpserver_response_html(status, content, content_length) \
-	httpserver_response(status, HTTPHEADER_CONTENTTYPE_HTML, \
+#define httpserver_response_html(req, status, content, content_length) \
+	httpserver_response(req, status, HTTPHEADER_CONTENTTYPE_HTML, \
 		content, content_length, NULL, 0)
 
-#define httpserver_response_notok(status) \
-	httpserver_response(status, HTTPHEADER_CONTENTTYPE_TEXT, \
+#define httpserver_response_notok(req, status) \
+	httpserver_response(req, status, HTTPHEADER_CONTENTTYPE_TEXT, \
 		status, strlen(status), NULL, 0)
 
-#define httpserver_response_notfound() \
-	httpserver_response_notok(HTTPSTATUS_NOTFOUND)
+#define httpserver_response_notfound(req) \
+	httpserver_response_notok(req, HTTPSTATUS_NOTFOUND)
 
-#define httpserver_response_badrequest() \
-	httpserver_response_notok(HTTPSTATUS_BADREQUEST)
+#define httpserver_response_badrequest(req) \
+	httpserver_response_notok(req, HTTPSTATUS_BADREQUEST)
 
 
 #define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]
@@ -75,8 +75,6 @@ typedef struct {
 	struct espconn *conn;
 	uint16_t buffheader_length;
 	uint32_t body_cursor;
-
-
 } Request;
 
 
@@ -115,6 +113,7 @@ void httpserver_parse_querystring(
 	);
 
 int httpserver_response_start(
+		Request *req,
 		char *status, 
 		char *content_type, 
 		uint32_t content_length, 
@@ -122,9 +121,10 @@ int httpserver_response_start(
 		uint8_t headers_count
 	);
 
-int httpserver_response_finalize(char *body, uint32_t body_length);
+int httpserver_response_finalize(Request *req, char *body, uint32_t body_length);
 
 int httpserver_response(
+		Request *req, 
 		char *status,
 		char *content_type, 
 		char *content, 

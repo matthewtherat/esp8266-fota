@@ -19,10 +19,14 @@ test_ringbuffer: test_ringbuffer.c ringbuffer.o
 test_multipart: test_multipart.c ringbuffer.o multipart.o
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
+test_multipart_short: test_multipart_short.c ringbuffer.o multipart.o
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
-test: test_ringbuffer test_multipart
+
+test: test_ringbuffer test_multipart test_multipart_short
 	./test_ringbuffer
 	./test_multipart
+	./test_multipart_short
 
 
 .PHONY: test clean

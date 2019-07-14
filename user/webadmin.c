@@ -37,33 +37,91 @@
 	HTML_FOOTER
 
 static Params *params;
+static ETSTimer mpt;
+
+#define BUFFSIZE	2048
+
+static Multipart mp;
+static char buff[BUFFSIZE];
+static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
+static MultipartField *cf = NULL;
 
 
-static Multipart *mp = NULL;
-
-
-static ICACHE_FLASH_ATTR;
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
 		bool last) {
-	os_printf("Field: %s,\r\n", f->name);
+	if (cf != f) {
+		cf = f;
+		os_printf(
+			"Field: %s, last: %d, type: %s, filename: %s, len: %d\r\n",
+			f->name, last, f->type, f->filename, bodylen);
+	}
+	os_printf("\r\n%d-------------------------\r\n", bodylen);
+	char t[bodylen + 1];
+	os_strncpy(t, body, bodylen);
+	t[bodylen] = 0;
+	os_printf("%s", t);
+	if (last) {
+		os_printf("\r\n-------------------------\r\n");
+		cf = NULL;
+	}
 }
+
+
+//static ICACHE_FLASH_ATTR
+//void _mpt_process(void *arg) {
+//	int err;
+//	Request *req = (Request*) arg;
+//	os_timer_disarm(&mpt);
+//
+//	os_printf("Process feeding\r\n");
+//    err = mp_feedbybuffer(&mp, &rb);
+//	if (err == MP_DONE) {
+//		mp_close(&mp);
+//		httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
+//	}
+//	espconn_recv_unhold(req->conn);
+//}
 
 
 static ICACHE_FLASH_ATTR
 void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	
-	if (mp == NULL) {
-		mp = (Multipart*) os_zalloc(sizeof(Multipart));
-		mp_init(mp, req->contenttype, _mp_callback);
+	int err;
+	if (body_length <= 0) {
+		return;
 	}
 	
-	
-	
-	os_printf("Recv: %d bytes, more: %d\r\n", body_length, more);
-	if (more <= 0) {
-		httpserver_response_text(HTTPSTATUS_OK, "Done", 4);
+	//os_printf("Recv: %d bytes, more: %d\r\n", body_length, more);
+	if (mp.status == MP_IDLE) {
+		err = mp_init(&mp, req->contenttype, _mp_callback);
+		if (err != MP_OK) {
+			os_printf("Cannot init multipart: %d\r\n", err);
+			goto badrequest;
+		}
+		rb_reset(&rb);
+//		os_timer_disarm(&mpt);
+//		os_timer_setfn(&mpt, (os_timer_func_t*) _mpt_process, req);
 	}
+	
+	if ((err = rb_safepush(&rb, body, body_length)) == RB_FULL) {
+		goto badrequest;
+	}
+
+    err = mp_feedbybuffer(&mp, &rb);
+	if (err == MP_DONE) {
+		mp_close(&mp);
+		httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
+	}
+
+	//espconn_recv_hold(req->conn);
+	//os_timer_arm(&mpt, 200, 0);
+	return;
+
+badrequest:
+	os_timer_disarm(&mpt);
+	mp_close(&mp);
+	httpserver_response_notok(req, HTTPSTATUS_BADREQUEST);
 }
 
 
@@ -98,7 +156,7 @@ void webadmin_get_params(Request *req, char *body, uint32_t body_length,
 			params->ap_psk, 
 			params->station_ssid, 
 			params->station_psk);
-	httpserver_response_html(HTTPSTATUS_OK, buffer, len);
+	httpserver_response_html(req, HTTPSTATUS_OK, buffer, len);
 }
 
 
@@ -108,7 +166,7 @@ void webadmin_set_params(Request *req, char *body, uint32_t body_length,
 	body[body_length] = 0;
 	httpserver_parse_querystring(body, _update_params_field);  
 	if (!params_save(params)) {
-		httpserver_response_notok(HTTPSTATUS_SERVERERROR);
+		httpserver_response_notok(req, HTTPSTATUS_SERVERERROR);
 		return;
 	}
 	system_restart();
@@ -127,10 +185,10 @@ void webadmin_favicon(Request *req, char *body, uint32_t body_length,
 		);
 	if (result != SPI_FLASH_RESULT_OK) {
 		os_printf("SPI Flash write failed: %d\r\n", result);
-		httpserver_response_notok(HTTPSTATUS_SERVERERROR);
+		httpserver_response_notok(req, HTTPSTATUS_SERVERERROR);
 		return;
 	}
-	httpserver_response(HTTPSTATUS_OK, "image/x-icon", buffer, 495, NULL, 0);
+	httpserver_response(req, HTTPSTATUS_OK, "image/x-icon", buffer, 495, NULL, 0);
 }
 
 
@@ -139,7 +197,7 @@ void webadmin_index(Request *req, char *body, uint32_t body_length,
 		uint32_t more) {
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_INDEX, params->device_name);
-	httpserver_response_html(HTTPSTATUS_OK, buffer, len);
+	httpserver_response_html(req, HTTPSTATUS_OK, buffer, len);
 }
 
 
