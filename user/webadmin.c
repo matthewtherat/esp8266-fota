@@ -55,7 +55,7 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 			"Field: %s, last: %d, type: %s, filename: %s, len: %d\r\n",
 			f->name, last, f->type, f->filename, bodylen);
 	}
-	os_printf("\r\n%d-------------------------\r\n", bodylen);
+	os_printf("\r\n--- Chunk len: %d ----------\r\n", bodylen);
 	char t[bodylen + 1];
 	os_strncpy(t, body, bodylen);
 	t[bodylen] = 0;

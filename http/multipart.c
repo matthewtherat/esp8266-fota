@@ -99,7 +99,7 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 				}
 				mp->status = MP_FIELDBODY;
 				body += err;
-				*used = err;
+				*used += err;
 				bodylen -= err;
 			
 			case MP_FIELDBODY:
@@ -111,11 +111,11 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 						mp->status = MP_FIELDHEADER;
 						nextfield += 2;
 					}
-					else {
-						int remaining = datalen - (nextfield - data);
-						bodylen -= remaining;
-						nextfield = NULL;
-					}
+					//else {
+					//	int remaining = datalen - (nextfield - data);
+					//	bodylen -= remaining;
+					//	nextfield = NULL;
+					//}
 				}
 
 				if (bodylen < 1) {
