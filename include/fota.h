@@ -1,12 +1,14 @@
-
 #ifndef FOTA_H_
 #define FOTA_H_
 
+#include <c_types.h>
 
-#ifndef FOTA_SECTOR_SIZE
-#define FOTA_SECTOR_SIZE	4096
-#endif
+#define FOTA_SECTORSIZE		4096
 
+
+typedef struct {
+	uint32_t sector;
+} Fota;
 
 #endif
 

@@ -50,23 +50,31 @@ static MultipartField *cf = NULL;
 
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
 		bool last) {
-	if (cf != f) {
-		// Initialization
-		cf = f;
-		//fota_init();
-		os_printf(
-			"Field: %s, last: %d, type: %s, filename: %s, len: %d\r\n",
-			f->name, last, f->type, f->filename, bodylen);
+	if (os_strncmp(f->name, "firmware", 8) != 0) {
+		return;
 	}
-	os_printf("\r\n--- Chunk len: %d ----------\r\n", bodylen);
-	char t[bodylen + 1];
-	os_strncpy(t, body, bodylen);
-	t[bodylen] = 0;
-	os_printf("%s", t);
+	
+	fota_feed(body, bodylen);
 	if (last) {
-		os_printf("\r\n-------------------------\r\n");
-		cf = NULL;
+		fota_finalize();
 	}
+	//if (cf != f) {
+	//	// Initialization
+	//	cf = f;
+	//	//fota_init();
+	//	os_printf(
+	//		"Field: %s, last: %d, type: %s, filename: %s, len: %d\r\n",
+	//		f->name, last, f->type, f->filename, bodylen);
+	//}
+	//os_printf("\r\n--- Chunk len: %d ----------\r\n", bodylen);
+	//char t[bodylen + 1];
+	//os_strncpy(t, body, bodylen);
+	//t[bodylen] = 0;
+	//os_printf("%s", t);
+	//if (last) {
+	//	os_printf("\r\n-------------------------\r\n");
+	//	cf = NULL;
+	//}
 }
 
 
@@ -86,6 +94,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 			goto badrequest;
 		}
 		rb_reset(&rb);
+		fota_init();
 	}
 	
 	if ((err = rb_safepush(&rb, body, body_length)) == RB_FULL) {
@@ -204,6 +213,4 @@ void ICACHE_FLASH_ATTR
 webadmin_stop() {
 	httpserver_stop();
 }
-
-
 

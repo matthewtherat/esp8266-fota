@@ -70,7 +70,6 @@ ICACHE_FLASH_ATTR
 void rb_reset(RingBuffer *rb) {
 	rb->head = 0;
 	rb->tail = 0;
-	os_memset(rb->blob, 0, rb->size);
 }
 
 
