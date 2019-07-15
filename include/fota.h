@@ -4,6 +4,7 @@
 #include <c_types.h>
 
 #define FOTA_SECTORSIZE		4096
+#define FOTA_BUFFERSIZE		FOTA_SECTORSIZE * 2
 
 
 typedef struct {

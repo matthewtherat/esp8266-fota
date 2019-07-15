@@ -7,7 +7,6 @@
 #include <osapi.h>
 #include <upgrade.h>
 
-#define FOTA_BUFFERSIZE		FOTA_SECTORSIZE * 2
 
 static Fota fs;
 static RingBuffer rb = {FOTA_BUFFERSIZE, 0, 0, NULL};
