@@ -13,11 +13,12 @@ static RingBuffer rb = {FOTA_BUFFERSIZE, 0, 0, NULL};
 
 
 static _write_sector() {
-	SpiFlashOpResult err;
+	//SpiFlashOpResult err;
 
 	system_soft_wdt_feed();
 	system_upgrade_erase_flash(0xFFF);
 	os_printf("E: 0x%05X\r\n", fs.sector * FOTA_SECTORSIZE);
+	os_delay_us(100);
 	//if (fs.sector % 16 == 0) {
 	//}
 	//err = spi_flash_erase_sector((uint16_t)fs.sector);
@@ -29,6 +30,7 @@ static _write_sector() {
 	char sector[FOTA_SECTORSIZE];
 	rb_safepop(&rb, sector, FOTA_SECTORSIZE);
 	system_upgrade(sector, FOTA_SECTORSIZE);
+	os_delay_us(100);
 	os_printf("W: 0x%05X\r\n", fs.sector * FOTA_SECTORSIZE);
 	fs.sector++;
 	//err = spi_flash_write(fs.sector * FOTA_SECTORSIZE, 
@@ -42,8 +44,7 @@ static _write_sector() {
 }
 
 
-int ICACHE_FLASH_ATTR 
-fota_feed(char * data, Size datalen) {
+int fota_feed(char * data, Size datalen) {
 	RingBuffer *b = &rb;
 	int err = rb_safepush(b, data, datalen);
 	if (err != RB_OK) {
@@ -57,32 +58,33 @@ fota_feed(char * data, Size datalen) {
 }
 
 
-void ICACHE_FLASH_ATTR 
-fota_init() {
+void fota_init() {
 	// Buffer
 	rb.blob = (char*) os_malloc(FOTA_BUFFERSIZE + 1);
 	rb_reset((RingBuffer*)&rb);
 	fs.sector = system_upgrade_userbin_check() == UPGRADE_FW_BIN1 ?
 		SYSTEM_PARTITION_OTA2_ADDR / FOTA_SECTORSIZE: 1;
 
-	//system_soft_wdt_stop();
-	//wifi_fpm_close();
-	//bool fp = spi_flash_erase_protect_disable();
-	//if (!fp) {
-	//	INFO("Cannot disable the flash protection\r\n");
-	//	return;
-	//}
+	system_soft_wdt_stop();
+	wifi_fpm_close();
+	bool fp = spi_flash_erase_protect_disable();
+	if (!fp) {
+		os_printf("Cannot disable the flash protection\r\n");
+		return;
+	}
 
+	system_upgrade_init();
+	system_upgrade_flag_set(UPGRADE_FLAG_START);
 	os_printf("FOTA: Init Sector: %X\r\n", fs.sector);
 }
 
 
-void ICACHE_FLASH_ATTR 
-fota_finalize() {
+void fota_finalize() {
 	os_free(rb.blob);
-	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
-	//system_upgrade_deinit();
 	os_printf("REBOOTING\r\n");
+	system_soft_wdt_feed();
+	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
+	system_upgrade_deinit();
 	system_upgrade_reboot();
 }
 

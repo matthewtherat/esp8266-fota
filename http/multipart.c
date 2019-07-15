@@ -103,7 +103,7 @@ int _feed(Multipart *mp, char *data, Size datalen, Size *used) {
 				bodylen -= err;
 			
 			case MP_FIELDBODY:
-				if ((nextfield = os_strstr(body, "\r\n--")) != NULL) {
+				if ((nextfield = memmem(body, bodylen, "\r\n--", 4)) != NULL) {
 					if (os_strncmp(nextfield + 4, mp->boundary, 
 								mp->boundarylen) == 0) {
 						bodylen = nextfield - body;

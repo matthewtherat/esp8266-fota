@@ -23,8 +23,8 @@ typedef struct {
 } MultipartField;
 
 
-typedef void (*MultipartCallback)(MultipartField*, char* body, Size bodylen, 
-		bool last);
+typedef void (*MultipartCallback)(MultipartField*, char* body, 
+		Size bodylen, bool last);
 
 
 typedef struct {

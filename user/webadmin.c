@@ -46,6 +46,7 @@ static Multipart mp;
 static char buff[BUFFSIZE];
 static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 static MultipartField *cf = NULL;
+static Request *request;
 
 
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
@@ -53,28 +54,14 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 	if (os_strncmp(f->name, "firmware", 8) != 0) {
 		return;
 	}
-	
 	fota_feed(body, bodylen);
+	//os_printf("Chunk len: %d last: %d\r\n", bodylen, last);
 	if (last) {
+		//espconn_recv_unhold(request->conn);
+		httpserver_response_text(request, HTTPSTATUS_OK, "Done", 4);
 		fota_finalize();
 	}
-	//if (cf != f) {
-	//	// Initialization
-	//	cf = f;
-	//	//fota_init();
-	//	os_printf(
-	//		"Field: %s, last: %d, type: %s, filename: %s, len: %d\r\n",
-	//		f->name, last, f->type, f->filename, bodylen);
-	//}
-	//os_printf("\r\n--- Chunk len: %d ----------\r\n", bodylen);
-	//char t[bodylen + 1];
-	//os_strncpy(t, body, bodylen);
-	//t[bodylen] = 0;
-	//os_printf("%s", t);
-	//if (last) {
-	//	os_printf("\r\n-------------------------\r\n");
-	//	cf = NULL;
-	//}
+
 }
 
 
@@ -88,6 +75,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 	}
 	
 	if (mp.status == MP_IDLE) {
+		request = req;
 		err = mp_init(&mp, req->contenttype, _mp_callback);
 		if (err != MP_OK) {
 			os_printf("Cannot init multipart: %d\r\n", err);
@@ -97,16 +85,27 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 		fota_init();
 	}
 	
+	espconn_recv_hold(req->conn);
 	if ((err = rb_safepush(&rb, body, body_length)) == RB_FULL) {
 		goto badrequest;
 	}
 
     err = mp_feedbybuffer(&mp, &rb);
-	if (err == MP_DONE) {
-		mp_close(&mp);
-		httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
+	espconn_recv_unhold(req->conn);
+	switch (err) {
+		case MP_DONE:
+			goto done;
+
+		case MP_MORE:
+			return;
+
+		default:
+			goto badrequest;
 	}
 
+done:
+	mp_close(&mp);
+	httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
 	return;
 
 badrequest:
