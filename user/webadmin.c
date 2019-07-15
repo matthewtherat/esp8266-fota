@@ -38,7 +38,7 @@
 	HTML_FOOTER
 
 static Params *params;
-static ETSTimer mpt;
+static ETSTimer ff;
 
 #define BUFFSIZE	2048
 
@@ -46,8 +46,11 @@ static Multipart mp;
 static char buff[BUFFSIZE];
 static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 static MultipartField *cf = NULL;
-static Request *request;
 
+
+void ff_func(void *arg) {
+	fota_finalize();
+}
 
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
 		bool last) {
@@ -56,11 +59,11 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 	}
 	fota_feed(body, bodylen);
 	//os_printf("Chunk len: %d last: %d\r\n", bodylen, last);
-	if (last) {
-		//espconn_recv_unhold(request->conn);
-		httpserver_response_text(request, HTTPSTATUS_OK, "Done", 4);
-		fota_finalize();
-	}
+	//if (last) {
+	//	//espconn_recv_unhold(request->conn);
+	//	httpserver_response_text(request, HTTPSTATUS_OK, "Done", 4);
+	//	fota_finalize();
+	//}
 
 }
 
@@ -75,7 +78,6 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 	}
 	
 	if (mp.status == MP_IDLE) {
-		request = req;
 		err = mp_init(&mp, req->contenttype, _mp_callback);
 		if (err != MP_OK) {
 			os_printf("Cannot init multipart: %d\r\n", err);
@@ -105,11 +107,13 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 
 done:
 	mp_close(&mp);
-	httpserver_response_text(req, HTTPSTATUS_OK, "Done", 4);
+	httpserver_response_text(req, HTTPSTATUS_OK, "Rebooting...", 12);
+	os_timer_disarm(&ff);
+	os_timer_setfn(&ff, (os_timer_func_t *)ff_func, NULL);
+	os_timer_arm(&ff, 2000, 0);
 	return;
 
 badrequest:
-	os_timer_disarm(&mpt);
 	mp_close(&mp);
 	httpserver_response_notok(req, HTTPSTATUS_BADREQUEST);
 }
