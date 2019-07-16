@@ -34,7 +34,7 @@ int _write_sector(uint16_t len) {
 	total += len;
 	os_printf("W: 0x%05X, len: %d, total: %d\r\n", 
 			fs.sector * FOTA_SECTORSIZE, len, total);
-	//fs.sector++;
+	fs.sector++;
 	//err = spi_flash_write(fs.sector * FOTA_SECTORSIZE, 
 	//		sector, 
 	//		FOTA_SECTORSIZE);
