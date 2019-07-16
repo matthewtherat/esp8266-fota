@@ -1,7 +1,6 @@
 #ifndef FOTA_H_
 #define FOTA_H_
 
-#include "common.h"
 #include <c_types.h>
 
 #define FOTA_SECTORSIZE		4096
@@ -13,7 +12,7 @@ typedef struct {
 } Fota;
 
 
-int fota_feed(char * data, Size datalen);
+int fota_feed(char * data, uint32_t datalen);
 void fota_init();
 void fota_finalize();
 

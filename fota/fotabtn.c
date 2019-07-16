@@ -27,8 +27,8 @@ void gpio_intr(void *arg) {
 }
 
 
-void ICACHE_FLASH_ATTR
-fotabtn_init() {
+ICACHE_FLASH_ATTR
+void fotabtn_init() {
 	// GPIO
 	ETS_GPIO_INTR_DISABLE();
 
@@ -39,5 +39,4 @@ fotabtn_init() {
 	gpio_pin_intr_state_set(GPIO_ID_PIN(FOTABTN_NUM), GPIO_PIN_INTR_ANYEDGE);
 	ETS_GPIO_INTR_ENABLE();
 }
-
 

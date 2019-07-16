@@ -54,13 +54,15 @@ void ff_func(void *arg) {
 	fota_finalize();
 }
 
+
+
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
 		bool last) {
 	if (os_strncmp(f->name, "firmware", 8) != 0) {
 		return;
 	}
 	fota_feed(body, bodylen);
-	//os_printf("Chunk len: %d last: %d\r\n", bodylen, last);
+	//os_printf("total: %d, Chunk len: %d last: %d\r\n", ll, bodylen, last);
 	//if (last) {
 	//	//espconn_recv_unhold(request->conn);
 	//	httpserver_response_text(request, HTTPSTATUS_OK, "Done", 4);

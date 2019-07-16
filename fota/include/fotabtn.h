@@ -5,5 +5,6 @@
 #define FOTABTN_NUM			0
 #define FOTABTN_FUNC		FUNC_GPIO0
 
+void fotabtn_init();
 #endif
 
