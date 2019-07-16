@@ -12,7 +12,7 @@ typedef struct {
 } Fota;
 
 
-int fota_feed(char * data, uint32_t datalen);
+int fota_feed(char * data, uint32_t datalen, bool last);
 void fota_init();
 void fota_finalize();
 
