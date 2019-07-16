@@ -1,6 +1,8 @@
 #include "params.h"
 #include "httpserver.h"
 #include "multipart.h"
+#include "fota.h"
+#include "fotabtn.h"
 
 #include <osapi.h>
 #include <mem.h>
@@ -204,8 +206,12 @@ static HttpRoute routes[] = {
 	{ NULL }
 };
 
+
 int ICACHE_FLASH_ATTR
 webadmin_start(Params *_params) {
+	// FOTA Button 
+	fotabtn_init();
+
 	params = _params;
 	httpserver_init(80, routes);
 	return OK;
