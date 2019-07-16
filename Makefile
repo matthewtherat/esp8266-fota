@@ -23,6 +23,7 @@ GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	http \
+	fota \
 	user 
 
 endif # } PDIR
@@ -47,6 +48,7 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
+	fota/libfota.a \
 	http/libhttp.a \
 	user/libuser.a 
 
@@ -122,6 +124,7 @@ DDEFINES +=				\
 
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
+	-I $(PDIR)/fota/include \
 	-I $(PDIR)/http/include 
 
 PDIR := ../$(PDIR)
