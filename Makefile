@@ -23,7 +23,7 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
-	http \
+	httpserver \
 	fota \
 	user 
 
@@ -50,7 +50,7 @@ endif
 
 COMPONENTS_eagle.app.v6 = \
 	fota/libfota.a \
-	http/libhttp.a \
+	httpserver/libhttpserver.a \
 	user/libuser.a 
 
 LINKFLAGS_eagle.app.v6 = \
@@ -126,7 +126,7 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(PDIR)/fota/include \
-	-I $(PDIR)/http/include 
+	-I $(PDIR)/httpserver/include 
 
 PDIR = $(SDKDIR)/
 sinclude $(SDKDIR)/Makefile
