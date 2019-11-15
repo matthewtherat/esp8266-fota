@@ -15,6 +15,7 @@ TARGET = eagle
 #FLAVOR = release
 FLAVOR = debug
 
+SDKDIR = ${SDK_PATH}
 #EXTRA_CCFLAGS += -u
 
 ifndef PDIR # {
@@ -29,7 +30,7 @@ SUBDIRS=    \
 endif # } PDIR
 
 APPDIR = .
-LDDIR = ../ld
+LDDIR = ./ld
 
 CCFLAGS += -Os
 
@@ -53,7 +54,7 @@ COMPONENTS_eagle.app.v6 = \
 	user/libuser.a 
 
 LINKFLAGS_eagle.app.v6 = \
-	-L../lib        \
+	-L$(SDKDIR)/lib        \
 	-nostdlib	\
     -T$(LD_FILE)   \
 	-Wl,--no-check-sections	\
@@ -127,14 +128,13 @@ INCLUDES := $(INCLUDES) \
 	-I $(PDIR)/fota/include \
 	-I $(PDIR)/http/include 
 
-PDIR := ../$(PDIR)
-sinclude $(PDIR)Makefile
+PDIR = $(SDKDIR)/
+sinclude $(SDKDIR)/Makefile
 
 BAUDRATE = 576000
 ESPTOOL = esptool.py --baud $(BAUDRATE) write_flash -u --flash_mode qio --flash_freq 40m
-
 erase_flash:
-	 $(ESPTOOL) 0x0 ../bin/blank-1mb.bin
+	 $(ESPTOOL) 0x0 $(SDK_PATH)/bin/blank-1mb.bin
 
 #map2user1:
 #	make clean
@@ -142,16 +142,16 @@ erase_flash:
 #
 #flash_map2user1: map2user1
 #	$(ESPTOOL) --flash_size 1MB  \
-#		0x0 	../bin/boot_v1.7.bin \
-#		0x1000  ../bin/upgrade/user1.1024.new.2.bin \
-#		0xfc000 ../bin/esp_init_data_default_v08.bin \
-#		0xfb000 ../bin/blank.bin \
-#		0xfe000 ../bin/blank.bin
+#		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
+#		0x1000  $(BIN_DIR)/upgrade/user1.1024.new.2.bin \
+#		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+#		0xfb000 $(SDK_PATH)/bin/blank.bin \
+#		0xfe000 $(SDK_PATH)/bin/blank.bin
 #
-##		0x78000 ../bin/blank.bin \
-##		0x79000 ../bin/blank.bin \
-##		0x7a000 ../bin/blank.bin \
-##		0x7b000 ../bin/blank.bin 
+##		0x78000 $(SDK_PATH)/bin/blank.bin \
+##		0x79000 $(SDK_PATH)/bin/blank.bin \
+##		0x7a000 $(SDK_PATH)/bin/blank.bin \
+##		0x7b000 $(SDK_PATH)/bin/blank.bin 
 #
 #map3user1:
 #	make clean
@@ -159,15 +159,15 @@ erase_flash:
 #
 #flash_map3user1:
 #	$(ESPTOOL) --flash_size 2MB  \
-#		0x0 	../bin/boot_v1.7.bin \
-#		0x1000  ../bin/upgrade/user1.2048.new.3.bin \
-#		0x1fc000 ../bin/esp_init_data_default_v08.bin \
-#		0x1fb000 ../bin/blank.bin \
-#		0x1fe000 ../bin/blank.bin \
-#		0x78000 ../bin/blank.bin \
-#		0x79000 ../bin/blank.bin \
-#		0x7a000 ../bin/blank.bin \
-#		0x7b000 ../bin/blank.bin 
+#		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
+#		0x1000  $(BIN_PATH)/upgrade/user1.2048.new.3.bin \
+#		0x1fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+#		0x1fb000 $(SDK_PATH)/bin/blank.bin \
+#		0x1fe000 $(SDK_PATH)/bin/blank.bin \
+#		0x78000 $(SDK_PATH)/bin/blank.bin \
+#		0x79000 $(SDK_PATH)/bin/blank.bin \
+#		0x7a000 $(SDK_PATH)/bin/blank.bin \
+#		0x7b000 $(SDK_PATH)/bin/blank.bin 
 #
 #map5user1:
 #	make clean
@@ -175,11 +175,11 @@ erase_flash:
 #
 #flash_map5user1: map5user1
 #	$(ESPTOOL) --flash_size 2MB  \
-#		0x0 	../bin/boot_v1.7.bin \
-#		0x1000  ../bin/upgrade/user1.2048.new.5.bin \
-#		0x1fc000 ../bin/esp_init_data_default_v08.bin \
-#		0x1fb000 ../bin/blank.bin \
-#		0x1fe000 ../bin/blank.bin \
+#		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
+#		0x1000  $(BIN_PATH)/upgrade/user1.2048.new.5.bin \
+#		0x1fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+#		0x1fb000 $(SDK_PATH)/bin/blank.bin \
+#		0x1fe000 $(SDK_PATH)/bin/blank.bin \
 
 map6user1:
 	make clean
@@ -187,17 +187,17 @@ map6user1:
 
 flash_map6user1: map6user1
 	$(ESPTOOL) --flash_size 4MB-c1  \
-		0x0 	../bin/boot_v1.7.bin \
-		0x1000  ../bin/upgrade/user1.4096.new.6.bin \
-		0x3fc000 ../bin/esp_init_data_default_v08.bin \
-		0x3fb000 ../bin/blank.bin \
-		0x3fe000 ../bin/blank.bin 
+		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
+		0x1000  $(BIN_PATH)/upgrade/user1.4096.new.6.bin \
+		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0x3fb000 $(SDK_PATH)/bin/blank.bin \
+		0x3fe000 $(SDK_PATH)/bin/blank.bin 
 
 cleanup_map6user1:
 	$(ESPTOOL) --flash_size 4MB-c1  \
-		0xf8000 ../bin/blank.bin \
-		0xf9000 ../bin/blank.bin \
-		0xfa000 ../bin/blank.bin 
+		0xf8000 $(SDK_PATH)/bin/blank.bin \
+		0xf9000 $(SDK_PATH)/bin/blank.bin \
+		0xfa000 $(SDK_PATH)/bin/blank.bin 
 
 
 assets_map6user1:
