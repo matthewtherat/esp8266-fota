@@ -13,11 +13,12 @@ to setup your environment.
 cd esp-env
 source activate.sh
 
-cd fota 
+git clone --recursive https://github.com/pylover/esp8266-fota.git
+cd esp8266-fota 
 bash gen_misc.sh
 ```
 
-Or:
+Or use predefined make macros:
 
 ```bash
 make clean
