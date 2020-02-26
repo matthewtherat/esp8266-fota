@@ -12,6 +12,7 @@ to setup your environment.
 ```bash
 cd esp-env
 source activate.sh
+cd ..
 
 git clone --recursive https://github.com/pylover/esp8266-fota.git
 cd esp8266-fota 
