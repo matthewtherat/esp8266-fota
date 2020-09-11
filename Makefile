@@ -187,10 +187,12 @@ screen:
 #		0x1fb000 $(SDK_PATH)/bin/blank.bin \
 #		0x1fe000 $(SDK_PATH)/bin/blank.bin \
 
+.PHONY: map6user1
 map6user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
 
+.PHONY: flash_map6user1
 flash_map6user1: map6user1
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
@@ -199,6 +201,7 @@ flash_map6user1: map6user1
 		0x3fb000 $(SDK_PATH)/bin/blank.bin \
 		0x3fe000 $(SDK_PATH)/bin/blank.bin 
 
+.PHONY: cleanup_map6user1
 cleanup_map6user1:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0xf8000 $(SDK_PATH)/bin/blank.bin \
@@ -206,10 +209,10 @@ cleanup_map6user1:
 		0xfa000 $(SDK_PATH)/bin/blank.bin 
 
 
+.PHONY: assets_map6user1
 assets_map6user1:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x200000 assets/favicon-16x16.png 
 
 
 
-.PHONY: 
