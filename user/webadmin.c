@@ -3,6 +3,7 @@
 #include "multipart.h"
 #include "fota.h"
 #include "fotabtn.h"
+#include "querystring.h"
 
 #include <osapi.h>
 #include <mem.h>
@@ -162,7 +163,7 @@ static ICACHE_FLASH_ATTR
 void webadmin_set_params(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	body[body_length] = 0;
-	httpserver_parse_querystring(body, _update_params_field);  
+	querystring_parse(body, _update_params_field);  
 	if (!params_save(params)) {
 		httpserver_response_notok(req, HTTPSTATUS_SERVERERROR);
 		return;
