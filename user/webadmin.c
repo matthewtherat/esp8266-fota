@@ -48,7 +48,6 @@ static ETSTimer ff;
 static Multipart mp;
 static char buff[BUFFSIZE];
 static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
-static MultipartField *cf = NULL;
 
 
 void ff_func(void *arg) {
