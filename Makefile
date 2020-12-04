@@ -132,8 +132,9 @@ PDIR = $(SDKDIR)/
 sinclude $(SDKDIR)/Makefile
 
 BAUDRATE := 115200
+FLASH_BAUDRATE := 460800
 PORT := /dev/ttyUSB0
-ESPTOOL = esptool.py --baud $(BAUDRATE) --port $(PORT)
+ESPTOOL = esptool.py --baud $(FLASH_BAUDRATE) --port $(PORT)
 ESPTOOL_WRITE = $(ESPTOOL)  write_flash -u --flash_mode qio --flash_freq 40m
 
 erase_flash:
