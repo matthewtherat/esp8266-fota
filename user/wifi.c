@@ -97,10 +97,16 @@ wifi_init_softap(const char *ssid, const char *psk) {
 	wifi_softap_get_config(config);     
 
 	// Updating ssid and password
-	os_sprintf(config->ssid, "%s_%02x%02x%02x%02x%02x%02x", 
-			ssid,
-			MAC2STR(mac)
-		);
+    if (os_strcmp(ssid, NEWDEVICE_NAME) == 0) {
+	    os_sprintf(config->ssid, "%s_%02x%02x%02x%02x%02x%02x", 
+	    		ssid,
+	    		MAC2STR(mac)
+	    	);
+    }
+    else {
+	    os_sprintf(config->ssid, "%s", ssid);
+    }
+
 	INFO("SSID: %s\r\n", config->ssid);
     config->ssid_len = 0; 
 	if (os_strlen(psk)) {

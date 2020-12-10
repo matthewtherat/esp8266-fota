@@ -3,11 +3,24 @@
 
 #include <user_interface.h>
 
+/*
+Flash Maps
+0= 512KB( 256KB+ 256KB)
+2=1024KB( 512KB+ 512KB)
+3=2048KB( 512KB+ 512KB)
+4=4096KB( 512KB+ 512KB)
+5=2048KB(1024KB+1024KB)
+6=4096KB(1024KB+1024KB)
+7=4096KB(2048KB+2048KB) not support ,just for compatible with nodeMCU board
+8=8192KB(1024KB+1024KB)
+9=16384KB(1024KB+1024KB)
+*/
 
 #define _4KB 0x1000
 
 #if ((SPI_FLASH_SIZE_MAP == 0) || (SPI_FLASH_SIZE_MAP == 1))
 #error "The flash map is not supported"
+
 #elif (SPI_FLASH_SIZE_MAP == 2)
 #define SYSTEM_PARTITION_OTA_SIZE							0x6A000
 #define SYSTEM_PARTITION_OTA2_ADDR							0x81000

@@ -7,6 +7,7 @@
 #define PARAMS_SECTOR SYSTEM_PARTITION_PARAMS_ADDR / 4096 
 
 #define MAGIC 'I'
+#define NEWDEVICE_NAME "NewDevice"
 
 typedef struct {
 	 char device_name[16];

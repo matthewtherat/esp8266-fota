@@ -61,14 +61,9 @@ void user_init(void) {
 			return;
 		}
 	}
-
-	INFO("\r\nParams: name: %s, ssid: %s psk: %s ap-psk: %s\r\n",
-			params.device_name,
-			params.station_ssid, 
-			params.station_psk,
-			params.ap_psk
-		);
-
+    
+    params_print(&params);
+	
     // Disable wifi led before infrared
     wifi_status_led_uninstall();
 

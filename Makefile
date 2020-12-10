@@ -143,22 +143,22 @@ erase_flash:
 screen:
 	screen $(PORT) $(BAUDRATE)
 
-#map2user1:
-#	make clean
-#	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
-#
-#flash_map2user1: map2user1
-#	$(ESPTOOL_WRITE) --flash_size 1MB  \
-#		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
-#		0x1000  $(BIN_DIR)/upgrade/user1.1024.new.2.bin \
-#		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
-#		0xfb000 $(SDK_PATH)/bin/blank.bin \
-#		0xfe000 $(SDK_PATH)/bin/blank.bin
-#
-##		0x78000 $(SDK_PATH)/bin/blank.bin \
-##		0x79000 $(SDK_PATH)/bin/blank.bin \
-##		0x7a000 $(SDK_PATH)/bin/blank.bin \
-##		0x7b000 $(SDK_PATH)/bin/blank.bin 
+map2user1:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
+
+flash_map2user1: map2user1
+	$(ESPTOOL_WRITE) --flash_size 1MB  \
+		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
+		0x1000  $(BIN_PATH)/upgrade/user1.1024.new.2.bin \
+		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0xfb000 $(SDK_PATH)/bin/blank.bin \
+		0xfe000 $(SDK_PATH)/bin/blank.bin
+
+#		0x78000 $(SDK_PATH)/bin/blank.bin \
+#		0x79000 $(SDK_PATH)/bin/blank.bin \
+#		0x7a000 $(SDK_PATH)/bin/blank.bin \
+#		0x7b000 $(SDK_PATH)/bin/blank.bin 
 #
 #map3user1:
 #	make clean
