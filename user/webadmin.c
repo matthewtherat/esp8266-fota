@@ -75,7 +75,6 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 static ICACHE_FLASH_ATTR
 void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
-	
 	int err;
 	if (body_length <= 0) {
 		return;
