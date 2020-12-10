@@ -4,6 +4,7 @@
 #include "fota.h"
 #include "fotabtn.h"
 #include "querystring.h"
+#include "status.h"
 
 #include <osapi.h>
 #include <mem.h>
@@ -88,6 +89,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 		}
 		rb_reset(&rb);
 		fota_init();
+        status_update(50, 50, INFINITE, NULL);
 	}
 	
 	espconn_recv_hold(req->conn);
@@ -118,6 +120,7 @@ done:
 
 badrequest:
 	mp_close(&mp);
+    status_update(100, 100, 1, NULL);
 	httpserver_response_notok(req, HTTPSTATUS_BADREQUEST);
 }
 

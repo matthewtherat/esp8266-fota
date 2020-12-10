@@ -5,6 +5,7 @@
 #include "wifi.h"
 #include "params.h" 
 #include "debug.h"
+#include "status.h"
 
 // SDK
 #include <ets_sys.h>
@@ -39,6 +40,7 @@ void _mdns_init() {
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
 		_mdns_init();
+        status_update(50, 1250, INFINITE, NULL);
     } else {
 		espconn_mdns_close();
     }
@@ -66,6 +68,13 @@ void user_init(void) {
 			params.station_psk,
 			params.ap_psk
 		);
+
+    // Disable wifi led before infrared
+    wifi_status_led_uninstall();
+
+    // Status LED
+    status_init();
+    status_update(50, 150, INFINITE, NULL);
 
 #if WIFI_ENABLE_SOFTAP
     wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);
