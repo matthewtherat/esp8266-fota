@@ -2,6 +2,7 @@
 #include "partition.h"
 #include "common.h"
 #include "ringbuffer.h"
+#include "debug.h"
 
 #include <mem.h>
 #include <osapi.h>
@@ -13,7 +14,7 @@ static RingBuffer rb = {FOTA_BUFFERSIZE, 0, 0, NULL};
 static int total = 0;
 
 static 
-int _write_sector(uint16_t len) {
+void _write_sector(uint16_t len) {
 	SpiFlashOpResult err;
 
 	system_soft_wdt_feed();
@@ -28,11 +29,13 @@ int _write_sector(uint16_t len) {
 
 	system_soft_wdt_feed();
 	char sector[FOTA_SECTORSIZE];
+    memset(sector, 0, FOTA_SECTORSIZE);
+
 	rb_safepop(&rb, sector, len);
 	system_upgrade(sector, len);
 	//os_delay_us(100);
 	total += len;
-	os_printf("W: 0x%05X, len: %d, total: %d\r\n", 
+	INFO("W: 0x%05X, len: %d, total: %d\r\n", 
 			fs.sector * FOTA_SECTORSIZE, len, total);
 	fs.sector++;
 	//err = spi_flash_write(fs.sector * FOTA_SECTORSIZE, 
@@ -54,11 +57,11 @@ int fota_feed(char * data, Size datalen, bool last) {
 	}
 
 	while (rb_used(b) >= FOTA_SECTORSIZE) {
-		return _write_sector(FOTA_SECTORSIZE);
+		_write_sector(FOTA_SECTORSIZE);
 	}
 
 	if (last) {
-		return _write_sector(rb_used(b));
+		_write_sector(rb_used(b));
 	}
 		
 	return RB_OK;
