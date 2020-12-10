@@ -205,15 +205,21 @@ flash_map6user1: map6user1
 .PHONY: cleanup_map6user1
 cleanup_map6user1:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		0xf8000 $(SDK_PATH)/bin/blank.bin \
 		0xf9000 $(SDK_PATH)/bin/blank.bin \
 		0xfa000 $(SDK_PATH)/bin/blank.bin 
 
+.PHONY: cleanup_map6user1_params
+cleanup_map6user1_params:
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+		0xf8000 $(SDK_PATH)/bin/blank.bin 
 
 .PHONY: assets_map6user1
 assets_map6user1:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x200000 assets/favicon-16x16.png 
 
+.PHONY: erase_flash
+earase_flash:
+	$(ESPTOOL) earase_flash
 
 
