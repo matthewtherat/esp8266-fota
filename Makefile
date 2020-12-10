@@ -1,5 +1,4 @@
-#############################################################
-
+############################################################# 
 # Discard this section from all parent makefiles
 # Expected variables (with automatic defaults):
 #   CSRCS (all "C" files in the dir)
@@ -11,6 +10,8 @@
 #     subdir/lib to be extracted and rolled up into
 #     a generated lib/image xxx.a ()
 #
+
+SPI_SIZE_MAP := 6
 TARGET = eagle
 #FLAVOR = release
 FLAVOR = debug
@@ -32,7 +33,7 @@ endif # } PDIR
 APPDIR = .
 LDDIR = ./ld
 
-CCFLAGS += -Os
+CCFLAGS += -Os -DSPI_SIZE_MAP=$(SPI_SIZE_MAP)
 
 TARGET_LDFLAGS =		\
 	-nostdlib		\
@@ -146,6 +147,11 @@ screen:
 map2user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
+
+.PHONY: assets_map2user1
+assets_map2user1:
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+		0x77000 assets/favicon-16x16.png
 
 flash_map2user1: map2user1
 	$(ESPTOOL_WRITE) --flash_size 1MB  \

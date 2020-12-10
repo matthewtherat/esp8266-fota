@@ -11,7 +11,13 @@
 
 
 #define FAVICON_SIZE	495
+
+#if SPI_SIZE_MAP == 2
+#define FAVICON_FLASH_SECTOR	0x77	
+#elif SPI_SIZE_MAP == 6
 #define FAVICON_FLASH_SECTOR	0x200	
+#endif
+
 #define HTML_HEADER \
 	"<!DOCTYPE html><html>" \
 	"<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
