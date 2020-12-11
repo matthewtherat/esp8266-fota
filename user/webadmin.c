@@ -62,7 +62,6 @@ void ff_func(void *arg) {
 }
 
 
-
 void _mp_callback(MultipartField *f, char *body, Size bodylen, 
 		bool last) {
 	if (os_strncmp(f->name, "firmware", 8) != 0) {
@@ -95,7 +94,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 		}
 		rb_reset(&rb);
 		fota_init();
-        status_update(50, 50, INFINITE, NULL);
+        status_update(500, 500, INFINITE, NULL);
 	}
 	
 	espconn_recv_hold(req->conn);
