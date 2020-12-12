@@ -26,6 +26,13 @@ static struct mdns_info mdns;
 
 
 static ICACHE_FLASH_ATTR 
+void reboot_appmode() {
+	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
+	system_upgrade_reboot();
+}
+
+
+static ICACHE_FLASH_ATTR 
 void _mdns_init() {
 	struct ip_info ipconfig;
 	wifi_set_broadcast_if(STATIONAP_MODE);
@@ -43,7 +50,8 @@ void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
 		_mdns_init();
         INFO("Fota image version: "__version__"\r\n");
-        status_update(50, 1250, INFINITE, NULL);
+        INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
+        status_update(500, 500, REBOOTDELAY, reboot_appmode);
     } else {
 		espconn_mdns_close();
     }
@@ -72,7 +80,7 @@ void user_init(void) {
 
     // Status LED
     status_init();
-    status_update(50, 150, INFINITE, NULL);
+    status_update(100, 100, INFINITE, NULL);
 
 #if WIFI_ENABLE_SOFTAP
     wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);
@@ -80,6 +88,7 @@ void user_init(void) {
     wifi_start(STATION_MODE, &params, wifi_connect_cb);
 #endif
 	webadmin_start(&params);
+
     INFO("System started ...\r\n");
 }
 

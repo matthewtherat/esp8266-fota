@@ -4,5 +4,6 @@
 #define USE_OPTIMIZE_PRINTF
 #define WIFI_ENABLE_SOFTAP  true
 
+#define REBOOTDELAY     4
 #endif
 

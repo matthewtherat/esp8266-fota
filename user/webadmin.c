@@ -62,10 +62,10 @@ static ICACHE_FLASH_ATTR
 void app_reboot(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[256];
-	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 	int len = os_sprintf(buffer, "Rebooting to app mode...\r\n");
 	httpserver_response_text(req, HTTPSTATUS_OK, buffer, len);
     os_delay_us(2000);
+	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 	system_upgrade_reboot();
 }
 
@@ -107,7 +107,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 		}
 		rb_reset(&rb);
 		fota_init();
-        status_update(500, 500, INFINITE, NULL);
+        status_update(1000, 1000, INFINITE, NULL);
 	}
 	
 	espconn_recv_hold(req->conn);
@@ -138,7 +138,7 @@ done:
 
 badrequest:
 	mp_close(&mp);
-    status_update(100, 100, 1, NULL);
+    status_update(100, 100, 3, NULL);
 	httpserver_response_notok(req, HTTPSTATUS_BADREQUEST);
 }
 
