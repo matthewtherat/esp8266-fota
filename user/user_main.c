@@ -19,6 +19,8 @@
 #include <espconn.h>
 
 
+#define __version__     "0.1.0"
+
 static Params params;
 static struct mdns_info mdns;
 
@@ -32,7 +34,7 @@ void _mdns_init() {
 	mdns.host_name = params.device_name;
 	mdns.server_name = "ESPWebAdmin";
 	mdns.server_port = 80;
-	mdns.txt_data[0] = "version = 0.1.0";
+	mdns.txt_data[0] = "version = "__version__;
 	espconn_mdns_init(&mdns);
 }
 
@@ -40,6 +42,7 @@ void _mdns_init() {
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
 		_mdns_init();
+        INFO("Fota image version: "__version__"\r\n");
         status_update(50, 1250, INFINITE, NULL);
     } else {
 		espconn_mdns_close();
