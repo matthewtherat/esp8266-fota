@@ -6,6 +6,7 @@
 #include "querystring.h"
 #include "status.h"
 
+#include <upgrade.h>
 #include <osapi.h>
 #include <mem.h>
 
@@ -55,6 +56,18 @@ static ETSTimer ff;
 static Multipart mp;
 static char buff[BUFFSIZE];
 static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
+
+
+static ICACHE_FLASH_ATTR
+void app_reboot(Request *req, char *body, uint32_t body_length, 
+		uint32_t more) {
+	char buffer[256];
+	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
+	int len = os_sprintf(buffer, "Rebooting to app mode...\r\n");
+	httpserver_response_text(req, HTTPSTATUS_OK, buffer, len);
+    os_delay_us(2000);
+	system_upgrade_reboot();
+}
 
 
 void ff_func(void *arg) {
@@ -211,6 +224,7 @@ static HttpRoute routes[] = {
 	{"POST", 	"/params",			webadmin_set_params				},
 	{"GET",  	"/params",			webadmin_get_params				},
 	{"GET",  	"/favicon.ico",		webadmin_favicon				},
+	{"APP",     "/",                app_reboot                      },
 	{"GET",  	"/",				webadmin_index					},
 	{ NULL }
 };
