@@ -7,10 +7,21 @@
 #define PARAMS_SECTOR SYSTEM_PARTITION_PARAMS_ADDR / 4096 
 
 #define MAGIC 'I'
-#define NEWDEVICE_NAME "NewDevice"
+#define PARAMS_DEFAULT_ZONE "home"
+#define PARAMS_DEFAULT_NAME "NewDevice"
+
+#define PARAMS_PRINT(p) INFO("\r\n%s.%s, ssid: %s psk: %s ap-psk: %s\r\n", \
+			(p)->zone, \
+			(p)->name, \
+			(p)->station_ssid, \
+			(p)->station_psk, \
+			(p)->ap_psk \
+		)
+
 
 typedef struct {
-	 char device_name[16];
+	 char zone[128];
+	 char name[32];
 	 char ap_psk[32];
 	 char station_ssid[32];
 	 char station_psk[32];

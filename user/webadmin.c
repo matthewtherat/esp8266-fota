@@ -34,6 +34,7 @@
 	HTML_HEADER \
 	"<form action=\"/params\" method=\"post\">" \
 	"<h4>Settings</h4>" \
+	"zone: <input name=\"zone\" value=\"%s\"/><br/>" \
 	"name: <input name=\"name\" value=\"%s\"/><br/>" \
 	"AP PSK: <input name=\"ap_psk\" value=\"%s\"/><br/>" \
 	"SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
@@ -147,8 +148,11 @@ static ICACHE_FLASH_ATTR
 void _update_params_field(const char *field, const char *value) {
 
 	char *target;
-	if (os_strcmp(field, "name") == 0) {
-		target = (char*)&params->device_name;
+	if (os_strcmp(field, "zone") == 0) {
+		target = (char*)&params->zone;
+	}
+    else if (os_strcmp(field, "name") == 0) {
+		target = (char*)&params->name;
 	}
 	else if (os_strcmp(field, "ap_psk") == 0) {
 		target = (char*)&params->ap_psk;
@@ -170,7 +174,8 @@ void webadmin_get_params(Request *req, char *body, uint32_t body_length,
 
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_FORM, 
-			params->device_name, 
+			params->zone, 
+			params->name, 
 			params->ap_psk, 
 			params->station_ssid, 
 			params->station_psk);
@@ -214,7 +219,7 @@ static ICACHE_FLASH_ATTR
 void webadmin_index(Request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[1024];
-	int len = os_sprintf(buffer, HTML_INDEX, params->device_name);
+	int len = os_sprintf(buffer, HTML_INDEX, params->name);
 	httpserver_response_html(req, HTTPSTATUS_OK, buffer, len);
 }
 

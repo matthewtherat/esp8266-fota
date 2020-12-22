@@ -4,15 +4,7 @@
 #include "params.h"
 
 
-bool ICACHE_FLASH_ATTR 
-params_print(Params* params) {
-	INFO("\r\nParams: name: %s, ssid: %s psk: %s ap-psk: %s\r\n",
-			params->device_name,
-			params->station_ssid, 
-			params->station_psk,
-			params->ap_psk
-		);
-}
+
 
 
 bool ICACHE_FLASH_ATTR 
@@ -33,7 +25,9 @@ params_load(Params* params) {
 
 bool ICACHE_FLASH_ATTR 
 params_defaults(Params* params) {
-	os_sprintf(params->device_name, NEWDEVICE_NAME);
+    os_memset(params, 0, sizeof(Params));
+	os_sprintf(params->zone, PARAMS_DEFAULT_ZONE);
+	os_sprintf(params->name, PARAMS_DEFAULT_NAME);
 	params->ap_psk[0] = 0;
 	params->station_ssid[0] = 0;
 	params->station_psk[0] = 0;

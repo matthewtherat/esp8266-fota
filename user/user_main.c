@@ -38,7 +38,7 @@ void _mdns_init() {
 	wifi_set_broadcast_if(STATIONAP_MODE);
 	wifi_get_ip_info(STATION_IF, &ipconfig);
 	mdns.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
-	mdns.host_name = params.device_name;
+	mdns.host_name = params.name;
 	mdns.server_name = "ESPWebAdmin";
 	mdns.server_port = 80;
 	mdns.txt_data[0] = "version = "__version__;
@@ -73,14 +73,14 @@ void user_init(void) {
 		}
 	}
     
-    params_print(&params);
+    PARAMS_PRINT(&params);
 	
     // Disable wifi led before infrared
     wifi_status_led_uninstall();
 
     // Status LED
     status_init();
-    status_update(100, 100, INFINITE, NULL);
+    status_update(500, 500, INFINITE, NULL);
 
 #if WIFI_ENABLE_SOFTAP
     wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);

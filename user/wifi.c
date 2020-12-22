@@ -97,7 +97,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
 	wifi_softap_get_config(config);     
 
 	// Updating ssid and password
-    if (os_strcmp(ssid, NEWDEVICE_NAME) == 0) {
+    if (os_strcmp(ssid, PARAMS_DEFAULT_NAME) == 0) {
 	    os_sprintf(config->ssid, "%s_%02x%02x%02x%02x%02x%02x", 
 	    		ssid,
 	    		MAC2STR(mac)
@@ -159,7 +159,7 @@ void ICACHE_FLASH_ATTR wifi_start(uint8_t opmode, Params *params,
 
 	INFO("WIFI_INIT\r\n");
 	if (opmode == STATIONAP_MODE) {
-		wifi_init_softap(params->device_name, params->ap_psk);
+		wifi_init_softap(params->name, params->ap_psk);
 	}
 	wifi_set_opmode_current(opmode);
 	//wifi_set_broadcast_if(STATIONAP_MODE);
