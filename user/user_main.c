@@ -33,13 +33,12 @@ void reboot_appmode() {
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
-        if (os_strcmp(params.name, PARAMS_DEFAULT_NAME)) {
+        if (params.apploaded) {
             INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
             status_update(500, 500, REBOOTDELAY, reboot_appmode);
         }
     } else {
         INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
-        status_update(700, 700, INFINITE, NULL);
     }
 }
 

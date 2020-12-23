@@ -4,6 +4,7 @@
 #include "fota.h"
 #include "querystring.h"
 #include "status.h"
+#include "debug.h"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -71,6 +72,12 @@ void app_reboot(Request *req, char *body, uint32_t body_length,
 
 
 void ff_func(void *arg) {
+    params->apploaded = 1;
+	if (!params_save(params)) {
+        ERROR("Cannot save apploaded flag paramter.\r\n"); 
+        return;
+    }
+    os_delay_us(1000);
 	fota_finalize();
 }
 
