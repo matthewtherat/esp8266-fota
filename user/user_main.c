@@ -1,4 +1,3 @@
-
 // Internal 
 #include "user_config.h"
 #include "partition.h"
@@ -22,7 +21,6 @@
 #define __version__     "0.1.0"
 
 static Params params;
-static struct mdns_info mdns;
 
 
 static ICACHE_FLASH_ATTR 
@@ -32,35 +30,38 @@ void reboot_appmode() {
 }
 
 
-static ICACHE_FLASH_ATTR 
-void _mdns_init() {
-	struct ip_info ipconfig;
-	wifi_set_broadcast_if(STATIONAP_MODE);
-	wifi_get_ip_info(STATION_IF, &ipconfig);
-	mdns.ipAddr = ipconfig.ip.addr; //ESP8266 Station IP
-	mdns.host_name = params.name;
-	mdns.server_name = "ESPWebAdmin";
-	mdns.server_port = 80;
-	mdns.txt_data[0] = "version = "__version__;
-	espconn_mdns_init(&mdns);
-}
-
-
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-		_mdns_init();
-        INFO("Fota image version: "__version__"\r\n");
-        INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
-        status_update(500, 500, REBOOTDELAY, reboot_appmode);
+        INFO("WIFI Connected to: %s\r\n", params.station_ssid);
+        if (os_strcmp(params.name, PARAMS_DEFAULT_NAME)) {
+            INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
+            status_update(500, 500, REBOOTDELAY, reboot_appmode);
+        }
     } else {
-		espconn_mdns_close();
+        INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
+        status_update(700, 700, INFINITE, NULL);
     }
 }
 
 
+void boothello() {
+    INFO("Fota image version: "__version__"\r\n");
+    INFO("My full name is: %s.%s\r\n", params.zone, params.name);
+    INFO(
+        "Connect to WIFI Access point: %s, "
+        "open http://192.168.43.1 to configure me.\r\n",
+        params.name
+        );
+    status_update(700, 700, INFINITE, NULL);
+}
+
+
 void user_init(void) {
-    uart_init(BIT_RATE_115200, BIT_RATE_115200);
-    os_delay_us(60000);
+    //uart_init(BIT_RATE_115200, BIT_RATE_115200);
+    uart_div_modify(UART0, UART_CLK_FREQ / BIT_RATE_115200);
+    uart_rx_intr_disable(UART0);
+    uart_rx_intr_disable(UART1);
+
 	bool ok = params_load(&params);
 	if (!ok) {
 		ERROR("Cannot load Params\r\n");
@@ -73,23 +74,20 @@ void user_init(void) {
 		}
 	}
     
-    PARAMS_PRINT(&params);
+    PARAMS_PRINT(params);
 	
     // Disable wifi led before infrared
     wifi_status_led_uninstall();
 
     // Status LED
     status_init();
-    status_update(500, 500, INFINITE, NULL);
-
-#if WIFI_ENABLE_SOFTAP
-    wifi_start(STATIONAP_MODE, &params, wifi_connect_cb);
-#else
-    wifi_start(STATION_MODE, &params, wifi_connect_cb);
-#endif
+    
+    /* Start WIFI */
+    wifi_start(&params, wifi_connect_cb);
+    
+    /* Web UI */
 	webadmin_start(&params);
-
-    INFO("System started ...\r\n");
+    status_update(100, 500, 3, boothello);
 }
 
 

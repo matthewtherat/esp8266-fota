@@ -2,7 +2,6 @@
 #include "httpserver.h"
 #include "multipart.h"
 #include "fota.h"
-#include "fotabtn.h"
 #include "querystring.h"
 #include "status.h"
 
@@ -235,19 +234,16 @@ static HttpRoute routes[] = {
 };
 
 
-int ICACHE_FLASH_ATTR
-webadmin_start(Params *_params) {
-	// FOTA Button 
-	fotabtn_init();
-
+ICACHE_FLASH_ATTR
+int webadmin_start(Params *_params) {
 	params = _params;
 	httpserver_init(80, routes);
 	return OK;
 }
 
 
-void ICACHE_FLASH_ATTR
-webadmin_stop() {
+ICACHE_FLASH_ATTR
+void webadmin_stop() {
 	httpserver_stop();
 }
 

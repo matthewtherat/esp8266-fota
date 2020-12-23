@@ -9,7 +9,7 @@
 
 bool ICACHE_FLASH_ATTR 
 params_save(Params* params) {
-	params->magic = MAGIC;
+	params->magic = PARAMS_MAGIC;
 	return system_param_save_with_protect(PARAMS_SECTOR, params, 
 			sizeof(Params));
 }
@@ -19,7 +19,7 @@ bool ICACHE_FLASH_ATTR
 params_load(Params* params) {
 	bool ok = system_param_load(PARAMS_SECTOR, 0,
 			params, sizeof(Params));
-	return ok && params->magic == MAGIC;
+	return ok && params->magic == PARAMS_MAGIC;
 }
 
 
