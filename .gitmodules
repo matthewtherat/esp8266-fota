@@ -1,3 +1,6 @@
 [submodule "httpserver"]
 	path = httpserver
 	url = git@github.com:pylover/esp8266-httpserver.git
+[submodule "uns"]
+	path = uns
+	url = git@github.com:pylover/esp8266-unslib.git

@@ -5,6 +5,7 @@
 #include "params.h" 
 #include "debug.h"
 #include "status.h"
+#include "uns.h"
 
 // SDK
 #include <ets_sys.h>
@@ -18,7 +19,7 @@
 #include <espconn.h>
 
 
-#define __version__     "0.1.0"
+#define __version__     "1.0.0"
 
 static Params params;
 
@@ -32,12 +33,15 @@ void reboot_appmode() {
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
+        uns_init(params.zone, params.name);
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
         if (params.apploaded) {
             INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
             status_update(500, 500, REBOOTDELAY, reboot_appmode);
         }
-    } else {
+    } 
+    else {
+        uns_deinit();    
         INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
     }
 }
@@ -80,13 +84,14 @@ void user_init(void) {
 
     // Status LED
     status_init();
-    
+
     /* Start WIFI */
     wifi_start(&params, wifi_connect_cb);
     
     /* Web UI */
 	webadmin_start(&params);
-    status_update(100, 500, 3, boothello);
+
+    status_update(100, 500, 5, boothello);
 }
 
 

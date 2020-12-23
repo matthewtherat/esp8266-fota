@@ -24,8 +24,9 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
+	user \
 	httpserver \
-	user 
+	uns 
 
 endif # } PDIR
 
@@ -49,8 +50,9 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
+	user/libuser.a \
 	httpserver/libhttpserver.a \
-	user/libuser.a 
+	uns/libuns.a
 
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDKDIR)/lib        \
@@ -124,7 +126,8 @@ DDEFINES +=				\
 
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
-	-I $(PDIR)/httpserver/include 
+	-I $(PDIR)/httpserver/include \
+	-I $(PDIR)/uns/include 
 
 PDIR = $(SDKDIR)/
 sinclude $(SDKDIR)/Makefile
