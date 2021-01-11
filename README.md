@@ -1,5 +1,5 @@
 # FOTA 
-Formware over the air transmission using easyQ.
+Formware over the air transmission using HTTP Multipart from. 
 
 
 

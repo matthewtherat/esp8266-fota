@@ -16,7 +16,6 @@ TARGET = eagle
 #FLAVOR = release
 FLAVOR = debug
 
-SDKDIR = ${SDK_PATH}
 #EXTRA_CCFLAGS += -u
 
 ifndef PDIR # {
@@ -55,7 +54,7 @@ COMPONENTS_eagle.app.v6 = \
 	uns/libuns.a
 
 LINKFLAGS_eagle.app.v6 = \
-	-L$(SDKDIR)/lib        \
+	-L$(SDK_PATH)/lib        \
 	-nostdlib	\
     -T$(LD_FILE)   \
 	-Wl,--no-check-sections	\
@@ -129,8 +128,8 @@ INCLUDES := $(INCLUDES) \
 	-I $(PDIR)/httpserver/include \
 	-I $(PDIR)/uns/include 
 
-PDIR = $(SDKDIR)/
-sinclude $(SDKDIR)/Makefile
+PDIR = $(SDK_PATH)/
+sinclude $(SDK_PATH)/Makefile
 
 BAUDRATE := 115200
 FLASH_BAUDRATE := 460800
@@ -157,7 +156,7 @@ assets_map2user1:
 flash_map2user1: map2user1
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
-		0x1000  $(BIN_PATH)/upgrade/user1.1024.new.2.bin \
+		0x1000  $(BINDIR)/upgrade/user1.1024.new.2.bin \
 		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0xfb000 $(SDK_PATH)/bin/blank.bin \
 		0xfe000 $(SDK_PATH)/bin/blank.bin
@@ -174,7 +173,7 @@ flash_map2user1: map2user1
 #flash_map3user1:
 #	$(ESPTOOL_WRITE) --flash_size 2MB  \
 #		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
-#		0x1000  $(BIN_PATH)/upgrade/user1.2048.new.3.bin \
+#		0x1000  $(BINDIR)/upgrade/user1.2048.new.3.bin \
 #		0x1fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 #		0x1fb000 $(SDK_PATH)/bin/blank.bin \
 #		0x1fe000 $(SDK_PATH)/bin/blank.bin \
@@ -190,7 +189,7 @@ flash_map2user1: map2user1
 #flash_map5user1: map5user1
 #	$(ESPTOOL_WRITE) --flash_size 2MB  \
 #		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
-#		0x1000  $(BIN_PATH)/upgrade/user1.2048.new.5.bin \
+#		0x1000  $(BINDIR)/upgrade/user1.2048.new.5.bin \
 #		0x1fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 #		0x1fb000 $(SDK_PATH)/bin/blank.bin \
 #		0x1fe000 $(SDK_PATH)/bin/blank.bin \
@@ -204,7 +203,7 @@ map6user1dio:
 flash_map6user1dio: map6user1dio
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
-		0x1000  $(BIN_PATH)/upgrade/user1.4096.new.6.bin \
+		0x1000  $(BINDIR)/upgrade/user1.4096.new.6.bin \
 		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0x3fb000 $(SDK_PATH)/bin/blank.bin \
 		0x3fe000 $(SDK_PATH)/bin/blank.bin 
@@ -219,7 +218,7 @@ map6user1:
 flash_map6user1: map6user1
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
-		0x1000  $(BIN_PATH)/upgrade/user1.4096.new.6.bin \
+		0x1000  $(BINDIR)/upgrade/user1.4096.new.6.bin \
 		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0x3fb000 $(SDK_PATH)/bin/blank.bin \
 		0x3fe000 $(SDK_PATH)/bin/blank.bin 
