@@ -24,13 +24,12 @@ GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user \
-	httpserver \
 	uns 
 
 endif # } PDIR
 
 APPDIR = .
-LDDIR = ./ld
+LDDIR = $(SDK_PATH)/ld
 
 CCFLAGS += -Os -DSPI_SIZE_MAP=$(SPI_SIZE_MAP)
 
@@ -50,7 +49,6 @@ endif
 
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
-	httpserver/libhttpserver.a \
 	uns/libuns.a
 
 LINKFLAGS_eagle.app.v6 = \
@@ -74,6 +72,7 @@ LINKFLAGS_eagle.app.v6 = \
 	-lupgrade\
 	-ldriver \
 	-lhal					\
+    -lhttpserver \
 	$(DEP_LIBS_eagle.app.v6)					\
 	-Wl,--end-group
 
@@ -125,7 +124,7 @@ DDEFINES +=				\
 
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
-	-I $(PDIR)/httpserver/include \
+	-I $(SDK_PATH)/httpserver/include \
 	-I $(PDIR)/uns/include 
 
 PDIR = $(SDK_PATH)/

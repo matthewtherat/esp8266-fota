@@ -241,16 +241,20 @@ static HttpRoute routes[] = {
 };
 
 
+static HttpServer httpserver;
+
+
 ICACHE_FLASH_ATTR
 int webadmin_start(Params *_params) {
 	params = _params;
-	httpserver_init(80, routes);
+    httpserver.routes = routes;
+	httpserver_init(&httpserver);
 	return OK;
 }
 
 
 ICACHE_FLASH_ATTR
 void webadmin_stop() {
-	httpserver_stop();
+	httpserver_stop(&httpserver);
 }
 
