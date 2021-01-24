@@ -217,7 +217,8 @@ void webadmin_favicon(Request *req, char *body, uint32_t body_length,
 		httpserver_response_notok(req, HTTPSTATUS_SERVERERROR);
 		return;
 	}
-	httpserver_response(req, HTTPSTATUS_OK, "image/x-icon", buffer, 495, NULL, 0);
+	httpserver_response(req, HTTPSTATUS_OK, "image/x-icon", buffer, 495, 
+            NULL, 0);
 }
 
 
