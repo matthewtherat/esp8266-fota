@@ -5,7 +5,7 @@
 #include "params.h" 
 #include "debug.h"
 #include "status.h"
-#include "uns.h"
+//#include "uns.h"
 
 // SDK
 #include <ets_sys.h>
@@ -33,7 +33,7 @@ void reboot_appmode() {
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-        uns_init(params.zone, params.name);
+        //uns_init(params.zone, params.name);
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
         if (params.apploaded) {
             INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
@@ -41,12 +41,13 @@ void wifi_connect_cb(uint8_t status) {
         }
     } 
     else {
-        uns_deinit();    
+        //uns_deinit();    
         INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
     }
 }
 
 
+ICACHE_FLASH_ATTR
 void boothello() {
     INFO("Fota image version: "__version__"\r\n");
     INFO("My full name is: %s.%s\r\n", params.zone, params.name);
@@ -56,6 +57,10 @@ void boothello() {
         params.name
         );
     status_update(700, 700, INFINITE, NULL);
+
+    /* Web UI */
+	webadmin_start(&params);
+
 }
 
 
@@ -88,15 +93,12 @@ void user_init(void) {
     /* Start WIFI */
     wifi_start(&params, wifi_connect_cb);
     
-    /* Web UI */
-	webadmin_start(&params);
-
     status_update(100, 500, 5, boothello);
 }
 
 
-void ICACHE_FLASH_ATTR user_pre_init(void)
-{
+ICACHE_FLASH_ATTR 
+void user_pre_init(void) {
     if(!system_partition_table_regist(at_partition_table, 
 				sizeof(at_partition_table)/sizeof(at_partition_table[0]),
 				SPI_FLASH_SIZE_MAP)) {

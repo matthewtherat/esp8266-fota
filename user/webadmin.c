@@ -1,10 +1,11 @@
 #include "params.h"
-#include "httpserver.h"
 #include "multipart.h"
 #include "fota.h"
 #include "querystring.h"
 #include "status.h"
 #include "debug.h"
+#include "webadmin.h"
+#include "httpd.h"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -60,11 +61,11 @@ static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 
 
 static ICACHE_FLASH_ATTR
-void app_reboot(Request *req, char *body, uint32_t body_length, 
+void app_reboot(struct httprequest *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[256];
 	int len = os_sprintf(buffer, "Rebooting to app mode...\r\n");
-	httpserver_response_text(req, HTTPSTATUS_OK, buffer, len);
+	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
     os_delay_us(2000);
 	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 	system_upgrade_reboot();
@@ -91,7 +92,7 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 	//os_printf("total: %d, Chunk len: %d last: %d\r\n", ll, bodylen, last);
 	//if (last) {
 	//	//espconn_recv_unhold(request->conn);
-	//	httpserver_response_text(request, HTTPSTATUS_OK, "Done", 4);
+	//	httpd_response_text(request, HTTPSTATUS_OK, "Done", 4);
 	//	fota_finalize();
 	//}
 
@@ -99,8 +100,9 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length, 
-		uint32_t more) {
+void webadmin_upgrade_firmware(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
+
 	int err;
 	if (body_length <= 0) {
 		return;
@@ -137,7 +139,7 @@ void webadmin_upgrade_firmware(Request *req, char *body, uint32_t body_length,
 
 done:
 	mp_close(&mp);
-	httpserver_response_text(req, HTTPSTATUS_OK, "Rebooting...", 12);
+	httpd_response_text(req, HTTPSTATUS_OK, "Rebooting...", 12);
 	os_timer_disarm(&ff);
 	os_timer_setfn(&ff, (os_timer_func_t *)ff_func, NULL);
 	os_timer_arm(&ff, 2000, 0);
@@ -146,7 +148,7 @@ done:
 badrequest:
 	mp_close(&mp);
     status_update(100, 100, 3, NULL);
-	httpserver_response_notok(req, HTTPSTATUS_BADREQUEST);
+	httpd_response_notok(req, HTTPSTATUS_BADREQUEST);
 }
 
 
@@ -175,8 +177,8 @@ void _update_params_field(const char *field, const char *value) {
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_get_params(Request *req, char *body, uint32_t body_length, 
-		uint32_t more) {
+void webadmin_get_params(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
 
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_FORM, 
@@ -185,17 +187,18 @@ void webadmin_get_params(Request *req, char *body, uint32_t body_length,
 			params->ap_psk, 
 			params->station_ssid, 
 			params->station_psk);
-	httpserver_response_html(req, HTTPSTATUS_OK, buffer, len);
+	httpd_response_html(req, HTTPSTATUS_OK, buffer, len);
 }
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_set_params(Request *req, char *body, uint32_t body_length, 
-		uint32_t more) {
+void webadmin_set_params(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
+
 	body[body_length] = 0;
 	querystring_parse(body, _update_params_field);  
 	if (!params_save(params)) {
-		httpserver_response_notok(req, HTTPSTATUS_SERVERERROR);
+		httpd_response_notok(req, HTTPSTATUS_SERVERERROR);
 		return;
 	}
 	system_restart();
@@ -203,7 +206,7 @@ void webadmin_set_params(Request *req, char *body, uint32_t body_length,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_favicon(Request *req, char *body, uint32_t body_length, 
+void webadmin_favicon(struct httprequest *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	
 	char buffer[4 * 124];
@@ -214,24 +217,24 @@ void webadmin_favicon(Request *req, char *body, uint32_t body_length,
 		);
 	if (result != SPI_FLASH_RESULT_OK) {
 		os_printf("SPI Flash write failed: %d\r\n", result);
-		httpserver_response_notok(req, HTTPSTATUS_SERVERERROR);
+		httpd_response_notok(req, HTTPSTATUS_SERVERERROR);
 		return;
 	}
-	httpserver_response(req, HTTPSTATUS_OK, "image/x-icon", buffer, 495, 
+	httpd_response(req, HTTPSTATUS_OK, "image/x-icon", buffer, 495, 
             NULL, 0);
 }
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_index(Request *req, char *body, uint32_t body_length, 
+void webadmin_index(struct httprequest *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_INDEX, params->name);
-	httpserver_response_html(req, HTTPSTATUS_OK, buffer, len);
+	httpd_response_html(req, HTTPSTATUS_OK, buffer, len);
 }
 
 
-static HttpRoute routes[] = {
+static struct httproute routes[] = {
 	{"POST",	"/firmware",		webadmin_upgrade_firmware		},
 	{"POST", 	"/params",			webadmin_set_params				},
 	{"GET",  	"/params",			webadmin_get_params				},
@@ -242,20 +245,23 @@ static HttpRoute routes[] = {
 };
 
 
-static HttpServer httpserver;
+static struct httpd httpd;
 
 
 ICACHE_FLASH_ATTR
 int webadmin_start(Params *_params) {
+    err_t err;
 	params = _params;
-    httpserver.routes = routes;
-	httpserver_init(&httpserver);
+	err = httpd_init(&httpd, routes);
+    if (err) {
+        ERROR("Cannot init httpd: %d\r\n", err);
+    }
 	return OK;
 }
 
 
 ICACHE_FLASH_ATTR
 void webadmin_stop() {
-	httpserver_stop(&httpserver);
+	httpd_stop(&httpd);
 }
 
