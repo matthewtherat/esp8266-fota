@@ -153,22 +153,21 @@ wifi_init_softap(const char *ssid, const char *psk) {
 }
 
 
-void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb) {
+void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb, bool softap) {
     uint8_t opmode;
     struct station_config stationConf;
-
-    #if WIFI_ENABLE_SOFTAP
-        opmode = STATIONAP_MODE;
-    #else
-        opmode = STATION_MODE;
-    #endif
-
+    
     INFO("WIFI_INIT\r\n");
-    if (opmode == STATIONAP_MODE) {
+    if (softap) {
+        opmode = STATIONAP_MODE;
         wifi_init_softap(params->name, params->ap_psk);
     }
+    else {
+        opmode = STATION_MODE;
+    }
     wifi_set_opmode_current(opmode);
-    //wifi_set_broadcast_if(STATIONAP_MODE);
+
+    //wifi_set_broadcast_if(1); // 1: Station, 2: ap, 3: both
     //wifi_set_sleep_type(NONE_SLEEP_T);
     //wifi_set_sleep_type(MODEM_SLEEP_T);
     //wifi_set_sleep_type(LIGHT_SLEEP_T);

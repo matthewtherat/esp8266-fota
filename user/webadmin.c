@@ -60,6 +60,29 @@ static char buff[BUFFSIZE];
 static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 
 
+#define IP_FMT    "%d.%d.%d.%d"
+#define IPPORT_FMT    IP_FMT":%d"
+#define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]
+#define lclinfo(t) unpack_ip((t)->local_ip), (t)->local_port
+#define rmtinfo(t) unpack_ip((t)->remote_ip), (t)->remote_port
+
+
+void discovercb(char *hostname, int hlen, char *services, int slen, 
+        remot_info* remoteinfo) {
+    os_printf("D: %s "IP_FMT"\n", hostname, rmtinfo(remoteinfo));
+}
+
+
+static ICACHE_FLASH_ATTR
+void webadmin_unc_discover(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
+	char buffer[1024];
+    unc_discover(params->zone, "foo", discovercb);
+    int len = os_sprintf(buffer, "Discover sent.\n");
+	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
+}
+
+
 static ICACHE_FLASH_ATTR
 void app_reboot(struct httprequest *req, char *body, uint32_t body_length, 
 		uint32_t more) {
@@ -235,6 +258,7 @@ void webadmin_index(struct httprequest *req, char *body, uint32_t body_length,
 
 
 static struct httproute routes[] = {
+	{"DISCOVER","/unc",		        webadmin_unc_discover   		},
 	{"POST",	"/firmware",		webadmin_upgrade_firmware		},
 	{"POST", 	"/params",			webadmin_set_params				},
 	{"GET",  	"/params",			webadmin_get_params				},

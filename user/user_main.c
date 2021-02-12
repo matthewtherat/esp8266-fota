@@ -5,7 +5,7 @@
 #include "params.h" 
 #include "debug.h"
 #include "status.h"
-//#include "uns.h"
+#include "unc.h"
 
 // SDK
 #include <ets_sys.h>
@@ -21,6 +21,7 @@
 
 #define __version__     "1.0.0"
 
+static bool configured;
 static Params params;
 
 
@@ -33,15 +34,16 @@ void reboot_appmode() {
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-        //uns_init(params.zone, params.name);
+        unc_init();
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
+
         if (params.apploaded) {
             INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
             status_update(500, 500, REBOOTDELAY, reboot_appmode);
         }
     } 
     else {
-        //uns_deinit();    
+        unc_deinit();    
         INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
     }
 }
@@ -51,11 +53,13 @@ ICACHE_FLASH_ATTR
 void boothello() {
     INFO("Fota image version: "__version__"\r\n");
     INFO("My full name is: %s.%s\r\n", params.zone, params.name);
-    INFO(
-        "Connect to WIFI Access point: %s, "
-        "open http://192.168.43.1 to configure me.\r\n",
-        params.name
-        );
+    if (!configured) {
+        INFO(
+            "Connect to WIFI Access point: %s, "
+            "open http://192.168.43.1 to configure me.\r\n",
+            params.name
+            );
+    }
     status_update(700, 700, INFINITE, NULL);
 
     /* Web UI */
@@ -70,12 +74,9 @@ void user_init(void) {
     uart_rx_intr_disable(UART0);
     uart_rx_intr_disable(UART1);
 
-	bool ok = params_load(&params);
-	if (!ok) {
+	configured = params_load(&params);
+	if (!configured) {
 		ERROR("Cannot load Params\r\n");
-#if !WIFI_ENABLE_SOFTAP
-		return;
-#endif
 		if(!params_defaults(&params)) {
 			ERROR("Cannot save params\r\n");
 			return;
@@ -91,7 +92,7 @@ void user_init(void) {
     status_init();
 
     /* Start WIFI */
-    wifi_start(&params, wifi_connect_cb);
+    wifi_start(&params, wifi_connect_cb, !configured);
     
     status_update(100, 500, 5, boothello);
 }

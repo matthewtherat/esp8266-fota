@@ -11,7 +11,7 @@
 #     a generated lib/image xxx.a ()
 #
 
-#COMPILE ?= gcc
+COMPILE ?= gcc
 
 SPI_SIZE_MAP := 6
 TARGET = eagle
