@@ -34,7 +34,9 @@ void reboot_appmode() {
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-        uns_init(params.zone, params.name);
+        char hostname[UNS_HOSTNAME_MAXLEN];
+        os_sprintf(hostname, "%s.%s", params.zone, params.name);
+        uns_init(hostname);
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
         wifi_ap_stop();
 

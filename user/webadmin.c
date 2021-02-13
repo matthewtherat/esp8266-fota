@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "webadmin.h"
 #include "httpd.h"
+#include "uns.h"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -67,18 +68,8 @@ static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 #define rmtinfo(t) unpack_ip((t)->remote_ip), (t)->remote_port
 
 
-void discovercb(char *hostname, int hlen, remot_info* remoteinfo) {
-    os_printf("D: %s "IP_FMT"\n", hostname, rmtinfo(remoteinfo));
-}
-
-static ICACHE_FLASH_ATTR
-void webadmin_sysinfo(struct httprequest *req, char *body, 
-        uint32_t body_length, uint32_t more) {
-	char buffer[1024];
-    uns_discover(params->zone, "foo", discovercb);
-    int len = os_sprintf(buffer, "Free mem: %d.\n", 
-            system_get_free_heap_size());
-	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
+void discovercb(struct unsrecord *rec) {
+    os_printf("D: %s "IPSTR"\n", rec->fullname, IP2STR(&rec->address));
 }
 
 
@@ -86,8 +77,18 @@ static ICACHE_FLASH_ATTR
 void webadmin_uns_discover(struct httprequest *req, char *body, 
         uint32_t body_length, uint32_t more) {
 	char buffer[1024];
-    uns_discover(params->zone, "foo", discovercb);
+    uns_discover("home.foo", discovercb);
     int len = os_sprintf(buffer, "Discover sent.\n");
+	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
+}
+
+
+static ICACHE_FLASH_ATTR
+void webadmin_sysinfo(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
+	char buffer[1024];
+    int len = os_sprintf(buffer, "Free mem: %d.\n", 
+            system_get_free_heap_size());
 	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
 }
 
