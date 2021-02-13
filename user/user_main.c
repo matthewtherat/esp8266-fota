@@ -5,7 +5,7 @@
 #include "params.h" 
 #include "debug.h"
 #include "status.h"
-#include "unc.h"
+#include "uns.h"
 
 // SDK
 #include <ets_sys.h>
@@ -34,7 +34,7 @@ void reboot_appmode() {
 
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
-        unc_init();
+        uns_init(params.zone, params.name);
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
         wifi_ap_stop();
 
@@ -44,7 +44,7 @@ void wifi_connect_cb(uint8_t status) {
         }
     } 
     else {
-        unc_deinit();    
+        uns_deinit();    
         INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
         wifi_ap_start();
     }

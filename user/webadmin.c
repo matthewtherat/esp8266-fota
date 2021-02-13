@@ -74,10 +74,10 @@ void discovercb(char *hostname, int hlen, char *services, int slen,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_unc_discover(struct httprequest *req, char *body, 
+void webadmin_uns_discover(struct httprequest *req, char *body, 
         uint32_t body_length, uint32_t more) {
 	char buffer[1024];
-    unc_discover(params->zone, "foo", discovercb);
+    uns_discover(params->zone, "foo", discovercb);
     int len = os_sprintf(buffer, "Discover sent.\n");
 	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
 }
@@ -258,7 +258,7 @@ void webadmin_index(struct httprequest *req, char *body, uint32_t body_length,
 
 
 static struct httproute routes[] = {
-	{"DISCOVER","/unc",		        webadmin_unc_discover   		},
+	{"DISCOVER","/uns",		        webadmin_uns_discover   		},
 	{"POST",	"/firmware",		webadmin_upgrade_firmware		},
 	{"POST", 	"/params",			webadmin_set_params				},
 	{"GET",  	"/params",			webadmin_get_params				},
