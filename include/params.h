@@ -22,10 +22,18 @@
 			p.ap_psk \
 		)
 
+#ifndef PARAMS_ZONE_MAXLEN
+#define PARAMS_ZONE_MAXLEN  32
+#endif
+
+#ifndef PARAMS_NAME_MAXLEN
+#define PARAMS_NAME_MAXLEN  32
+#endif
+
 
 typedef struct {
-	 char zone[128];
-	 char name[32];
+	 char zone[PARAMS_ZONE_MAXLEN];
+	 char name[PARAMS_NAME_MAXLEN];
 	 char ap_psk[32];
 	 char station_ssid[32];
 	 char station_psk[32];

@@ -9,5 +9,4 @@
 
 
 # Projejct specific
-include/config.h
-easyq
+bin

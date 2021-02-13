@@ -67,9 +67,18 @@ static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 #define rmtinfo(t) unpack_ip((t)->remote_ip), (t)->remote_port
 
 
-void discovercb(char *hostname, int hlen, char *services, int slen, 
-        remot_info* remoteinfo) {
+void discovercb(char *hostname, int hlen, remot_info* remoteinfo) {
     os_printf("D: %s "IP_FMT"\n", hostname, rmtinfo(remoteinfo));
+}
+
+static ICACHE_FLASH_ATTR
+void webadmin_sysinfo(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
+	char buffer[1024];
+    uns_discover(params->zone, "foo", discovercb);
+    int len = os_sprintf(buffer, "Free mem: %d.\n", 
+            system_get_free_heap_size());
+	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
 }
 
 
@@ -264,6 +273,7 @@ static struct httproute routes[] = {
 	{"GET",  	"/params",			webadmin_get_params				},
 	{"GET",  	"/favicon.ico",		webadmin_favicon				},
 	{"APP",     "/",                app_reboot                      },
+	{"INFO",    "/",                webadmin_sysinfo                },
 	{"GET",  	"/",				webadmin_index					},
 	{ NULL }
 };

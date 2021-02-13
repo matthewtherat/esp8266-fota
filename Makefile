@@ -31,6 +31,7 @@ SUBDIRS=    \
 
 endif # } PDIR
 
+BINDIR = ./bin
 APPDIR = .
 LDDIR = $(SDK_PATH)/ld
 
