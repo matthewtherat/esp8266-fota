@@ -66,6 +66,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
     /***add by tzx for saving ip_info to avoid dhcp_client start****/
     struct dhcp_client_info dhcp_info;
     struct ip_info sta_info;
+
     system_rtc_mem_read(64, &dhcp_info, sizeof(struct dhcp_client_info));
     if(dhcp_info.flag == 0x01 ) {
         if (true == wifi_station_dhcpc_status()) {
@@ -81,7 +82,6 @@ wifi_init_softap(const char *ssid, const char *psk) {
     os_memset(&dhcp_info, 0, sizeof(struct dhcp_client_info));
     system_rtc_mem_write(64, &dhcp_info, sizeof(struct rst_info));
 
-
     // Get the device mac address
     bool ok = wifi_get_macaddr(SOFTAP_IF, &mac[0]);
     if (!ok) {
@@ -89,7 +89,6 @@ wifi_init_softap(const char *ssid, const char *psk) {
     }
 
     // initialization
-    // TODO: free ?
     struct softap_config *config = (struct softap_config *) \
             os_zalloc(sizeof(struct softap_config));
 
@@ -149,23 +148,38 @@ wifi_init_softap(const char *ssid, const char *psk) {
     IP4_ADDR(&dhcp_lease.end_ip, 192, 168, 43, 105);
     wifi_softap_set_dhcps_lease(&dhcp_lease);
     wifi_softap_dhcps_start(); // enable soft-AP DHCP server
-
 }
 
 
-void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb, bool softap) {
-    uint8_t opmode;
+ICACHE_FLASH_ATTR 
+void wifi_ap_start() {
+    if(wifi_get_opmode() == STATIONAP_MODE) {
+        return;
+    }
+    INFO("Starting softap\n");
+    wifi_set_opmode_current(STATIONAP_MODE);
+    wifi_softap_dhcps_start(); // enable soft-AP DHCP server
+}
+
+
+ICACHE_FLASH_ATTR 
+void wifi_ap_stop() {
+    if(wifi_get_opmode() == STATION_MODE) {
+        return;
+    }
+    INFO("Stopping softap\n");
+    wifi_softap_dhcps_stop(); // disable soft-AP DHCP server
+    wifi_set_opmode_current(STATION_MODE);
+    wifi_station_connect();
+}
+
+
+void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb) {
     struct station_config stationConf;
     
     INFO("WIFI_INIT\r\n");
-    if (softap) {
-        opmode = STATIONAP_MODE;
-        wifi_init_softap(params->name, params->ap_psk);
-    }
-    else {
-        opmode = STATION_MODE;
-    }
-    wifi_set_opmode_current(opmode);
+    wifi_init_softap(params->name, params->ap_psk);
+    wifi_set_opmode_current(STATIONAP_MODE);
 
     //wifi_set_broadcast_if(1); // 1: Station, 2: ap, 3: both
     //wifi_set_sleep_type(NONE_SLEEP_T);

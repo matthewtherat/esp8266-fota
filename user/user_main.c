@@ -36,6 +36,7 @@ void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
         unc_init();
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
+        wifi_ap_stop();
 
         if (params.apploaded) {
             INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
@@ -45,6 +46,7 @@ void wifi_connect_cb(uint8_t status) {
     else {
         unc_deinit();    
         INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
+        wifi_ap_start();
     }
 }
 
@@ -58,7 +60,7 @@ void boothello() {
             "Connect to WIFI Access point: %s, "
             "open http://192.168.43.1 to configure me.\r\n",
             params.name
-            );
+        );
     }
     status_update(700, 700, INFINITE, NULL);
 
@@ -92,7 +94,7 @@ void user_init(void) {
     status_init();
 
     /* Start WIFI */
-    wifi_start(&params, wifi_connect_cb, !configured);
+    wifi_start(&params, wifi_connect_cb);
     
     status_update(100, 500, 5, boothello);
 }

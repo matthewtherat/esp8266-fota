@@ -6,6 +6,7 @@
 #ifndef USER_WIFI_H_
 #define USER_WIFI_H_
 
+#include "params.h"
 //#include <osapi.h>
 //#include <espconn.h>
 //#include <mem.h>
@@ -28,6 +29,8 @@ struct dhcp_client_info {
 	uint8 pad[3];
 };
 
-
+void wifi_start(Params *params, WifiCallback cb);
+void wifi_ap_start();
+void wifi_ap_stop();
 
 #endif /* USER_WIFI_H_ */
