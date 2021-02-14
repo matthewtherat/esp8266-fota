@@ -75,10 +75,12 @@ void discovercb(struct unsrecord *rec) {
 
 static ICACHE_FLASH_ATTR
 void webadmin_uns_discover(struct httprequest *req, char *body, 
-        uint32_t body_length, uint32_t more) {
-	char buffer[1024];
-    uns_discover("home.foo", discovercb);
-    int len = os_sprintf(buffer, "Discover sent.\n");
+        uint32_t bodylen, uint32_t more) {
+    os_printf("%s\n", req->path);
+    char *pattern = rindex(req->path, '/') + 1;
+    uns_discover(pattern, discovercb);
+	char buffer[64];
+    int len = os_sprintf(buffer, "Discover sent: %s.\n", pattern);
 	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
 }
 
@@ -87,8 +89,10 @@ static ICACHE_FLASH_ATTR
 void webadmin_sysinfo(struct httprequest *req, char *body, 
         uint32_t body_length, uint32_t more) {
 	char buffer[1024];
-    int len = os_sprintf(buffer, "Free mem: %d.\n", 
-            system_get_free_heap_size());
+    int len = os_sprintf(buffer, "%d Free mem: %d.\n", 
+            system_get_time() / 1000000,
+            system_get_free_heap_size()
+        );
 	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
 }
 
@@ -239,8 +243,8 @@ void webadmin_set_params(struct httprequest *req, char *body,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_favicon(struct httprequest *req, char *body, uint32_t body_length, 
-		uint32_t more) {
+void webadmin_favicon(struct httprequest *req, char *body, 
+        uint32_t body_length, uint32_t more) {
 	
 	char buffer[4 * 124];
 	int result = spi_flash_read(
