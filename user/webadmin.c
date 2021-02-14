@@ -76,7 +76,6 @@ void discovercb(struct unsrecord *rec) {
 static ICACHE_FLASH_ATTR
 void webadmin_uns_discover(struct httprequest *req, char *body, 
         uint32_t bodylen, uint32_t more) {
-    os_printf("%s\n", req->path);
     char *pattern = rindex(req->path, '/') + 1;
     uns_discover(pattern, discovercb);
 	char buffer[64];

@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "user_config.h"
 #include "params.h"
+#include "uns.h"
 
 #include <user_interface.h>
 #include <osapi.h>
@@ -18,6 +19,9 @@ static uint8_t lastWifiStatus = STATION_IDLE;
 WifiCallback wifiCb = NULL;
 
 
+#define WIFI_CHECKINTERVAL_STABLE       5000
+#define WIFI_CHECKINTERVAL              1000
+
 static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
     struct ip_info ipConfig;
 
@@ -25,8 +29,9 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
     wifi_get_ip_info(STATION_IF, &ipConfig);
     wifiStatus = wifi_station_get_connect_status();
     if (wifiStatus == STATION_GOT_IP && ipConfig.ip.addr != 0) {
+        uns_cleanup();
         os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
-        os_timer_arm(&WiFiLinker, 3000, 0);
+        os_timer_arm(&WiFiLinker, WIFI_CHECKINTERVAL_STABLE, 0);
     }
     else
     {
@@ -47,7 +52,7 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
         //}
 
         os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
-        os_timer_arm(&WiFiLinker, 500, 0);
+        os_timer_arm(&WiFiLinker, WIFI_CHECKINTERVAL, 0);
     }
     
     if(wifiStatus != lastWifiStatus){
@@ -197,7 +202,7 @@ void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb) {
 
     os_timer_disarm(&WiFiLinker);
     os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
-    os_timer_arm(&WiFiLinker, 1000, 0);
+    os_timer_arm(&WiFiLinker, WIFI_CHECKINTERVAL, 0);
 
     wifi_station_set_auto_connect(TRUE);
     wifi_station_connect();
