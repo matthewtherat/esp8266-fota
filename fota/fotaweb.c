@@ -2,6 +2,7 @@
 #include "multipart.h"
 #include "params.h"
 #include "status.h"
+#include "fota.h"
 
 
 #define BUFFSIZE	2048
@@ -68,7 +69,7 @@ void fotaweb_upgrade_firmware(struct httprequest *req, char *body,
 	if ((err = rb_safepush(&rb, body, body_length)) == RB_FULL) {
 		goto badrequest;
 	}
-
+    
     err = mp_feedbybuffer(&mp, &rb);
 	espconn_recv_unhold(req->conn);
 	switch (err) {

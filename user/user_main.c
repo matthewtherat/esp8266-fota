@@ -39,7 +39,7 @@ void wifi_connect_cb(uint8_t status) {
         INFO("WIFI Connected to: %s\r\n", params.station_ssid);
         wifi_ap_stop();
 
-        if (params.apploaded) {
+        if (params.apploaded && (REBOOTDELAY > 0)) {
             INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
             status_update(500, 500, REBOOTDELAY, reboot_appmode);
         }

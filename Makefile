@@ -11,6 +11,7 @@
 #     a generated lib/image xxx.a ()
 #
 
+HOST = home.NewDevice
 COMPILE ?= gcc
 
 SPI_SIZE_MAP := 6
@@ -254,12 +255,13 @@ earase_flash:
 
 .PHONY: rebootfota
 rebootfota:
-	-curl $(HOST)/ -XFOTA
+	-curl $(uns discover --short $(HOST))/ -XFOTA
 
 .PHONY: fota
 fota: map6user2 rebootfota
+	@sleep 2
 	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" \
-		$(HOST)/firmware
+		$(uns discover --short $(HOST))/firmware
 	-echo
 
 
