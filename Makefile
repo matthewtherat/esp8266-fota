@@ -79,7 +79,6 @@ LINKFLAGS_eagle.app.v6 = \
 	-lupgrade\
 	-ldriver \
 	-lhal					\
-    -lhttpd \
 	$(DEP_LIBS_eagle.app.v6)					\
 	-Wl,--end-group
 
@@ -132,7 +131,7 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(PDIR)/fota/include \
-	-I $(SDK_PATH)/httpserver/include \
+	-I $(PDIR)/httpd/include \
 	-I $(PDIR)/uns/include 
 
 PDIR = $(SDK_PATH)/
