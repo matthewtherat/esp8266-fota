@@ -5,5 +5,9 @@
 #define WIFI_ENABLE_SOFTAP  true
 
 #define REBOOTDELAY     10
+
+#define __name__ "Fota Image"
+#define __version__     "1.0.0"
+
 #endif
 

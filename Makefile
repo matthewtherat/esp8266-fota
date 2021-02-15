@@ -26,9 +26,9 @@ GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user \
+	fota \
 	httpd \
-	uns \
-	fota
+	uns 
 
 endif # } PDIR
 
@@ -54,9 +54,9 @@ endif
 
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
+	fota/libfota.a \
 	httpd/libhttpd.a \
-	uns/libuns.a \
-	fota/libfota.a
+	uns/libuns.a
 
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \
@@ -131,9 +131,9 @@ DDEFINES +=				\
 
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
+	-I $(PDIR)/fota/include \
 	-I $(SDK_PATH)/httpserver/include \
-	-I $(PDIR)/uns/include \
-	-I $(PDIR)/fota/include 
+	-I $(PDIR)/uns/include 
 
 PDIR = $(SDK_PATH)/
 sinclude $(SDK_PATH)/Makefile

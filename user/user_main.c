@@ -20,8 +20,6 @@
 #include <espconn.h>
 
 
-#define __version__     "1.0.0"
-
 static bool configured;
 static Params params;
 
@@ -56,7 +54,7 @@ void wifi_connect_cb(uint8_t status) {
 
 ICACHE_FLASH_ATTR
 void boothello() {
-    INFO("Fota image version: "__version__"\r\n");
+    INFO(__name__" version: "__version__"\r\n");
     INFO("My full name is: %s.%s\r\n", params.zone, params.name);
     if (!configured) {
         INFO(
