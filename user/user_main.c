@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "status.h"
 #include "uns.h"
+#include "interrupt.h"
 
 // SDK
 #include <ets_sys.h>
@@ -77,6 +78,9 @@ void user_init(void) {
     uart_div_modify(UART0, UART_CLK_FREQ / BIT_RATE_115200);
     uart_rx_intr_disable(UART0);
     uart_rx_intr_disable(UART1);
+    
+    /* Uncomment and edit the interrupt.c to configure interrupts */
+    //interrupt_init();
 
 	configured = params_load(&params);
 	if (!configured) {
@@ -89,15 +93,15 @@ void user_init(void) {
     
     PARAMS_PRINT(params);
 	
-    // Disable wifi led before infrared
-    wifi_status_led_uninstall();
-
     // Status LED
     status_init();
 
     /* Start WIFI */
     wifi_start(&params, wifi_connect_cb);
-    
+
+    // Disable wifi led before infrared
+    wifi_status_led_uninstall();
+
     status_update(100, 500, 5, boothello);
 }
 
