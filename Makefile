@@ -27,7 +27,8 @@ SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user \
 	httpd \
-	uns 
+	uns \
+	fota
 
 endif # } PDIR
 
@@ -54,7 +55,8 @@ endif
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
 	httpd/libhttpd.a \
-	uns/libuns.a
+	uns/libuns.a \
+	fota/libfota.a
 
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \
@@ -130,7 +132,8 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(SDK_PATH)/httpserver/include \
-	-I $(PDIR)/uns/include 
+	-I $(PDIR)/uns/include \
+	-I $(PDIR)/fota/include 
 
 PDIR = $(SDK_PATH)/
 sinclude $(SDK_PATH)/Makefile
@@ -249,4 +252,14 @@ assets_map6user1:
 earase_flash:
 	$(ESPTOOL) earase_flash
 
+
+.PHONY: fota
+fota: map6user2
+	-curl $(HOST)/ -XFOTA
+	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" $(HOST)/firmware
+	-echo
+
+.PHONY: rebootfota
+rebootfota:
+	-curl $(HOST)/ -XFOTA
 

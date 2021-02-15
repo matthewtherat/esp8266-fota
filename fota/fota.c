@@ -99,3 +99,4 @@ void fota_finalize() {
 	system_upgrade_reboot();
 }
 
+

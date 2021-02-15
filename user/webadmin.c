@@ -1,6 +1,6 @@
 #include "params.h"
 #include "multipart.h"
-#include "fota.h"
+#include "fotaweb.h"
 #include "querystring.h"
 #include "status.h"
 #include "debug.h"
@@ -24,6 +24,7 @@
 #define HTML_HEADER \
 	"<!DOCTYPE html><html>" \
 	"<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
+
 #define HTML_FOOTER "\r\n</body></html>\r\n"
 
 #define HTML_INDEX \
@@ -43,29 +44,9 @@
 	"PSK: <input name=\"psk\" value=\"%s\"/><br/>" \
 	"<input type=\"submit\" value=\"Reboot\" />" \
 	"</form>" \
-	"<h4>Firmware</h4>" \
-	"<form action=\"/firmware\" method=\"post\" " \
-	"enctype=\"multipart/form-data\">" \
-	"<input name=\"firmware\" type=\"file\"/><br/>" \
-	"<input type=\"submit\" value=\"Upgrade\" />" \
-	"</form>" \
 	HTML_FOOTER
 
 static Params *params;
-static ETSTimer ff;
-
-#define BUFFSIZE	2048
-
-static Multipart mp;
-static char buff[BUFFSIZE];
-static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
-
-
-#define IP_FMT    "%d.%d.%d.%d"
-#define IPPORT_FMT    IP_FMT":%d"
-#define unpack_ip(ip) ip[0], ip[1], ip[2], ip[3]
-#define lclinfo(t) unpack_ip((t)->local_ip), (t)->local_port
-#define rmtinfo(t) unpack_ip((t)->remote_ip), (t)->remote_port
 
 
 void discovercb(struct unsrecord *rec) {
@@ -105,86 +86,6 @@ void app_reboot(struct httprequest *req, char *body, uint32_t body_length,
     os_delay_us(2000);
 	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 	system_upgrade_reboot();
-}
-
-
-void ff_func(void *arg) {
-    params->apploaded = 1;
-	if (!params_save(params)) {
-        ERROR("Cannot save apploaded flag paramter.\r\n"); 
-        return;
-    }
-    os_delay_us(1000);
-	fota_finalize();
-}
-
-
-void _mp_callback(MultipartField *f, char *body, Size bodylen, 
-		bool last) {
-	if (os_strncmp(f->name, "firmware", 8) != 0) {
-		return;
-	}
-	fota_feed(body, bodylen, last);
-	//os_printf("total: %d, Chunk len: %d last: %d\r\n", ll, bodylen, last);
-	//if (last) {
-	//	//espconn_recv_unhold(request->conn);
-	//	httpd_response_text(request, HTTPSTATUS_OK, "Done", 4);
-	//	fota_finalize();
-	//}
-
-}
-
-
-static ICACHE_FLASH_ATTR
-void webadmin_upgrade_firmware(struct httprequest *req, char *body, 
-        uint32_t body_length, uint32_t more) {
-
-	int err;
-	if (body_length <= 0) {
-		return;
-	}
-	
-	if (mp.status == MP_IDLE) {
-		err = mp_init(&mp, req->contenttype, _mp_callback);
-		if (err != MP_OK) {
-			os_printf("Cannot init multipart: %d\r\n", err);
-			goto badrequest;
-		}
-		rb_reset(&rb);
-		fota_init();
-        status_update(1000, 1000, INFINITE, NULL);
-	}
-	
-	espconn_recv_hold(req->conn);
-	if ((err = rb_safepush(&rb, body, body_length)) == RB_FULL) {
-		goto badrequest;
-	}
-
-    err = mp_feedbybuffer(&mp, &rb);
-	espconn_recv_unhold(req->conn);
-	switch (err) {
-		case MP_DONE:
-			goto done;
-
-		case MP_MORE:
-			return;
-
-		default:
-			goto badrequest;
-	}
-
-done:
-	mp_close(&mp);
-	httpd_response_text(req, HTTPSTATUS_OK, "Rebooting...", 12);
-	os_timer_disarm(&ff);
-	os_timer_setfn(&ff, (os_timer_func_t *)ff_func, NULL);
-	os_timer_arm(&ff, 2000, 0);
-	return;
-
-badrequest:
-	mp_close(&mp);
-    status_update(100, 100, 3, NULL);
-	httpd_response_notok(req, HTTPSTATUS_BADREQUEST);
 }
 
 
@@ -272,7 +173,7 @@ void webadmin_index(struct httprequest *req, char *body, uint32_t body_length,
 
 static struct httproute routes[] = {
 	{"DISCOVER","/uns",		        webadmin_uns_discover   		},
-	{"POST",	"/firmware",		webadmin_upgrade_firmware		},
+	{"POST",	"/firmware",		fotaweb_upgrade_firmware		},
 	{"POST", 	"/params",			webadmin_set_params				},
 	{"GET",  	"/params",			webadmin_get_params				},
 	{"GET",  	"/favicon.ico",		webadmin_favicon				},
