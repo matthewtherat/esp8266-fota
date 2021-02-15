@@ -252,14 +252,14 @@ assets_map6user1:
 earase_flash:
 	$(ESPTOOL) earase_flash
 
-
-.PHONY: fota
-fota: map6user2
-	-curl $(HOST)/ -XFOTA
-	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" $(HOST)/firmware
-	-echo
-
 .PHONY: rebootfota
 rebootfota:
 	-curl $(HOST)/ -XFOTA
+
+.PHONY: fota
+fota: map6user2 rebootfota
+	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" \
+		$(HOST)/firmware
+	-echo
+
 

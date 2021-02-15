@@ -71,9 +71,6 @@ Flash Maps
 #endif
 
 
-#define FOTA_PARTITION_OTA2_ADDR	SYSTEM_PARTITION_OTA2_ADDR
-
-
 static const partition_item_t at_partition_table[] = {
     { SYSTEM_PARTITION_BOOTLOADER, 	0x0, _4KB},
     { SYSTEM_PARTITION_OTA_1, 0x1000, SYSTEM_PARTITION_OTA_SIZE},
@@ -82,7 +79,6 @@ static const partition_item_t at_partition_table[] = {
     { SYSTEM_PARTITION_PHY_DATA, SYSTEM_PARTITION_PHY_DATA_ADDR, _4KB},
     { SYSTEM_PARTITION_SYSTEM_PARAMETER, SYSTEM_PARTITION_SYSTEM_PARAMETER_ADDR, _4KB*3},
 };
-
 
 #endif
 
