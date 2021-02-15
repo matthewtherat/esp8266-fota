@@ -220,6 +220,13 @@ map6user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
 
+
+.PHONY: map6user2
+map6user2:
+	make clean
+	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
+
+
 .PHONY: flash_map6user1
 flash_map6user1: map6user1
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
