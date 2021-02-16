@@ -7,7 +7,7 @@
 #define REBOOTDELAY     30
 
 #define __name__ "Fota Image"
-#define __version__     "1.0.0"
+#define __version__     "2.0.0"
 
 #endif
 
