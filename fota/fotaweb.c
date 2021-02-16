@@ -14,6 +14,7 @@ static char buff[BUFFSIZE];
 static RingBuffer rb = {BUFFSIZE, 0, 0, buff};
 
 
+static
 void ff_func(void *arg) {
     Params params;
 	if (!params_load(&params)) {
@@ -30,6 +31,7 @@ void ff_func(void *arg) {
 }
 
 
+static
 void _mp_callback(MultipartField *f, char *body, Size bodylen, bool last) {
 	if (os_strncmp(f->name, "firmware", 8) != 0) {
 		return;
