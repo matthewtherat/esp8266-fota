@@ -11,7 +11,7 @@
 #     a generated lib/image xxx.a ()
 #
 
-HOST ?= home.NewDevice
+HOST ?= home.nodemcu
 COMPILE ?= gcc
 
 SPI_SIZE_MAP := 6

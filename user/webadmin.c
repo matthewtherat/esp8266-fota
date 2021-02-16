@@ -49,8 +49,12 @@
 static Params *params;
 
 
-void discovercb(struct unsrecord *rec) {
-    os_printf("D: %s "IPSTR"\n", rec->fullname, IP2STR(&rec->address));
+void discovercb(struct unsrecord *rec, void *arg) {
+	char buffer[128];
+    struct httprequest *req = (struct httprequest *) arg;
+    int len = os_sprintf(buffer, "%s "IPSTR"\n", rec->fullname, 
+            IP2STR(&rec->address));
+	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
 }
 
 
@@ -58,22 +62,37 @@ static ICACHE_FLASH_ATTR
 void webadmin_uns_discover(struct httprequest *req, char *body, 
         uint32_t bodylen, uint32_t more) {
     char *pattern = rindex(req->path, '/') + 1;
-    uns_discover(pattern, discovercb);
-	char buffer[64];
-    int len = os_sprintf(buffer, "Discover sent: %s.\n", pattern);
-	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
+    uns_discover(pattern, discovercb, req);
 }
 
+
+static
+void httpcb(int status, char * body) {
+    DEBUG("HTTP callback: %d\n%s", status, body);
+}
+
+static
+void sysstatus_unscb(struct unsrecord *rec) {
+    os_printf("D: %s "IPSTR"\n", rec->fullname, IP2STR(&rec->address));
+}
 
 static ICACHE_FLASH_ATTR
 void webadmin_sysinfo(struct httprequest *req, char *body, 
         uint32_t body_length, uint32_t more) {
-	char buffer[1024];
-    int len = os_sprintf(buffer, "%d Free mem: %d.\n", 
+    int len;
+	char buffer[512];
+    char *pattern = rindex(req->path, '/');
+    if (pattern == req->path) {
+        len = os_sprintf(buffer, "%d Free mem: %d.\n", 
             system_get_time() / 1000000,
             system_get_free_heap_size()
         );
-	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
+	    httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
+        return;
+    }
+
+    pattern++;
+    uns_discover(pattern, sysstatus_unscb, req);
 }
 
 
