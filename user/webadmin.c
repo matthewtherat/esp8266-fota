@@ -7,6 +7,7 @@
 #include "webadmin.h"
 #include "httpd.h"
 #include "uns.h"
+#include "httpclient.h"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -67,14 +68,12 @@ void webadmin_uns_discover(struct httprequest *req, char *body,
 
 
 static
-void httpcb(int status, char * body) {
-    DEBUG("HTTP callback: %d\n%s", status, body);
+void httpcb(int status, char *body, void *arg) {
+    os_printf("HTTP callback: %d\n%s", status, body);
+    struct httprequest *req = (struct httprequest *) arg;
+	httpd_response_text(req, HTTPSTATUS_OK, body, strlen(body));
 }
 
-static
-void sysstatus_unscb(struct unsrecord *rec) {
-    os_printf("D: %s "IPSTR"\n", rec->fullname, IP2STR(&rec->address));
-}
 
 static ICACHE_FLASH_ATTR
 void webadmin_sysinfo(struct httprequest *req, char *body, 
@@ -91,8 +90,7 @@ void webadmin_sysinfo(struct httprequest *req, char *body,
         return;
     }
 
-    pattern++;
-    uns_discover(pattern, sysstatus_unscb, req);
+    http_nobody_uns(++pattern, "INFO", "/", httpcb, req);
 }
 
 

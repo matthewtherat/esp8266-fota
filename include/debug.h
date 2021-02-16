@@ -5,12 +5,14 @@
 #include <osapi.h>
 
 #define INFO( format, ... ) os_printf( format, ## __VA_ARGS__ )
+#define DEBUG( format, ... ) os_printf( format, ## __VA_ARGS__ )
 #define ERROR( format, ... ) os_printf( format, ## __VA_ARGS__ )
 #define FATAL( format, ... ) os_printf( format, ## __VA_ARGS__ )
 
 #else
 
 #define INFO( format, ... )
+#define DEBUG( format, ... )
 #define ERROR( format, ... )
 #define FATAL( format, ... )
 

@@ -1,26 +1,29 @@
 // FIXME: sprintf->snprintf everywhere.
 // FIXME: support null characters in responses.
 
+#include "httpclient.h"
+#include "debug.h"
+#include "uns.h"
+
 #include "osapi.h"
 #include "user_interface.h"
 #include "espconn.h"
 #include "mem.h"
 #include "limits.h"
-#include "httpclient.h"
-#include "debug.h"
 
 
 // Internal state.
 typedef struct {
-    char * verb;
-    char * path;
+    char *verb;
+    char *path;
     int port;
-    char * form_data;
-    char * headers;
-    char * hostname;
-    char * buffer;
+    char *form_data;
+    char *headers;
+    char *hostname;
+    char *buffer;
     int buffer_size;
     http_callback user_callback;
+    void *arg;
 } request_args;
 
 
@@ -341,7 +344,7 @@ disconnect_callback(void * arg) {
         }
 
         if (req->user_callback != NULL) { // Callback is optional.
-            req->user_callback(http_status, body);
+            req->user_callback(http_status, body, req->arg);
         }
 
         os_free(req->buffer);
@@ -357,20 +360,43 @@ disconnect_callback(void * arg) {
     os_free(conn);
 }
 
-static void ICACHE_FLASH_ATTR error_callback(void *arg, sint8 errType)
-{
+static ICACHE_FLASH_ATTR 
+void error_callback(void *arg, sint8 errType) {
     DEBUG("Disconnected with error: %d\n", errType);
     disconnect_callback(arg);
 }
 
+
+static ICACHE_FLASH_ATTR 
+void http_connect(request_args *req, ip_addr_t *addr) {
+    struct espconn *conn = os_malloc(sizeof(struct espconn));
+    espconn_set_opt(conn, ESPCONN_NODELAY);
+    conn->type = ESPCONN_TCP;
+    conn->state = ESPCONN_NONE;
+    conn->proto.tcp = (esp_tcp *)os_malloc(sizeof(esp_tcp));
+    conn->proto.tcp->local_port = espconn_port();
+    conn->proto.tcp->remote_port = req->port;
+    conn->reverse = req;
+    
+    os_memcpy(conn->proto.tcp->remote_ip, addr, 4);
+    
+    espconn_regist_connectcb(conn, connect_callback);
+    espconn_regist_disconcb(conn, disconnect_callback);
+    espconn_regist_reconcb(conn, error_callback);
+    espconn_connect(conn);
+}
+
+
 static ICACHE_FLASH_ATTR 
 void dns_callback(const char * hostname, ip_addr_t * addr, void * arg) {
-    request_args * req = (request_args *)arg;
+    //TODO: rename to requestargs
+    request_args *req = (request_args *)arg;
 
     if (addr == NULL) {
         os_printf("DNS failed for %s\n", hostname);
         if (req->user_callback != NULL) {
-            req->user_callback(-1, NULL);
+            // TODO: Rename to cb or callback
+            req->user_callback(-1, NULL, NULL);
         }
         os_free(req->buffer);
         os_free(req->hostname);
@@ -380,31 +406,16 @@ void dns_callback(const char * hostname, ip_addr_t * addr, void * arg) {
     }
     else {
         DEBUG("DNS found %s " IPSTR "\n", hostname, IP2STR(addr));
-
-        struct espconn * conn = (struct espconn *)os_malloc(sizeof(struct espconn));
-        espconn_set_opt(conn, ESPCONN_NODELAY);
-        conn->type = ESPCONN_TCP;
-        conn->state = ESPCONN_NONE;
-        conn->proto.tcp = (esp_tcp *)os_malloc(sizeof(esp_tcp));
-        conn->proto.tcp->local_port = espconn_port();
-        conn->proto.tcp->remote_port = req->port;
-        conn->reverse = req;
-
-        os_memcpy(conn->proto.tcp->remote_ip, addr, 4);
-
-        espconn_regist_connectcb(conn, connect_callback);
-        espconn_regist_disconcb(conn, disconnect_callback);
-        espconn_regist_reconcb(conn, error_callback);
-
-        espconn_connect(conn);
+        http_connect(req, addr);
     }
 }
 
-void ICACHE_FLASH_ATTR 
-http_send(const char * hostname, const char *verb, const char * path, 
-        const char *headers, const char * body, http_callback user_callback) {
+static ICACHE_FLASH_ATTR 
+request_args * create_request(const char *hostname, const char *verb, 
+        const char *path, const char *headers, const char * body, 
+        http_callback cb, void *arg) {
 
-    request_args * req = (request_args *)os_malloc(sizeof(request_args));
+    request_args *req = (request_args *)os_malloc(sizeof(request_args));
     req->hostname = esp_strdup(hostname);
     req->verb = esp_strdup(verb);
     req->path = esp_strdup(path);
@@ -414,7 +425,19 @@ http_send(const char * hostname, const char *verb, const char * path,
     req->buffer_size = 1;
     req->buffer = (char *)os_malloc(1);
     req->buffer[0] = '\0'; // Empty string.
-    req->user_callback = user_callback;
+    req->user_callback = cb;
+    req->arg = arg;
+    
+    return req;
+}
+
+
+ICACHE_FLASH_ATTR 
+void http_send(const char * hostname, const char *verb, const char * path, 
+        const char *headers, const char * body, http_callback cb, void *arg) {
+
+    request_args *req = create_request(hostname, verb, path, headers, body,
+            cb, arg);
 
     DEBUG("DNS request\n");
     ip_addr_t addr;
@@ -439,4 +462,22 @@ http_send(const char * hostname, const char *verb, const char * path,
         dns_callback(hostname, NULL, req); // Handle all DNS errors the same way.
     }
 }
+
+
+static ICACHE_FLASH_ATTR 
+void unscb(struct unsrecord *rec, void *arg) {
+    request_args *req = (request_args *)arg;
+    http_connect(req, &rec->address);
+}
+
+
+ICACHE_FLASH_ATTR 
+void http_send_uns(const char *hostname, const char *verb, const char * path, 
+        const char *headers, const char * body, http_callback cb, void *arg) {
+    request_args *req = create_request(hostname, verb, path, headers, body,
+            cb, arg);
+    uns_discover(req->hostname, unscb, req);
+}
+
+
 
