@@ -228,6 +228,22 @@ map6user2:
 	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
 
 
+.PHONY: bootfotamap6
+bootfotamap6:
+	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/user1-3ff.bin
+	printf '\x01' | dd of=$(BINDIR)/user1-3ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1 \
+		0x3ff000 $(BINDIR)/user1-3ff.bin
+
+
+.PHONY: bootappmap6
+bootappmap6:
+	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/user2-3ff.bin
+	printf '\x00' | dd of=$(BINDIR)/user2-3ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1 \
+		0x3ff000 $(BINDIR)/user2-3ff.bin
+
+	
 .PHONY: flash_map6user1
 flash_map6user1: map6user1
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
