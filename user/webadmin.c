@@ -77,15 +77,21 @@ void webadmin_sysinfo(struct httprequest *req, char *body,
 }
 
 
+void reboot_fotamode() {
+	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
+	system_upgrade_reboot();
+}
+
+
 static ICACHE_FLASH_ATTR
 void app_reboot(struct httprequest *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[256];
-	int len = os_sprintf(buffer, "Rebooting to app mode...\r\n");
+    uint8_t image = system_upgrade_userbin_check();
+	int len = os_sprintf(buffer, "Rebooting to %s mode...\r\n",
+        image == UPGRADE_FW_BIN1? "app": "FOTA");
 	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
-    os_delay_us(2000);
-	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
-	system_upgrade_reboot();
+    status_update(500, 500, 1, reboot_fotamode);
 }
 
 
