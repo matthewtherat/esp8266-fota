@@ -275,7 +275,7 @@ rebootfota:
 
 .PHONY: fota
 fota: map6user2 rebootfota
-	@sleep 3
+	@sleep 5
 	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" \
 		`uns discover --short $(HOST)`/firmware
 	-echo
