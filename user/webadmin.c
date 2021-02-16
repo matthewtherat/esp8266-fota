@@ -69,7 +69,6 @@ void webadmin_uns_discover(struct httprequest *req, char *body,
 
 static
 void httpcb(int status, char *body, void *arg) {
-    os_printf("HTTP callback: %d\n%s", status, body);
     struct httprequest *req = (struct httprequest *) arg;
 	httpd_response_text(req, HTTPSTATUS_OK, body, strlen(body));
 }
