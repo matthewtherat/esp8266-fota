@@ -80,8 +80,7 @@ void webadmin_sysinfo(struct httprequest *req, char *body,
         uint32_t body_length, uint32_t more) {
     int len;
 	char buffer[512];
-    char *pattern = rindex(req->path, '/');
-    if (pattern == req->path) {
+    if (strlen(req->path) <= 1) {
         len = os_sprintf(buffer, "%d Free mem: %d.\n", 
             system_get_time() / 1000000,
             system_get_free_heap_size()
@@ -89,8 +88,11 @@ void webadmin_sysinfo(struct httprequest *req, char *body,
 	    httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
         return;
     }
-
-    http_nobody_uns(++pattern, "INFO", "/", httpcb, req);
+    
+    char *pattern = rindex(req->path, '/');
+    pattern++;
+    DEBUG("Trying UNS for: %s\n", pattern);
+    http_nobody_uns(pattern, "INFO", "/", httpcb, req);
 }
 
 
