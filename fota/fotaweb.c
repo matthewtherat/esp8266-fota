@@ -48,7 +48,7 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen, bool last) {
 
 
 ICACHE_FLASH_ATTR
-void fotaweb_upgrade_firmware(struct httprequest *req, char *body, 
+void fotaweb_upgrade_firmware(struct httpd_request *req, char *body, 
         uint32_t body_length, uint32_t more) {
 
 	int err;

@@ -29,6 +29,7 @@ SUBDIRS=    \
 	user \
 	fota \
 	httpd \
+	http \
 	uns 
 
 endif # } PDIR
@@ -57,6 +58,7 @@ COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
 	fota/libfota.a \
 	httpd/libhttpd.a \
+	http/libhttp.a \
 	uns/libuns.a
 
 LINKFLAGS_eagle.app.v6 = \
@@ -133,6 +135,7 @@ INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(PDIR)/fota/include \
 	-I $(PDIR)/httpd/include \
+	-I $(PDIR)/http/include \
 	-I $(PDIR)/uns/include 
 
 PDIR = $(SDK_PATH)/

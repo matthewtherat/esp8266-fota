@@ -7,7 +7,7 @@
 #include "webadmin.h"
 #include "httpd.h"
 #include "uns.h"
-#include "httpclient.h"
+#include "http.h"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -52,7 +52,7 @@ static Params *params;
 
 void discovercb(struct unsrecord *rec, void *arg) {
 	char buffer[128];
-    struct httprequest *req = (struct httprequest *) arg;
+    struct httpd_request *req = (struct httpd_request *) arg;
     int len = os_sprintf(buffer, "%s "IPSTR"\n", rec->fullname, 
             IP2STR(&rec->address));
 	httpd_response_text(req, HTTPSTATUS_OK, buffer, len);
@@ -60,7 +60,7 @@ void discovercb(struct unsrecord *rec, void *arg) {
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_uns_discover(struct httprequest *req, char *body, 
+void webadmin_uns_discover(struct httpd_request *req, char *body, 
         uint32_t bodylen, uint32_t more) {
     char *pattern = rindex(req->path, '/') + 1;
     uns_discover(pattern, discovercb, req);
@@ -69,13 +69,13 @@ void webadmin_uns_discover(struct httprequest *req, char *body,
 
 static
 void httpcb(int status, char *body, void *arg) {
-    struct httprequest *req = (struct httprequest *) arg;
+    struct httpd_request *req = (struct httpd_request *) arg;
 	httpd_response_text(req, HTTPSTATUS_OK, body, strlen(body));
 }
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_sysinfo(struct httprequest *req, char *body, 
+void webadmin_sysinfo(struct httpd_request *req, char *body, 
         uint32_t body_length, uint32_t more) {
     int len;
 	char buffer[512];
@@ -102,7 +102,7 @@ void reboot_fotamode() {
 
 
 static ICACHE_FLASH_ATTR
-void app_reboot(struct httprequest *req, char *body, uint32_t body_length, 
+void app_reboot(struct httpd_request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[256];
     uint8_t image = system_upgrade_userbin_check();
@@ -138,7 +138,7 @@ void _update_params_field(const char *field, const char *value) {
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_get_params(struct httprequest *req, char *body, 
+void webadmin_get_params(struct httpd_request *req, char *body, 
         uint32_t body_length, uint32_t more) {
 
 	char buffer[1024];
@@ -153,7 +153,7 @@ void webadmin_get_params(struct httprequest *req, char *body,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_set_params(struct httprequest *req, char *body, 
+void webadmin_set_params(struct httpd_request *req, char *body, 
         uint32_t body_length, uint32_t more) {
 
 	body[body_length] = 0;
@@ -167,7 +167,7 @@ void webadmin_set_params(struct httprequest *req, char *body,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_favicon(struct httprequest *req, char *body, 
+void webadmin_favicon(struct httpd_request *req, char *body, 
         uint32_t body_length, uint32_t more) {
 	
 	char buffer[4 * 124];
@@ -187,7 +187,7 @@ void webadmin_favicon(struct httprequest *req, char *body,
 
 
 static ICACHE_FLASH_ATTR
-void webadmin_index(struct httprequest *req, char *body, uint32_t body_length, 
+void webadmin_index(struct httpd_request *req, char *body, uint32_t body_length, 
 		uint32_t more) {
 	char buffer[1024];
 	int len = os_sprintf(buffer, HTML_INDEX, params->name);
