@@ -274,13 +274,13 @@ earase_flash:
 
 .PHONY: rebootfota
 rebootfota:
-	-curl `uns discover --short $(HOST)`/ -XFOTA
+	-curl `uns resolve --short $(HOST)`/ -XFOTA
 
 .PHONY: fota
 fota: map6user2 rebootfota
 	@sleep 5
 	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" \
-		`uns discover --short $(HOST)`/firmware
+		`uns resolve --short $(HOST)`/firmware
 	-echo
 
 
