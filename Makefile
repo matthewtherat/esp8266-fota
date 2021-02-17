@@ -175,7 +175,32 @@ flash_map2user1: map2user1
 #		0x79000 $(SDK_PATH)/bin/blank.bin \
 #		0x7a000 $(SDK_PATH)/bin/blank.bin \
 #		0x7b000 $(SDK_PATH)/bin/blank.bin 
-#
+
+.PHONY: cleanup_map2user1_params
+cleanup_map2user1_params:
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+		0x78000 $(SDK_PATH)/bin/blank.bin \
+		0x79000 $(SDK_PATH)/bin/blank.bin \
+		0x7a000 $(SDK_PATH)/bin/blank.bin 
+
+
+.PHONY: bootfotamap2
+bootfotamap2:
+	$(ESPTOOL) read_flash 0xff000 0x1000 $(BINDIR)/map2-user1-0ff.bin
+	printf '\x01' \
+		| dd of=$(BINDIR)/map2-user1-0ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 1MB \
+		0xff000 $(BINDIR)/map2-user1-0ff.bin
+
+.PHONY: bootappmap2
+bootappmap2:
+	$(ESPTOOL) read_flash 0xff000 0x1000 $(BINDIR)/map2-user2-0ff.bin
+	printf '\x00' \
+		| dd of=$(BINDIR)/map2-user2-0ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 1MB \
+		0xff000 $(BINDIR)/map2-user2-0ff.bin
+
+
 #map3user1:
 #	make clean
 #	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=3
@@ -233,18 +258,20 @@ map6user2:
 
 .PHONY: bootfotamap6
 bootfotamap6:
-	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/user1-3ff.bin
-	printf '\x01' | dd of=$(BINDIR)/user1-3ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map6-user1-3ff.bin
+	printf '\x01' \
+		| dd of=$(BINDIR)/map6-user1-3ff.bin bs=1 count=1 conv=notrunc
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1 \
-		0x3ff000 $(BINDIR)/user1-3ff.bin
+		0x3ff000 $(BINDIR)/map6-user1-3ff.bin
 
 
 .PHONY: bootappmap6
 bootappmap6:
-	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/user2-3ff.bin
-	printf '\x00' | dd of=$(BINDIR)/user2-3ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map6-user2-3ff.bin
+	printf '\x00' \
+		| dd of=$(BINDIR)/map6-user2-3ff.bin bs=1 count=1 conv=notrunc
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1 \
-		0x3ff000 $(BINDIR)/user2-3ff.bin
+		0x3ff000 $(BINDIR)/map6-user2-3ff.bin
 
 	
 .PHONY: flash_map6user1
