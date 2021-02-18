@@ -303,10 +303,17 @@ earase_flash:
 rebootfota:
 	-curl `uns resolve --short $(HOST)`/ -XFOTA
 
-.PHONY: fota
-fota: map6user2 rebootfota
+.PHONY: fotamap6
+fotamap6: map6user2 rebootfota
 	@sleep 5
 	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" \
+		`uns resolve --short $(HOST)`/firmware
+	-echo
+
+.PHONY: fotamap2
+fotamap2: map2user2 rebootfota
+	@sleep 5
+	-curl -F firmware=@"$(BINDIR)/upgrade/user2.1024.new.2.bin" \
 		`uns resolve --short $(HOST)`/firmware
 	-echo
 
