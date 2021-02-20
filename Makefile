@@ -178,10 +178,26 @@ flash_map2user1: map2user1
 
 .PHONY: cleanup_map2user1_params
 cleanup_map2user1_params:
-	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+	$(ESPTOOL_WRITE) --flash_size 1MB  \
 		0x78000 $(SDK_PATH)/bin/blank.bin \
 		0x79000 $(SDK_PATH)/bin/blank.bin \
 		0x7a000 $(SDK_PATH)/bin/blank.bin 
+
+
+.PHONY: map2user1dio
+map2user1dio:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=DIO SPI_SIZE_MAP=2
+
+.PHONY: flash_map2user1dio
+flash_map2user1dio: map2user1dio
+	$(ESPTOOL_WRITE_DIO) --flash_size 1MB  \
+		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
+		0x1000  $(BINDIR)/upgrade/user1.1024.new.2.bin \
+		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0xfb000 $(SDK_PATH)/bin/blank.bin \
+		0xfe000 $(SDK_PATH)/bin/blank.bin
+
 
 
 .PHONY: bootfotamap2
