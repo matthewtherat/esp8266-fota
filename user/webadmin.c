@@ -181,8 +181,8 @@ void webadmin_favicon(struct httpd_request *req, char *body,
         httpd_response_notok(req, HTTPSTATUS_SERVERERROR);
         return;
     }
-    httpd_response(req, HTTPSTATUS_OK, "image/x-icon", buffer, FAVICON_SIZE, 
-            NULL, 0);
+    httpd_response(req, HTTPSTATUS_OK, HTTPHEADER_CONTENTTYPE_ICON, buffer, 
+            FAVICON_SIZE, NULL, 0);
 }
 
 

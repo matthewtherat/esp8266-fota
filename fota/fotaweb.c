@@ -43,7 +43,6 @@ void _mp_callback(MultipartField *f, char *body, Size bodylen, bool last) {
 	//	httpd_response_text(request, HTTPSTATUS_OK, "Done", 4);
 	//	fota_finalize();
 	//}
-
 }
 
 
@@ -52,7 +51,9 @@ void fotaweb_upgrade_firmware(struct httpd_request *req, char *body,
         uint32_t body_length, uint32_t more) {
 
 	int err;
-	if (body_length <= 0) {
+    //os_printf("L: %d, more: %d\n", body_length, more);
+
+	if ((body_length <= 0)) {
 		return;
 	}
 	
