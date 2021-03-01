@@ -299,6 +299,13 @@ flash_map6user1: map6user1
 		0x3fb000 $(SDK_PATH)/bin/blank.bin \
 		0x3fe000 $(SDK_PATH)/bin/blank.bin 
 
+
+.PHONY: flash_map6user2
+flash_map6user2: map6user2
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+		0x101000  $(BINDIR)/upgrade/user2.4096.new.6.bin
+
+
 .PHONY: cleanup_map6user1_params
 cleanup_map6user1_params:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
