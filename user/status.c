@@ -11,7 +11,6 @@ static uint16_t _offms;
 static uint8_t _repeat;
 static status_cb _cb = NULL;
 
-
 static void ICACHE_FLASH_ATTR
 status_toggle(void *a) {
     _on = !_on;

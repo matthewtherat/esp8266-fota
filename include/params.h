@@ -14,6 +14,7 @@
 #define PARAMS_DEFAULT_ZONE "home"
 #define PARAMS_DEFAULT_NAME "NewDevice"
 
+
 #define PARAMS_PRINT(p) INFO("\r\n%s.%s, ssid: %s psk: %s ap-psk: %s\r\n", \
 			p.zone, \
 			p.name, \

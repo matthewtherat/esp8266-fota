@@ -109,7 +109,7 @@ void user_pre_init(void) {
     if(!system_partition_table_regist(at_partition_table, 
 				sizeof(at_partition_table)/sizeof(at_partition_table[0]),
 				SPI_FLASH_SIZE_MAP)) {
-		FATAL("system_partition_table_regist fail\r\n");
+		ERROR("system_partition_table_regist fail\r\n");
 		while(1);
 	}
 }

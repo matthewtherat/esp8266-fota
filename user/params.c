@@ -1,4 +1,5 @@
 #include "params.h"
+#include "common.h"
 
 #include <user_interface.h>
 
