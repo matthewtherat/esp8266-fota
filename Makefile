@@ -320,7 +320,7 @@ cleanup_map6user1_params:
 .PHONY: assets_map6user1
 assets_map6user1:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		0x200000 assets/favicon-16x16.png 
+		0x200000 assets/favicon-16x16.png
 
 .PHONY: erase_flash
 earase_flash:
@@ -344,4 +344,7 @@ fotamap2: map2user2 rebootfota
 		`uns resolve --short $(HOST)`/firmware
 	-echo
 
-
+.PHONY: styles
+styles:
+	-sassc ./styles/main.sass ./assets/styles.css
+	-cleancss -o ./assets/styles.min.css ./assets/styles.css

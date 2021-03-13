@@ -2,11 +2,19 @@
 Formware over the air transmission using HTTP Multipart from. 
 
 
-### Build
+## Build
+
+
+### Prerequisites
+
+```bash
+sudo apt install sassc cleancss
+```
+
+### Environment
 
 Follow [this](https://github.com/pylover/esp8266-env) instruction 
 to setup your environment.
-
 
 ```bash
 cd esp-env

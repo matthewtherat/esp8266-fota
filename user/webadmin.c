@@ -64,50 +64,11 @@ static Params *params;
 //}
 //
 //
-//static
-//void httpcb(int status, char *body, void *arg) {
-//    struct httpd_session *s = (struct httpd_session *) arg;
-//    httpd_response_text(s, HTTPSTATUS_OK, body, strlen(body));
-//}
 //
 //
-//static ICACHE_FLASH_ATTR
-//void webadmin_sysinfo(struct httpd_session *s, char *body, 
-//        uint32_t body_length, uint32_t more) {
-//    int len;
-//    char buffer[512];
-//    if (strlen(s->path) <= 1) {
-//        len = os_sprintf(buffer, "%d Free mem: %d.\n", 
-//            system_get_time() / 1000000,
-//            system_get_free_heap_size()
-//        );
-//        httpd_response_text(s, HTTPSTATUS_OK, buffer, len);
-//        return;
-//    }
-//    
-//    char *pattern = rindex(s->path, '/');
-//    pattern++;
-//    DEBUG("Trying UNS for: %s\n", pattern);
-//    http_nobody_uns(pattern, "INFO", "/", httpcb, s);
-//}
 //
 //
-//void reboot_fotamode() {
-//    system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
-//    system_upgrade_reboot();
-//}
-//
-//
-//static ICACHE_FLASH_ATTR
-//void app_reboot(struct httpd_session *s, char *body, uint32_t body_length, 
-//        uint32_t more) {
-//    char buffer[256];
-//    uint8_t image = system_upgrade_userbin_check();
-//    int len = os_sprintf(buffer, "Rebooting to %s mode...\r\n",
-//        image == UPGRADE_FW_BIN1? "app": "FOTA");
-//    httpd_response_text(s, HTTPSTATUS_OK, buffer, len);
-//    status_update(500, 500, 1, reboot_fotamode);
-//}
+
 //
 //
 //static ICACHE_FLASH_ATTR
@@ -185,6 +146,49 @@ static Params *params;
 static char buff[1024];
 static size16_t bufflen;
 
+
+void reboot_fotamode() {
+    system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
+    system_upgrade_reboot();
+}
+
+
+static ICACHE_FLASH_ATTR
+httpd_err_t app_reboot(struct httpd_session *s) {
+    uint8_t image = system_upgrade_userbin_check();
+    bufflen = os_sprintf(buff, "Rebooting to %s mode...\r\n",
+        image == UPGRADE_FW_BIN1? "app": "FOTA");
+    HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, buff, bufflen);
+    status_update(500, 500, 1, reboot_fotamode);
+}
+
+
+static
+void httpcb(int status, char *body, void *arg) {
+    struct httpd_session *s = (struct httpd_session *) arg;
+    HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, body, strlen(body));
+}
+
+
+static ICACHE_FLASH_ATTR
+httpd_err_t webadmin_sysinfo(struct httpd_session *s, char *body, 
+        uint32_t body_length, uint32_t more) {
+    if (strlen(s->request.path) <= 1) {
+        bufflen = os_sprintf(buff, "%d Free mem: %d.\n", 
+            system_get_time() / 1000000,
+            system_get_free_heap_size()
+        );
+        HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, buff, bufflen);
+        return;
+    }
+    
+    char *pattern = rindex(s->request.path, '/');
+    pattern++;
+    DEBUG("Trying UNS for: %s\n", pattern);
+    http_nobody_uns(pattern, "INFO", "/", httpcb, s);
+}
+
+
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_index(struct httpd_session *s) {
     bufflen = os_sprintf(buff, HTML_INDEX, params->name);
@@ -198,8 +202,8 @@ static struct httpd_route routes[] = {
     //{"POST",     "/params",          webadmin_set_params             },
     //{"GET",      "/params",          webadmin_get_params             },
     //{"GET",      "/favicon.ico",     webadmin_favicon                },
-    //{"APP",      "/",                app_reboot                      },
-    //{"INFO",     "/",                webadmin_sysinfo                },
+    {"APP",      "/",                app_reboot                      },
+    {"INFO",     "/",                webadmin_sysinfo                },
     {"GET",      "/",                webadmin_index                  },
     { NULL }
 };
