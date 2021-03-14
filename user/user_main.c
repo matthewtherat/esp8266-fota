@@ -21,7 +21,7 @@
 
 
 static bool configured;
-static Params params;
+static struct params params;
 
 
 static ICACHE_FLASH_ATTR 
@@ -79,7 +79,7 @@ void user_init(void) {
 
 	configured = params_load(&params);
 	if (!configured) {
-		ERROR("Cannot load Params");
+		ERROR("Cannot load params");
 		if(!params_defaults(&params)) {
 			ERROR("Cannot save params");
 			return;

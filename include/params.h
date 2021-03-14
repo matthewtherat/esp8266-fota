@@ -32,19 +32,19 @@
 #endif
 
 
-typedef struct {
+struct params {
 	 char zone[PARAMS_ZONE_MAXLEN];
 	 char name[PARAMS_NAME_MAXLEN];
 	 char ap_psk[32];
 	 char station_ssid[32];
 	 char station_psk[32];
 	 char magic;
-} Params;
+};
 
 
-bool params_save(Params* params);
-bool params_load(Params* params);
-bool params_defaults(Params* params);
+bool params_save(struct params* params);
+bool params_load(struct params* params);
+bool params_defaults(struct params* params);
 
 #endif
 

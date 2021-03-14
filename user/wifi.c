@@ -16,7 +16,7 @@
 static ETSTimer WiFiLinker;
 static uint8_t wifiStatus = STATION_IDLE;
 static uint8_t lastWifiStatus = STATION_IDLE;
-WifiCallback wifiCb = NULL;
+static wificb wifiCb = NULL;
 
 
 #define WIFI_CHECKINTERVAL_STABLE       5000
@@ -81,7 +81,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
         sta_info.gw = dhcp_info.gw;
         sta_info.netmask = dhcp_info.netmask;
         if ( true != wifi_set_ip_info(STATION_IF, &sta_info)) {
-            os_printf("set default ip wrong\n");
+            ERROR("set default ip wrong");
         }
     }
     os_memset(&dhcp_info, 0, sizeof(struct dhcp_client_info));
@@ -135,7 +135,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
 
     struct station_info * station = wifi_softap_get_station_info();
     while (station) {
-        os_printf("bssid : MACSTR, ip : IPSTR/n", MAC2STR(station->bssid), 
+        INFO("bssid: "MACSTR", ip: "IPSTR, MAC2STR(station->bssid), 
                 IP2STR(&station->ip));
         station = STAILQ_NEXT(station, next);
     }
@@ -179,7 +179,7 @@ void wifi_ap_stop() {
 }
 
 
-void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb) {
+void ICACHE_FLASH_ATTR wifi_start(struct params *params, wificb cb) {
     struct station_config stationConf;
     
     INFO("WIFI_INIT");

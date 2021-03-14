@@ -53,7 +53,7 @@
 #define FOTA_SECTORSIZE     4096
 
 
-static Params *params;
+static struct params *params;
 static char buff[WEBADMIN_BUFFSIZE];
 static size16_t bufflen;
 
@@ -305,7 +305,7 @@ static struct httpd_route routes[] = {
 
 
 ICACHE_FLASH_ATTR
-int webadmin_start(Params *_params) {
+int webadmin_start(struct params *_params) {
     err_t err;
     params = _params;
     err = httpd_init(routes);
