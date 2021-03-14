@@ -36,19 +36,19 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
     else
     {
         if(wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
-            INFO("STATION_WRONG_PASSWORD\r\n");
+            INFO("STATION_WRONG_PASSWORD");
             wifi_station_connect();
         }
         else if(wifi_station_get_connect_status() == STATION_NO_AP_FOUND) {
-            INFO("STATION_NO_AP_FOUND\r\n");
+            INFO("STATION_NO_AP_FOUND");
             wifi_station_connect();
         }
         else if(wifi_station_get_connect_status() == STATION_CONNECT_FAIL) {
-            INFO("STATION_CONNECT_FAIL\r\n");
+            INFO("STATION_CONNECT_FAIL");
             wifi_station_connect();
         }
         //else {
-        //    INFO("STATION_IDLE\r\n");
+        //    INFO("STATION_IDLE");
         //}
 
         os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
@@ -90,7 +90,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
     // Get the device mac address
     bool ok = wifi_get_macaddr(SOFTAP_IF, &mac[0]);
     if (!ok) {
-        ERROR("Cannot get softap macaddr\r\n");
+        ERROR("Cannot get softap macaddr");
     }
 
     // initialization
@@ -111,7 +111,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
         os_sprintf(config->ssid, "%s", ssid);
     }
 
-    INFO("SSID: %s\r\n", config->ssid);
+    INFO("SSID: %s", config->ssid);
     config->ssid_len = 0; 
     if (os_strlen(psk)) {
         os_sprintf(config->password, psk);
@@ -129,7 +129,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
     ok = wifi_softap_set_config(config); 
     os_free(config);
     if (!ok) {
-        ERROR("Cannot set softap config\r\n");
+        ERROR("Cannot set softap config");
         return;
     }
 
@@ -182,7 +182,7 @@ void wifi_ap_stop() {
 void ICACHE_FLASH_ATTR wifi_start(Params *params, WifiCallback cb) {
     struct station_config stationConf;
     
-    INFO("WIFI_INIT\r\n");
+    INFO("WIFI_INIT");
     wifi_init_softap(params->name, params->ap_psk);
     wifi_set_opmode_current(STATIONAP_MODE);
 

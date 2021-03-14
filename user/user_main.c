@@ -36,17 +36,17 @@ void wifi_connect_cb(uint8_t status) {
         char hostname[UNS_HOSTNAME_MAXLEN];
         os_sprintf(hostname, "%s.%s", params.zone, params.name);
         uns_init(hostname);
-        INFO("WIFI Connected to: %s\r\n", params.station_ssid);
+        INFO("WIFI Connected to: %s", params.station_ssid);
         wifi_ap_stop();
 
         if (params.apploaded && (REBOOTDELAY > 0)) {
-            INFO("Reboot in %d seconds\r\n", REBOOTDELAY);
+            INFO("Reboot in %d seconds", REBOOTDELAY);
             status_update(500, 500, REBOOTDELAY, reboot_appmode);
         }
     } 
     else {
         uns_deinit();    
-        INFO("WIFI Disonnected from: %s\r\n", params.station_ssid);
+        INFO("WIFI Disonnected from: %s", params.station_ssid);
         wifi_ap_start();
     }
 }
@@ -54,12 +54,12 @@ void wifi_connect_cb(uint8_t status) {
 
 ICACHE_FLASH_ATTR
 void boothello() {
-    INFO(__name__" version: "__version__"\r\n");
-    INFO("My full name is: %s.%s\r\n", params.zone, params.name);
+    INFO(__name__" version: "__version__);
+    INFO("My full name is: %s.%s", params.zone, params.name);
     if (!configured) {
         INFO(
             "Connect to WIFI Access point: %s, "
-            "open http://192.168.43.1 to configure me.\r\n",
+            "open http://192.168.43.1 to configure me.",
             params.name
         );
     }
@@ -82,9 +82,9 @@ void user_init(void) {
 
 	configured = params_load(&params);
 	if (!configured) {
-		ERROR("Cannot load Params\r\n");
+		ERROR("Cannot load Params");
 		if(!params_defaults(&params)) {
-			ERROR("Cannot save params\r\n");
+			ERROR("Cannot save params");
 			return;
 		}
 	}
@@ -109,7 +109,7 @@ void user_pre_init(void) {
     if(!system_partition_table_regist(at_partition_table, 
 				sizeof(at_partition_table)/sizeof(at_partition_table[0]),
 				SPI_FLASH_SIZE_MAP)) {
-		ERROR("system_partition_table_regist fail\r\n");
+		ERROR("system_partition_table_regist fail");
 		while(1);
 	}
 }
