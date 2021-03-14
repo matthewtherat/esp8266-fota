@@ -50,7 +50,6 @@
 #define WEBADMIN_ERR_SAVEPARAMS  -101
 #define WEBADMIN_UNKNOWNFIELD    -102
 #define WEBADMIN_BUFFSIZE   1024
-#define FOTA_SECTORSIZE     4096
 
 
 static struct params *params;
@@ -67,11 +66,11 @@ void _toggleboot() {
 
 static ICACHE_FLASH_ATTR
 httpd_err_t _firmware_write(struct httpd_session *s, size16_t len) {
-    char tmp[FOTA_SECTORSIZE];
+    char tmp[SPI_FLASH_SEC_SIZE];
     if (!(len)) {
         return HTTPD_OK;
     }
-    system_upgrade_erase_flash(FOTA_SECTORSIZE);
+    system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
     /* Reading */
     system_soft_wdt_feed();
     HTTPD_RECV(s, tmp, len);
@@ -94,7 +93,7 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
         system_upgrade_flag_set(UPGRADE_FLAG_START);
     }
     
-    if ((avail < FOTA_SECTORSIZE) && more) {
+    if ((avail < SPI_FLASH_SEC_SIZE) && more) {
         return HTTPD_MORE;
     }
     
@@ -106,7 +105,7 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
         }
 
         /* Write */
-        chunk = MIN(FOTA_SECTORSIZE, avail);
+        chunk = MIN(SPI_FLASH_SEC_SIZE, avail);
         INFO("FW: %04d More: %07d ", chunk, more);
         system_soft_wdt_feed();
         err = _firmware_write(s, chunk);
@@ -115,7 +114,7 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
         }
         
         avail = HTTPD_REQ_LEN(s);
-    } while((avail >= FOTA_SECTORSIZE) || (!more));
+    } while((avail >= SPI_FLASH_SEC_SIZE) || (!more));
     
     if (more) {
         /* Unhold */
@@ -234,8 +233,7 @@ static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_toggle_boot(struct httpd_session *s) {
     httpd_err_t err;
     uint8_t image = system_upgrade_userbin_check();
-    bufflen = os_sprintf(buff, "Rebooting to %s mode...\r\n",
-        image == UPGRADE_FW_BIN1? "app": "FOTA");
+    bufflen = os_sprintf(buff, "Rebooting to user%d mode..."CR, image);
     err = HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, buff, bufflen);
     if (err) {
         return err;
@@ -256,7 +254,7 @@ void httpcb(int status, char *body, void *arg) {
 
 #define SYSINFO \
     "Image:       %s"CR \
-    "Boot:        %s"CR \
+    "Boot:        user%d"CR \
     "Version:     %s"CR \
     "Uptime:      %d"CR \
     "Free mem:    %d"CR 
@@ -268,7 +266,7 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
         uint8_t image = system_upgrade_userbin_check();
         bufflen = os_sprintf(buff, SYSINFO, 
             __name__,
-            image == UPGRADE_FW_BIN2? "APP": "FOTA",
+            image,
             __version__,
             system_get_time() / 1000000,
             system_get_free_heap_size()
