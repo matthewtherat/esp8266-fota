@@ -38,11 +38,6 @@ void wifi_connect_cb(uint8_t status) {
         uns_init(hostname);
         INFO("WIFI Connected to: %s", params.station_ssid);
         wifi_ap_stop();
-
-        if (params.apploaded && (REBOOTDELAY > 0)) {
-            INFO("Reboot in %d seconds", REBOOTDELAY);
-            status_update(500, 500, REBOOTDELAY, reboot_appmode);
-        }
     } 
     else {
         uns_deinit();    
@@ -65,7 +60,7 @@ void boothello() {
             params.name
         );
     }
-    status_update(700, 700, INFINITE, NULL);
+    status_update(150, 850, INFINITE, NULL);
 
     /* Web UI */
 	webadmin_start(&params);
@@ -102,7 +97,7 @@ void user_init(void) {
     // Disable wifi led before infrared
     wifi_status_led_uninstall();
 
-    status_update(100, 500, 5, boothello);
+    status_update(200, 200, 5, boothello);
 }
 
 

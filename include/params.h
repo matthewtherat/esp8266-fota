@@ -10,7 +10,7 @@
 
 #define PARAMS_SECTOR SYSTEM_PARTITION_PARAMS_ADDR / 4096 
 
-#define PARAMS_MAGIC 'V'
+#define PARAMS_MAGIC '@'
 #define PARAMS_DEFAULT_ZONE "home"
 #define PARAMS_DEFAULT_NAME "NewDevice"
 
@@ -38,7 +38,6 @@ typedef struct {
 	 char ap_psk[32];
 	 char station_ssid[32];
 	 char station_psk[32];
-     char apploaded;
 	 char magic;
 } Params;
 

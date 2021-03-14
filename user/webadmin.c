@@ -88,7 +88,8 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
     size32_t chunk;
      
     /* initialize */
-    if (UPGRADE_FLAG_IDLE == system_upgrade_flag_check()) {
+    //if (UPGRADE_FLAG_IDLE == system_upgrade_flag_check()) {
+    if (s->req_rb.writecounter == 0) {
         system_upgrade_init();
         system_upgrade_flag_set(UPGRADE_FLAG_START);
     }
@@ -104,7 +105,7 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
             return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, "Rebooting"CR, 11);
         }
 
-        /* write */
+        /* Write */
         chunk = MIN(FOTA_SECTORSIZE, avail);
         INFO("FW: %04d More: %07d ", chunk, more);
         system_soft_wdt_feed();
@@ -296,7 +297,7 @@ static struct httpd_route routes[] = {
     {"POST",     "/params",          webadmin_set_params        },
     {"GET",      "/params",          webadmin_params_get        },
     {"GET",      "/favicon.ico",     webadmin_favicon           },
-    {"APP",      "/",                webadmin_toggle_boot       },
+    {"TOGGLE",   "/boots",           webadmin_toggle_boot       },
     {"INFO",     "/",                webadmin_sysinfo           },
     {"GET",      "/",                webadmin_index             },
     { NULL }

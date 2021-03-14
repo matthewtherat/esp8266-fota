@@ -28,7 +28,6 @@ params_defaults(Params* params) {
 	params->ap_psk[0] = 0;
 	params->station_ssid[0] = 0;
 	params->station_psk[0] = 0;
-    params->apploaded = 0;
 	return params_save(params);
 }
 
