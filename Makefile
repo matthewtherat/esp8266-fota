@@ -330,7 +330,7 @@ rebootfota:
 MAP6FILE = $(BINDIR)/upgrade/user2.4096.new.6.bin
 .PHONY: fotamap6
 fotamap6: map6user2 
-	-curl -XUPGRADE `uns resolve --short $(HOST)`/firmware \
+	-curl -s -XUPGRADE `uns resolve --short $(HOST)`/firmware \
 		-H "Content-Length: $(shell ls -l $(MAP6FILE) | nawk '{print $$5}')" \
 		-T $(MAP6FILE)
 	-echo

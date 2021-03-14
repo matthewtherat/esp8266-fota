@@ -81,7 +81,7 @@ httpd_err_t _firmware_write(struct httpd_session *s, size16_t len) {
 
 
 ICACHE_FLASH_ATTR
-httpd_err_t fota_httphandler(struct httpd_session *s) {
+httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
     httpd_err_t err;
     size16_t avail = HTTPD_REQ_LEN(s);
     size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
@@ -253,11 +253,22 @@ void httpcb(int status, char *body, void *arg) {
     }
 }
 
+#define SYSINFO \
+    "Image:       %s"CR \
+    "Boot:        %s"CR \
+    "Version:     %s"CR \
+    "Uptime:      %d"CR \
+    "Free mem:    %d"CR 
+
 
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
     if (strlen(s->request.path) <= 1) {
-        bufflen = os_sprintf(buff, "Uptime: %05d Free mem: %06d.\n", 
+        uint8_t image = system_upgrade_userbin_check();
+        bufflen = os_sprintf(buff, SYSINFO, 
+            __name__,
+            image == UPGRADE_FW_BIN2? "APP": "FOTA",
+            __version__,
             system_get_time() / 1000000,
             system_get_free_heap_size()
         );
@@ -280,14 +291,14 @@ httpd_err_t webadmin_index(struct httpd_session *s) {
 
 
 static struct httpd_route routes[] = {
-    {"DISCOVER", "/uns",             webadmin_uns_discover  },
-    {"UPGRADE",  "/firmware",        fota_httphandler       },
-    {"POST",     "/params",          webadmin_set_params    },
-    {"GET",      "/params",          webadmin_params_get    },
-    {"GET",      "/favicon.ico",     webadmin_favicon       },
-    {"APP",      "/",                webadmin_toggle_boot   },
-    {"INFO",     "/",                webadmin_sysinfo       },
-    {"GET",      "/",                webadmin_index         },
+    {"DISCOVER", "/uns",             webadmin_uns_discover      },
+    {"UPGRADE",  "/firmware",        webadmin_firmware_upgrade  },
+    {"POST",     "/params",          webadmin_set_params        },
+    {"GET",      "/params",          webadmin_params_get        },
+    {"GET",      "/favicon.ico",     webadmin_favicon           },
+    {"APP",      "/",                webadmin_toggle_boot       },
+    {"INFO",     "/",                webadmin_sysinfo           },
+    {"GET",      "/",                webadmin_index             },
     { NULL }
 };
 
