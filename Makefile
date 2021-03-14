@@ -161,9 +161,10 @@ MAP6FILE = $(BINDIR)/upgrade/user2.4096.new.6.bin
 ############################
 # Common flash & debug tools
 ############################
+
 .PHONY: erase_flash
-earase_flash:
-	$(ESPTOOL) earase_flash
+erase_flash:
+	$(ESPTOOL) erase_flash
 
 .PHONY: screen
 screen:
