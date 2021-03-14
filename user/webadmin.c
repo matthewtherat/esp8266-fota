@@ -67,7 +67,7 @@ void _toggleboot() {
 static ICACHE_FLASH_ATTR
 httpd_err_t _firmware_write(struct httpd_session *s, size16_t len) {
     char tmp[SPI_FLASH_SEC_SIZE];
-    if (!(len)) {
+    if (!len) {
         return HTTPD_OK;
     }
     system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
@@ -79,7 +79,7 @@ httpd_err_t _firmware_write(struct httpd_session *s, size16_t len) {
 }
 
 
-ICACHE_FLASH_ATTR
+static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
     httpd_err_t err;
     size16_t avail = HTTPD_REQ_LEN(s);
@@ -87,7 +87,6 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
     size32_t chunk;
      
     /* initialize */
-    //if (UPGRADE_FLAG_IDLE == system_upgrade_flag_check()) {
     if (s->req_rb.writecounter == 0) {
         system_upgrade_init();
         system_upgrade_flag_set(UPGRADE_FLAG_START);
@@ -125,6 +124,7 @@ httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
     return HTTPD_MORE;
 }
 
+static ICACHE_FLASH_ATTR
 void discovercb(struct unsrecord *rec, void *arg) {
     struct httpd_session *s = (struct httpd_session *) arg;
     int bufflen = os_sprintf(buff, "%s "IPSTR"\n", rec->fullname, 
