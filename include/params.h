@@ -3,6 +3,7 @@
 
 #include "debug.h"
 #include "partition.h"
+#include "user_config.h"
 
 #include <c_types.h>
 #include <user_interface.h>
@@ -11,8 +12,6 @@
 #define PARAMS_SECTOR SYSTEM_PARTITION_PARAMS_ADDR / 4096 
 
 #define PARAMS_MAGIC '@'
-#define PARAMS_DEFAULT_ZONE "home"
-#define PARAMS_DEFAULT_NAME "NewDevice"
 
 
 #define PARAMS_PRINT(p) INFO(CR"%s.%s, ssid: %s psk: %s ap-psk: %s", \

@@ -7,6 +7,10 @@
 #define __name__ "Fota Image"
 #define __version__     "3.0.0"
 
+#define PARAMS_DEFAULT_ZONE "dev"
+#define PARAMS_DEFAULT_NAME __name__
+
+
 #define HTTPD_REQ_BUFFSIZE      8192
 
 #endif

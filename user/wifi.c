@@ -101,15 +101,7 @@ wifi_init_softap(const char *ssid, const char *psk) {
     wifi_softap_get_config(config);     
 
     // Updating ssid
-    if (os_strcmp(ssid, PARAMS_DEFAULT_NAME) == 0) {
-        os_sprintf(config->ssid, "%s_%02x%02x%02x%02x%02x%02x", 
-                ssid,
-                MAC2STR(mac)
-            );
-    }
-    else {
-        os_sprintf(config->ssid, "%s", ssid);
-    }
+    os_sprintf(config->ssid, "%s", ssid);
 
     INFO("SSID: %s", config->ssid);
     config->ssid_len = 0; 
