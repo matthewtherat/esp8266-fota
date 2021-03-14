@@ -8,7 +8,9 @@
 #define REBOOTDELAY     0
 
 #define __name__ "Fota Image"
-#define __version__     "2.0.0"
+#define __version__     "3.0.0"
+
+#define HTTPD_REQ_BUFFSIZE      8192
 
 #endif
 

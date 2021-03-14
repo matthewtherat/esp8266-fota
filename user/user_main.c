@@ -54,8 +54,10 @@ void wifi_connect_cb(uint8_t status) {
 
 ICACHE_FLASH_ATTR
 void boothello() {
+    uint8_t image = system_upgrade_userbin_check();
     INFO(__name__" version: "__version__);
     INFO("My full name is: %s.%s", params.zone, params.name);
+    INFO("Boot image: %s", image == UPGRADE_FW_BIN2? "APP": "FOTA");
     if (!configured) {
         INFO(
             "Connect to WIFI Access point: %s, "

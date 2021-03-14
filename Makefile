@@ -11,7 +11,7 @@
 #     a generated lib/image xxx.a ()
 #
 
-HOST ?= home.nodemcu
+HOST ?= dev.node
 COMPILE ?= gcc
 
 SPI_SIZE_MAP := 6
@@ -28,7 +28,6 @@ SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user \
 	ringbuffer \
-	fota \
 	httpd \
 	http \
 	uns 
@@ -58,7 +57,6 @@ endif
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
 	ringbuffer/libringbuffer.a \
-	fota/libfota.a \
 	httpd/libhttpd.a \
 	http/libhttp.a \
 	uns/libuns.a
@@ -136,7 +134,6 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(PDIR)/ringbuffer \
-	-I $(PDIR)/fota/include \
 	-I $(PDIR)/httpd/include \
 	-I $(PDIR)/http/include \
 	-I $(PDIR)/uns/include \
@@ -330,11 +327,12 @@ earase_flash:
 rebootfota:
 	-curl `uns resolve --short $(HOST)`/ -XFOTA
 
+MAP6FILE = $(BINDIR)/upgrade/user2.4096.new.6.bin
 .PHONY: fotamap6
-fotamap6: map6user2 rebootfota
-	@sleep 5
-	-curl -F firmware=@"$(BINDIR)/upgrade/user2.4096.new.6.bin" \
-		`uns resolve --short $(HOST)`/firmware
+fotamap6: map6user2 
+	-curl -XUPGRADE `uns resolve --short $(HOST)`/firmware \
+		-H "Content-Length: $(shell ls -l $(MAP6FILE) | nawk '{print $$5}')" \
+		-T $(MAP6FILE)
 	-echo
 
 .PHONY: fotamap2
