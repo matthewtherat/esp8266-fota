@@ -52,7 +52,7 @@ void boothello() {
     uint8_t image = system_upgrade_userbin_check();
     INFO(__name__" version: "__version__);
     INFO("My full name is: %s.%s", params.zone, params.name);
-    INFO("Boot image: %s", image == UPGRADE_FW_BIN2? "APP": "FOTA");
+    INFO("Boot image: user%d", image + 1);
     if (!configured) {
         INFO(
             "Connect to WIFI Access point: %s, "

@@ -233,7 +233,7 @@ static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_toggle_boot(struct httpd_session *s) {
     httpd_err_t err;
     uint8_t image = system_upgrade_userbin_check();
-    bufflen = os_sprintf(buff, "Rebooting to user%d mode..."CR, image);
+    bufflen = os_sprintf(buff, "Rebooting to user%d mode..."CR, image + 1);
     err = HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, buff, bufflen);
     if (err) {
         return err;
@@ -266,7 +266,7 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
         uint8_t image = system_upgrade_userbin_check();
         bufflen = os_sprintf(buff, SYSINFO, 
             __name__,
-            image,
+            image + 1,
             __version__,
             system_get_time() / 1000000,
             system_get_free_heap_size()

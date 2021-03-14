@@ -5,7 +5,7 @@
 #define WIFI_ENABLE_SOFTAP  true
 
 #define __name__ "Fota Image"
-#define __version__     "3.0.0"
+#define __version__     "3.0.1"
 
 #define PARAMS_DEFAULT_ZONE "dev"
 #define PARAMS_DEFAULT_NAME __name__
