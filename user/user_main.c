@@ -19,7 +19,6 @@
 #include <ip_addr.h> 
 #include <espconn.h>
 
-
 static bool configured;
 static struct params params;
 
@@ -61,7 +60,7 @@ void boothello() {
             params.name
         );
     }
-    status_update(150, 850, INFINITE, NULL);
+    status_update(100, 1300, INFINITE, NULL);
 
     /* Web UI */
 	webadmin_start(&params);
@@ -70,10 +69,10 @@ void boothello() {
 
 
 void user_init(void) {
-    //uart_init(BIT_RATE_115200, BIT_RATE_115200);
-    uart_div_modify(UART0, UART_CLK_FREQ / BIT_RATE_115200);
-    uart_rx_intr_disable(UART0);
-    uart_rx_intr_disable(UART1);
+    uart_init(BIT_RATE_115200, BIT_RATE_115200);
+    //uart_div_modify(UART0, UART_CLK_FREQ / BIT_RATE_115200);
+    //uart_rx_intr_disable(UART0);
+    //uart_rx_intr_disable(UART1);
     
     /* Uncomment and edit the interrupt.c to configure interrupts */
     //interrupt_init();
@@ -98,7 +97,7 @@ void user_init(void) {
     // Disable wifi led before infrared
     wifi_status_led_uninstall();
 
-    status_update(200, 200, 15, boothello);
+    status_update(100, 400, 5, boothello);
 }
 
 

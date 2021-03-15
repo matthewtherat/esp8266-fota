@@ -37,15 +37,6 @@
     HTML_FOOTER
 
 
-#define FAVICON_SIZE    495
-
-#if SPI_SIZE_MAP == 2
-#define FAVICON_FLASH_SECTOR    0x77    
-#elif SPI_SIZE_MAP == 6
-#define FAVICON_FLASH_SECTOR    0x200    
-#endif
-
-
 #define WEBADMIN_ERR_FLASHREAD   -100
 #define WEBADMIN_ERR_SAVEPARAMS  -101
 #define WEBADMIN_UNKNOWNFIELD    -102
@@ -144,20 +135,22 @@ static ICACHE_FLASH_ATTR
 httpd_err_t _params_cb(struct httpd_session *s, const char *field, 
         const char *value) {
     char *target;
+    /* Compare: %s */
+    system_soft_wdt_feed();
     if (os_strcmp(field, "zone") == 0) {
-        target = (char*)&params->zone;
+        target = params->zone;
     }
     else if (os_strcmp(field, "name") == 0) {
-        target = (char*)&params->name;
+        target = params->name;
     }
     else if (os_strcmp(field, "ap_psk") == 0) {
-        target = (char*)&params->ap_psk;
+        target = params->ap_psk;
     }
     else if (os_strcmp(field, "ssid") == 0) {
-        target = (char*)&params->station_ssid;
+        target = params->station_ssid;
     }
     else if (os_strcmp(field, "psk") == 0) {
-        target = (char*)&params->station_psk;
+        target = params->station_psk;
     }
     else {
         return WEBADMIN_UNKNOWNFIELD;;
@@ -166,19 +159,24 @@ httpd_err_t _params_cb(struct httpd_session *s, const char *field,
     if (value == NULL) {
         value = "";
     }
+    /* Copy */
+    
+    //INFO("Updating params: %s", field);
     os_strcpy(target, value);
+    /* After Copy */
     return HTTPD_OK;
 }
 
 
 static ICACHE_FLASH_ATTR
-httpd_err_t webadmin_set_params(struct httpd_session *s) {
+httpd_err_t webadmin_params_post(struct httpd_session *s) {
     httpd_err_t err;
     size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
     if (more) {
         return HTTPD_OK;
     }
-    
+   
+    /* parse */
     err = httpd_form_urlencoded_parse(s, _params_cb);
     if (err) {
         return err;
@@ -193,8 +191,8 @@ httpd_err_t webadmin_set_params(struct httpd_session *s) {
     if (err) {
         return err;
     }
-    INFO("Rebooting");
-    status_update(500, 500, 2, system_restart);
+    INFO("Rebooting...");
+    status_update(500, 500, 1, system_restart);
     return HTTPD_OK;
 }
 
@@ -213,6 +211,17 @@ httpd_err_t webadmin_params_get(struct httpd_session *s) {
 
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_favicon(struct httpd_session *s) {
+    #define FAVICON_SIZE    495
+
+    #if SPI_SIZE_MAP == 2
+    #define FAVICON_FLASH_SECTOR    0x77    
+    #elif SPI_SIZE_MAP == 4
+    #define FAVICON_FLASH_SECTOR    0x200    
+    #elif SPI_SIZE_MAP == 6
+    #define FAVICON_FLASH_SECTOR    0x200    
+    #endif
+   
+
     char buf[4 * 124];
     //os_memset(buff, 0, 4 * 124);
     int result = spi_flash_read(
@@ -295,7 +304,7 @@ static struct httpd_route routes[] = {
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                webadmin_uns_discover      },
-    {"POST",       "/params",             webadmin_set_params        },
+    {"POST",       "/params",             webadmin_params_post       },
     {"GET",        "/params",             webadmin_params_get        },
     {"GET",        "/favicon.ico",        webadmin_favicon           },
     {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
