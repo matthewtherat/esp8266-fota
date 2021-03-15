@@ -290,14 +290,17 @@ httpd_err_t webadmin_index(struct httpd_session *s) {
 
 
 static struct httpd_route routes[] = {
-    {"DISCOVER", "/uns",             webadmin_uns_discover      },
-    {"UPGRADE",  "/firmware",        webadmin_firmware_upgrade  },
-    {"POST",     "/params",          webadmin_set_params        },
-    {"GET",      "/params",          webadmin_params_get        },
-    {"GET",      "/favicon.ico",     webadmin_favicon           },
-    {"TOGGLE",   "/boots",           webadmin_toggle_boot       },
-    {"INFO",     "/",                webadmin_sysinfo           },
-    {"GET",      "/",                webadmin_index             },
+    /* Upgrade firmware over the air (wifi) */
+    {"UPGRADE",    "/firmware",           webadmin_firmware_upgrade  },
+
+    /* Feel free to change these handlers */
+    {"DISCOVER",   "/uns",                webadmin_uns_discover      },
+    {"POST",       "/params",             webadmin_set_params        },
+    {"GET",        "/params",             webadmin_params_get        },
+    {"GET",        "/favicon.ico",        webadmin_favicon           },
+    {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
+    {"INFO",       "/",                   webadmin_sysinfo           },
+    {"GET",        "/",                   webadmin_index             },
     { NULL }
 };
 

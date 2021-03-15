@@ -53,6 +53,7 @@ void boothello() {
     INFO(__name__" version: "__version__);
     INFO("My full name is: %s.%s", params.zone, params.name);
     INFO("Boot image: user%d", image + 1);
+    INFO("Free memory: %d KB", system_get_free_heap_size());
     if (!configured) {
         INFO(
             "Connect to WIFI Access point: %s, "
@@ -97,7 +98,7 @@ void user_init(void) {
     // Disable wifi led before infrared
     wifi_status_led_uninstall();
 
-    status_update(200, 200, 5, boothello);
+    status_update(200, 200, 15, boothello);
 }
 
 
