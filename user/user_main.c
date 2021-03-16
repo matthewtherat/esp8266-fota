@@ -49,6 +49,7 @@ void wifi_connect_cb(uint8_t status) {
 ICACHE_FLASH_ATTR
 void boothello() {
     uint8_t image = system_upgrade_userbin_check();
+    INFO("");
     INFO(__name__" version: "__version__);
     INFO("My full name is: %s.%s", params.zone, params.name);
     INFO("Boot image: user%d", image + 1);
@@ -86,6 +87,7 @@ void user_init(void) {
 		}
 	}
     
+    INFO("");
     PARAMS_PRINT(params);
 	
     // Status LED

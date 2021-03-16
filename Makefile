@@ -28,6 +28,7 @@ SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user \
 	ringbuffer \
+	fs \
 	httpd \
 	http \
 	uns 
@@ -57,6 +58,7 @@ endif
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
 	ringbuffer/libringbuffer.a \
+	fs/libfs.a \
 	httpd/libhttpd.a \
 	http/libhttp.a \
 	uns/libuns.a
@@ -134,6 +136,7 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(PDIR)/ringbuffer \
+	-I $(PDIR)/fs/include \
 	-I $(PDIR)/httpd/include \
 	-I $(PDIR)/http/include \
 	-I $(PDIR)/uns/include \
@@ -156,8 +159,8 @@ ESPTOOL_WRITE_DIO = $(ESPTOOL)  write_flash -u --flash_mode dio --flash_freq 40m
 # Project specific variables
 ############################
 MAP2FILE = $(BINDIR)/upgrade/user2.1024.new.2.bin
-MAP4FILE1 = $(BINDIR)/upgrade/user1.4096.new.4.bin
-MAP4FILE2 = $(BINDIR)/upgrade/user2.4096.new.4.bin
+MAP4FILE1 = $(BINDIR)/upgrade/user2.4096.new.4.bin
+MAP4FILE2 = $(BINDIR)/upgrade/user1.4096.new.4.bin
 MAP6FILE = $(BINDIR)/upgrade/user2.4096.new.6.bin
 
 ############################
@@ -351,13 +354,11 @@ boot_user2map4:
 	$(ESPTOOL_WRITE) --flash_size 4MB \
 		0x3ff000 $(BINDIR)/map4-user2-3ff.bin
 
-.PHONY: fotamap4user1
-fotamap4user1: map4user1 
-	-uns http upgrade $(HOST)/firmware :$(MAP4FILE1)
+.PHONY: fotamap4user
+fotamap4user: map4user1 map4user2
+	-uns http upgrade $(HOST)/firmware :$(MAP4FILE$(shell uns h info $(HOST) \
+		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
 
-.PHONY: fotamap4user2
-fotamap4user2: map4user2 
-	-uns http upgrade $(HOST)/firmware :$(MAP4FILE2)
 
 ###############
 # SPI MAP 4 QIO
