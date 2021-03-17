@@ -263,11 +263,12 @@ void httpcb(int status, char *body, void *arg) {
 }
 
 #define SYSINFO \
-    "Image:       %s"CR \
-    "Boot:        user%d"CR \
-    "Version:     %s"CR \
-    "Uptime:      %d"CR \
-    "Free mem:    %d"CR 
+    "Image:      %s"CR \
+    "Boot:       user%d"CR \
+    "Version:    %s"CR \
+    "Uptime:     %u"CR \
+    "Free mem:   %d"CR \
+    "RTC:        %u"CR
 
 
 static ICACHE_FLASH_ATTR
@@ -278,8 +279,9 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
             __name__,
             image + 1,
             __version__,
-            system_get_time() / 1000000,
-            system_get_free_heap_size()
+            system_get_time(),
+            system_get_free_heap_size(),
+            system_get_rtc_time()
         );
         return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, buff, bufflen);
     }
@@ -293,6 +295,7 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_index(struct httpd_session *s) {
+    WDTCHECK(s);
     status_update(50, 100, 10, NULL);
     bufflen = os_sprintf(buff, HTML_INDEX, params->name);
     return HTTPD_RESPONSE_HTML(s, HTTPSTATUS_OK, buff, bufflen);
