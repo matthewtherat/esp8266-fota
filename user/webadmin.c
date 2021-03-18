@@ -4,7 +4,6 @@
 #include "httpd.h"
 #include "uns.h"
 #include "http.h"
-#include "webfs.c"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -303,10 +302,6 @@ httpd_err_t webadmin_index(struct httpd_session *s) {
 
 
 static struct httpd_route routes[] = {
-    /* Filesystem */
-    {"FORMAT",     "/fs",                 webfs_format               },
-    {"POST",       "/fs",                 webfs_post                 },
-
     /* Upgrade firmware over the air (wifi) */
     {"UPGRADE",    "/firmware",           webadmin_firmware_upgrade  },
 

@@ -28,7 +28,6 @@ SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user \
 	ringbuffer \
-	fs \
 	httpd \
 	http \
 	uns 
@@ -58,7 +57,6 @@ endif
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a \
 	ringbuffer/libringbuffer.a \
-	fs/libfs.a \
 	httpd/libhttpd.a \
 	http/libhttp.a \
 	uns/libuns.a
@@ -136,7 +134,6 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) \
 	-I $(PDIR)include \
 	-I $(PDIR)/ringbuffer \
-	-I $(PDIR)/fs/include \
 	-I $(PDIR)/httpd/include \
 	-I $(PDIR)/http/include \
 	-I $(PDIR)/uns/include \
