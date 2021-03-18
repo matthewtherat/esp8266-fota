@@ -37,6 +37,7 @@ void wifi_connect_cb(uint8_t status) {
         uns_init(hostname);
         INFO("WIFI Connected to: %s", params.station_ssid);
         wifi_ap_stop();
+        MEMCHECK();
     } 
     else {
         uns_deinit();    
@@ -70,10 +71,11 @@ void boothello() {
 
 
 void user_init(void) {
-    uart_init(BIT_RATE_115200, BIT_RATE_115200);
-    //uart_div_modify(UART0, UART_CLK_FREQ / BIT_RATE_115200);
-    //uart_rx_intr_disable(UART0);
-    //uart_rx_intr_disable(UART1);
+    //uart_init(BIT_RATE_115200, BIT_RATE_115200);
+    uart_div_modify(UART0, UART_CLK_FREQ / BIT_RATE_115200);
+    uart_rx_intr_disable(UART0);
+    uart_rx_intr_disable(UART1);
+    //system_show_malloc(); 
     
     /* Uncomment and edit the interrupt.c to configure interrupts */
     //interrupt_init();
@@ -90,13 +92,13 @@ void user_init(void) {
     INFO("");
     PARAMS_PRINT(params);
 	
-    // Status LED
+    /* Status LED */
     status_init();
 
     /* Start WIFI */
     wifi_start(&params, wifi_connect_cb);
 
-    // Disable wifi led before infrared
+    /* Disable wifi led before infrared */
     wifi_status_led_uninstall();
 
     status_update(100, 400, 5, boothello);
@@ -105,11 +107,13 @@ void user_init(void) {
 
 ICACHE_FLASH_ATTR 
 void user_pre_init(void) {
+    MEMCHECK();
     if(!system_partition_table_regist(at_partition_table, 
 				sizeof(at_partition_table)/sizeof(at_partition_table[0]),
 				SPI_FLASH_SIZE_MAP)) {
 		ERROR("system_partition_table_regist fail");
 		while(1);
 	}
+    MEMCHECK();
 }
 
