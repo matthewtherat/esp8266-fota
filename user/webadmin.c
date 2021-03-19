@@ -11,30 +11,17 @@
 
 
 
-#define HTML_HEADER \
-    "<!DOCTYPE html><html>" \
-    "<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
-
-#define HTML_FOOTER "\r\n</body></html>\r\n"
-
-#define HTML_INDEX \
-    HTML_HEADER \
-    "<h4>Welcome to %s Web Administration</h4><br />" \
-    "<a href=\"/params\">Params</a><br />" \
-    HTML_FOOTER
-
-#define HTML_FORM \
-    HTML_HEADER \
-    "<form action=\"/params\" method=\"post\">" \
-    "<h4>Settings</h4>" \
-    "zone: <input name=\"zone\" value=\"%s\"/><br/>" \
-    "name: <input name=\"name\" value=\"%s\"/><br/>" \
-    "AP PSK: <input name=\"ap_psk\" value=\"%s\"/><br/>" \
-    "SSID: <input name=\"ssid\" value=\"%s\"/><br/>" \
-    "PSK: <input name=\"psk\" value=\"%s\"/><br/>" \
-    "<input type=\"submit\" value=\"Reboot\" />" \
-    "</form>" \
-    HTML_FOOTER
+//#define HTML_HEADER \
+//    "<!DOCTYPE html><html>" \
+//    "<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
+//
+//#define HTML_FOOTER "\r\n</body></html>\r\n"
+//
+//#define HTML_INDEX \
+//    HTML_HEADER \
+//    "<h4>Welcome to %s Web Administration</h4><br />" \
+//    "<a href=\"/params\">Params</a><br />" \
+//    HTML_FOOTER
 
 
 #define WEBADMIN_ERR_FLASHREAD   -100
@@ -47,8 +34,128 @@ static struct params *params;
 static char buff[WEBADMIN_BUFFSIZE];
 static size16_t bufflen;
 
+#define SECTFMT     "0x%4X"
 
-#define INDEXHTML_SECTOR    0x200
+struct fileserve {
+    uint32_t remain;
+    uint32_t sect;
+};
+
+
+static ICACHE_FLASH_ATTR
+httpd_err_t _index_chunk_sent(struct httpd_session *s) {
+    httpd_err_t err;
+    struct fileserve *f = (struct fileserve *) s->reverse;
+    size16_t available = HTTPD_RESP_LEN(s);
+    uint16_t chunklen;
+
+    CHK("SENT CB: avail: %d", available);
+    if (available) {
+        return HTTPD_OK;
+    }
+   
+    char *tmp = os_zalloc(SEC_SIZE);
+    if (f->remain) {
+        CHK("Read sector: "SECTFMT, ++(f->sect));
+        err = spi_flash_read(f->sect * SEC_SIZE, (uint32_t*)tmp, SEC_SIZE);
+        if (err) {
+            ERROR("SPI Flash read failed: %d", err);
+            goto reterr;
+        }
+        
+        chunklen = MIN(f->remain, SEC_SIZE);
+        CHK("Remain: %u chunklen: %u", f->remain, chunklen);
+        err = httpd_send(s, tmp, chunklen);
+        if (err) {
+            goto reterr;
+        }
+        f->remain -= chunklen;
+    }
+    else {
+        /* Finalize */
+        CHK("Terminating.");
+        WDTCHECK(s);
+        httpd_response_finalize(s, HTTPD_FLAG_NONE);
+        goto retok;
+    }
+
+    if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
+        err = HTTPD_ERR_TASKQ_FULL;
+        goto reterr;
+    }
+
+retok:
+    os_free(tmp);
+    return HTTPD_OK;
+
+reterr:
+    os_free(tmp);
+    return err;
+}
+
+
+static ICACHE_FLASH_ATTR
+httpd_err_t webadmin_index_get(struct httpd_session *s) {
+
+#if SPI_SIZE_MAP == 2
+#define INDEXHTML_SECTOR        0x77
+#elif SPI_SIZE_MAP == 4
+#define INDEXHTML_SECTOR        0x100
+#elif SPI_SIZE_MAP == 6
+#define INDEXHTML_SECTOR        0x200
+#endif
+  
+    httpd_err_t err;
+    size16_t sect;
+    char *tmp = os_zalloc(SEC_SIZE);
+    uint16_t chunklen;
+    uint8_t offset = sizeof(uint32_t);
+    uint32_t remain;
+
+
+    sect = INDEXHTML_SECTOR;
+    CHK("Read sector: "SECTFMT, sect);
+    err = spi_flash_read(sect * SEC_SIZE, (uint32_t*)tmp, SEC_SIZE);
+    if (err) {
+        ERROR("SPI Flash read failed: %d", err);
+        goto reterr;
+    }
+    
+    /* Find file size */
+    os_memcpy(&remain, tmp, 4);
+    
+    /* Response headers */
+    struct httpd_header deflate = {"Content-Encoding", "deflate"};
+    
+    CHK("Start response: %u", remain);
+    s->sentcb = _index_chunk_sent;
+    err = httpd_response_start(s, HTTPSTATUS_OK, &deflate, 1, 
+            HTTPHEADER_CONTENTTYPE_HTML, remain, HTTPD_FLAG_NONE);
+    if (err) {
+        goto reterr;
+    }
+
+    chunklen = MIN(remain, SEC_SIZE - offset);
+    CHK("Remain: %u chunklen: %u", remain, chunklen);
+    err = httpd_send(s, tmp + offset, chunklen);
+    if (err) {
+        goto reterr;
+    }
+    remain -= chunklen;
+    struct fileserve *f = os_zalloc(sizeof(struct fileserve));            
+    f->remain = remain;
+    f->sect = sect;
+    s->reverse = f;
+
+retok:
+    os_free(tmp);
+    return HTTPD_OK;
+
+reterr:
+    os_free(tmp);
+    return err;
+}
+
 
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_index_post(struct httpd_session *s) {
@@ -56,54 +163,72 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
     size16_t avail = HTTPD_REQ_LEN(s);
     size16_t sect;
     size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
-    size32_t chunklen;
     uint8_t offset = sizeof(uint32_t);
-    char tmp[SEC_SIZE];
+    size32_t chunklen;
      
-    CHK("initialize");
-    if (s->req_rb.writecounter == 0) {
-        os_memcpy(tmp, &s->request.contentlen, offset);
-    }
-    
     if ((avail < (SEC_SIZE - offset)) && more) {
         CHK("More");
         return HTTPD_MORE;
     }
     
-    do {
-        if ((!avail) && (!more)) {
-            CHK("Terminating.");
-            return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, NULL, 0);
-        }
+    char *tmp = os_zalloc(SEC_SIZE);
+    CHK("initialize, wc: %u", s->req_rb.writecounter);
+    if (s->req_rb.writecounter == 0) {
+        CHK("Clen: %u", s->request.contentlen);
+        os_memcpy(tmp, &s->request.contentlen, offset);
+    }
 
+    while (true) {
         CHK("Write");
-        chunklen = MIN(SEC_SIZE - offset, avail);
+        chunklen = MIN(SEC_SIZE - offset, avail) + sizeof(uint32_t);
         sect = (s->req_rb.writecounter + sizeof(uint32_t)) / SEC_SIZE;
         sect += INDEXHTML_SECTOR;
-        INFO("sector: 0x%03X chunklen: %04d More: %07d ", sect, chunklen, 
+        INFO("sector: "SECTFMT" chunklen: %04d More: %07d ", sect, chunklen, 
                 more);
-        HTTPD_RECV_SKIP(s, chunklen);
-        //HTTPD_RECV(s, tmp + offset, chunklen);
-        //err = spi_flas_erase_sector(INDEXHTML_SECTOR + sect);
-        //if (err) {
-        //    return err;
-        //}
-        //err = spi_flash_write(sect * SEC_SIZE, (uint32_t*)tmp, chunklen);
-        //if (err) {
-        //    return err;
-        //}
+        HTTPD_RECV(s, tmp + offset, chunklen);
+    
+        CHK("Erase sector: "SECTFMT, sect);
+        err = spi_flash_erase_sector(INDEXHTML_SECTOR + sect);
+        if (err) {
+            goto reterr;
+        }
+        
+        CHK("Write sector: "SECTFMT, sect);
+        err = spi_flash_write(sect * SEC_SIZE, (uint32_t*)tmp, chunklen);
+        if (err) {
+            goto reterr;
+        }
         
         offset = 0;
         avail = HTTPD_REQ_LEN(s);
-    } while((avail >= SEC_SIZE) || (!more));
+
+        if ((!avail) && (!more)) {
+            goto retok;
+        }
+    }; 
     
     if (more) {
         CHK("Unhold");
         if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
-            return HTTPD_ERR_TASKQ_FULL;
+            err = HTTPD_ERR_TASKQ_FULL;
+            goto reterr;
         }
     }
+    goto retmore;
+
+retok:
+    CHK("Terminating.");
+    WDTCHECK(s);
+    os_free(tmp);
+    return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, NULL, 0);
+
+retmore:
+    os_free(tmp);
     return HTTPD_MORE;
+
+reterr:
+    os_free(tmp);
+    return err;
 }
 
 
@@ -258,43 +383,50 @@ httpd_err_t webadmin_params_post(struct httpd_session *s) {
 
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_params_get(struct httpd_session *s) {
-    bufflen = os_sprintf(buff, HTML_FORM, 
+#define PARAMS_JSON \
+    "\"zone\": \"%s\"" \
+    "\"name\": \"%s\"" \
+    "\"ap_psk\": \"%s\"" \
+    "\"ssid\": \"%s\"" \
+    "\"psk\": \"%s\""
+
+    bufflen = os_sprintf(buff, PARAMS_JSON, 
             params->zone, 
             params->name, 
             params->ap_psk, 
             params->station_ssid, 
             params->station_psk);
-    return HTTPD_RESPONSE_HTML(s, HTTPSTATUS_OK, buff, bufflen);
+    return HTTPD_RESPONSE_JSON(s, HTTPSTATUS_OK, buff, bufflen);
 }
 
 
-static ICACHE_FLASH_ATTR
-httpd_err_t webadmin_favicon(struct httpd_session *s) {
-    #define FAVICON_SIZE    495
-
-    #if SPI_SIZE_MAP == 2
-    #define FAVICON_FLASH_SECTOR    0x77    
-    #elif SPI_SIZE_MAP == 4
-    #define FAVICON_FLASH_SECTOR    0x200    
-    #elif SPI_SIZE_MAP == 6
-    #define FAVICON_FLASH_SECTOR    0x200    
-    #endif
-   
-
-    char buf[4 * 124];
-    //os_memset(buff, 0, 4 * 124);
-    int result = spi_flash_read(
-            FAVICON_FLASH_SECTOR * SPI_FLASH_SEC_SIZE,
-            (uint32_t*) buf,
-            4 * 124
-        );
-    
-    if (result != SPI_FLASH_RESULT_OK) {
-        ERROR("SPI Flash write failed: %d", result);
-        return WEBADMIN_ERR_FLASHREAD;
-    }
-    return HTTPD_RESPONSE_ICON(s, HTTPSTATUS_OK, buf, FAVICON_SIZE);
-}
+//static ICACHE_FLASH_ATTR
+//httpd_err_t webadmin_favicon(struct httpd_session *s) {
+//    #define FAVICON_SIZE    495
+//
+//    #if SPI_SIZE_MAP == 2
+//    #define FAVICON_FLASH_SECTOR    0x77    
+//    #elif SPI_SIZE_MAP == 4
+//    #define FAVICON_FLASH_SECTOR    0x200    
+//    #elif SPI_SIZE_MAP == 6
+//    #define FAVICON_FLASH_SECTOR    0x200    
+//    #endif
+//   
+//
+//    char buf[4 * 124];
+//    //os_memset(buff, 0, 4 * 124);
+//    int result = spi_flash_read(
+//            FAVICON_FLASH_SECTOR * SPI_FLASH_SEC_SIZE,
+//            (uint32_t*) buf,
+//            4 * 124
+//        );
+//    
+//    if (result != SPI_FLASH_RESULT_OK) {
+//        ERROR("SPI Flash write failed: %d", result);
+//        return WEBADMIN_ERR_FLASHREAD;
+//    }
+//    return HTTPD_RESPONSE_ICON(s, HTTPSTATUS_OK, buf, FAVICON_SIZE);
+//}
 
 
 static ICACHE_FLASH_ATTR
@@ -351,13 +483,13 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 }
 
 
-static ICACHE_FLASH_ATTR
-httpd_err_t webadmin_index_get(struct httpd_session *s) {
-    WDTCHECK(s);
-    status_update(50, 100, 10, NULL);
-    bufflen = os_sprintf(buff, HTML_INDEX, params->name);
-    return HTTPD_RESPONSE_HTML(s, HTTPSTATUS_OK, buff, bufflen);
-}
+//static ICACHE_FLASH_ATTR
+//httpd_err_t webadmin_index_get(struct httpd_session *s) {
+//    WDTCHECK(s);
+//    status_update(50, 100, 10, NULL);
+//    bufflen = os_sprintf(buff, HTML_INDEX, params->name);
+//    return HTTPD_RESPONSE_HTML(s, HTTPSTATUS_OK, buff, bufflen);
+//}
 
 
 static struct httpd_route routes[] = {
@@ -368,7 +500,7 @@ static struct httpd_route routes[] = {
     {"DISCOVER",   "/uns",                webadmin_uns_discover      },
     {"POST",       "/params",             webadmin_params_post       },
     {"GET",        "/params",             webadmin_params_get        },
-    {"GET",        "/favicon.ico",        webadmin_favicon           },
+//    {"GET",        "/favicon.ico",        webadmin_favicon           },
     {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
     {"INFO",       "/",                   webadmin_sysinfo           },
     {"GET",        "/",                   webadmin_index_get         },
