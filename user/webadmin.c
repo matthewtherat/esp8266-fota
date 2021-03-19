@@ -41,11 +41,70 @@
 #define WEBADMIN_ERR_SAVEPARAMS  -101
 #define WEBADMIN_UNKNOWNFIELD    -102
 #define WEBADMIN_BUFFSIZE   1024
-
+#define SEC_SIZE  SPI_FLASH_SEC_SIZE
 
 static struct params *params;
 static char buff[WEBADMIN_BUFFSIZE];
 static size16_t bufflen;
+
+
+#define INDEXHTML_SECTOR    0x200
+
+static ICACHE_FLASH_ATTR
+httpd_err_t webadmin_index_post(struct httpd_session *s) {
+    httpd_err_t err;
+    size16_t avail = HTTPD_REQ_LEN(s);
+    size16_t sect;
+    size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
+    size32_t chunklen;
+    uint8_t offset = sizeof(uint32_t);
+    char tmp[SEC_SIZE];
+     
+    CHK("initialize");
+    if (s->req_rb.writecounter == 0) {
+        os_memcpy(tmp, &s->request.contentlen, offset);
+    }
+    
+    if ((avail < (SEC_SIZE - offset)) && more) {
+        CHK("More");
+        return HTTPD_MORE;
+    }
+    
+    do {
+        if ((!avail) && (!more)) {
+            CHK("Terminating.");
+            return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, NULL, 0);
+        }
+
+        CHK("Write");
+        chunklen = MIN(SEC_SIZE - offset, avail);
+        sect = (s->req_rb.writecounter + sizeof(uint32_t)) / SEC_SIZE;
+        sect += INDEXHTML_SECTOR;
+        INFO("sector: 0x%03X chunklen: %04d More: %07d ", sect, chunklen, 
+                more);
+        HTTPD_RECV_SKIP(s, chunklen);
+        //HTTPD_RECV(s, tmp + offset, chunklen);
+        //err = spi_flas_erase_sector(INDEXHTML_SECTOR + sect);
+        //if (err) {
+        //    return err;
+        //}
+        //err = spi_flash_write(sect * SEC_SIZE, (uint32_t*)tmp, chunklen);
+        //if (err) {
+        //    return err;
+        //}
+        
+        offset = 0;
+        avail = HTTPD_REQ_LEN(s);
+    } while((avail >= SEC_SIZE) || (!more));
+    
+    if (more) {
+        CHK("Unhold");
+        if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
+            return HTTPD_ERR_TASKQ_FULL;
+        }
+    }
+    return HTTPD_MORE;
+}
 
 
 static ICACHE_FLASH_ATTR
@@ -293,7 +352,7 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 
 
 static ICACHE_FLASH_ATTR
-httpd_err_t webadmin_index(struct httpd_session *s) {
+httpd_err_t webadmin_index_get(struct httpd_session *s) {
     WDTCHECK(s);
     status_update(50, 100, 10, NULL);
     bufflen = os_sprintf(buff, HTML_INDEX, params->name);
@@ -312,7 +371,8 @@ static struct httpd_route routes[] = {
     {"GET",        "/favicon.ico",        webadmin_favicon           },
     {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
     {"INFO",       "/",                   webadmin_sysinfo           },
-    {"GET",        "/",                   webadmin_index             },
+    {"GET",        "/",                   webadmin_index_get         },
+    {"POST",       "/",                   webadmin_index_post        },
     { NULL }
 };
 

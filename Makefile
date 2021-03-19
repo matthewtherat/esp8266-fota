@@ -351,8 +351,8 @@ boot_user2map4:
 	$(ESPTOOL_WRITE) --flash_size 4MB \
 		0x3ff000 $(BINDIR)/map4-user2-3ff.bin
 
-.PHONY: fotamap4user
-fotamap4user: map4user1 map4user2
+.PHONY: fotamap4
+fotamap4: map4user1 map4user2
 	-uns http upgrade $(HOST)/firmware :$(MAP4FILE$(shell uns h info $(HOST) \
 		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
 
