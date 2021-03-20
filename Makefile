@@ -155,9 +155,12 @@ ESPTOOL_WRITE_DIO = $(ESPTOOL)  write_flash -u --flash_mode dio --flash_freq 40m
 ############################
 # Project specific variables
 ############################
-MAP2FILE = $(BINDIR)/upgrade/user2.1024.new.2.bin
+MAP2FILE1 = $(BINDIR)/upgrade/user2.1024.new.2.bin
+MAP2FILE2 = $(BINDIR)/upgrade/user1.1024.new.2.bin
+
 MAP4FILE1 = $(BINDIR)/upgrade/user2.4096.new.4.bin
 MAP4FILE2 = $(BINDIR)/upgrade/user1.4096.new.4.bin
+
 MAP6FILE1 = $(BINDIR)/upgrade/user2.4096.new.6.bin
 MAP6FILE2 = $(BINDIR)/upgrade/user1.4096.new.6.bin
 
@@ -208,10 +211,10 @@ boot_user2map2:
 		0xff000 $(BINDIR)/map2-user2-0ff.bin
 
 .PHONY: fotamap2
-fotamap2: map2user2 toggleboot
-	@sleep 5
-	-uns html upgrade $(HOST)/firmware :$(MAP2FILE)
-	-echo
+fotamap2: map2user1 map2user2 
+	-uns http upgrade $(HOST)/firmware :$(MAP2FILE$(shell uns h info $(HOST) \
+		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
+
 
 ###############
 # SPI MAP 2 QIO
@@ -220,6 +223,9 @@ map2user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
 
+map2user2:
+	make clean
+	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
 
 flash_map2user1: map2user1
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
@@ -236,6 +242,12 @@ cleanup_map2user1_params:
 		0x79000 $(SDK_PATH)/bin/blank.bin \
 		0x7a000 $(SDK_PATH)/bin/blank.bin 
 
+
+.PHONY: flash_map2webui
+flash_map2webui: webui
+	$(ESPTOOL_WRITE) --flash_size 1MB  \
+		0x70000 webui/public/build/index.bundle.html.bin
+		
 ###############
 # SPI MAP 2 DIO
 ###############
@@ -252,6 +264,11 @@ flash_map2user1dio: map2user1dio
 		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0xfb000 $(SDK_PATH)/bin/blank.bin \
 		0xfe000 $(SDK_PATH)/bin/blank.bin
+
+.PHONY: flash_map2webuidio
+flash_map2webuidio: webui
+	$(ESPTOOL_WRITE_DIO) --flash_size 1MB  \
+		0x70000 webui/public/build/index.bundle.html.bin
 
 ##################
 # SPI MAP 6 common
@@ -305,6 +322,10 @@ flash_map6user2: map6user2
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x101000  $(BINDIR)/upgrade/user2.4096.new.6.bin
 
+.PHONY: flash_map6webui
+flash_map6webui: webui
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+		0xA0000 webui/public/build/index.bundle.html.bin
 
 .PHONY: cleanup_map6params
 cleanup_map6params:
@@ -329,6 +350,12 @@ flash_map6user1dio: map6user1dio
 		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0x3fb000 $(SDK_PATH)/bin/blank.bin \
 		0x3fe000 $(SDK_PATH)/bin/blank.bin 
+
+.PHONY: flash_map6webuidio
+flash_map6webuidio: webui
+	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
+		0xA0000 webui/public/build/index.bundle.html.bin
+
 
 ##################
 # SPI MAP 4 common

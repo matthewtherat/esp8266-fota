@@ -20,11 +20,11 @@
 
 
 #if SPI_SIZE_MAP == 2
-#define INDEXHTML_SECTOR        0x77
+#define INDEXHTML_SECTOR        0x70
 #elif SPI_SIZE_MAP == 4
-#define INDEXHTML_SECTOR        0x220
+#define INDEXHTML_SECTOR        0x70
 #elif SPI_SIZE_MAP == 6
-#define INDEXHTML_SECTOR        0x170
+#define INDEXHTML_SECTOR        0xA0
 #endif
 
 #define SECTFMT     "0x%4X"
@@ -394,7 +394,7 @@ httpd_err_t webadmin_params_get(struct httpd_session *s) {
 #define PARAMS_JSON "{" \
     "\"zone\": \"%s\"," \
     "\"name\": \"%s\"," \
-    "\"ap_psk\": \"%s\"," \
+    "\"apPsk\": \"%s\"," \
     "\"ssid\": \"%s\"," \
     "\"psk\": \"%s\"" \
     "}"
