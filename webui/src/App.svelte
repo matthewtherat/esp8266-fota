@@ -19,12 +19,19 @@ onMount(async () => {
 
 </script>
 
-<style type="text/sass">
-
+<style type="text/sass" global>
+  body
+    margin: 0px;
+  
+  input
+    margin: 6px;
+  
+  h1
+    color: blue
 </style>
 
 <h1>{title}</h1>
-<div>
+<div class="p">
   <p style="display: {disabled? 'block': 'none'}" >
     Cannot load params.
   </p>

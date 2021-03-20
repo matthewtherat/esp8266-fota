@@ -220,10 +220,6 @@ map2user1:
 	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
 
-.PHONY: assets_map2user1
-assets_map2user1:
-	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		0x77000 assets/favicon-16x16.png
 
 flash_map2user1: map2user1
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
@@ -309,10 +305,6 @@ flash_map6user2: map6user2
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x101000  $(BINDIR)/upgrade/user2.4096.new.6.bin
 
-.PHONY: assets_map6user1
-assets_map6user1:
-	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		0x200000 assets/favicon-16x16.png
 
 .PHONY: cleanup_map6params
 cleanup_map6params:

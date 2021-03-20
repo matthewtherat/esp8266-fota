@@ -67,6 +67,20 @@ void boothello() {
     /* Web UI */
 	webadmin_start(&params);
 
+    struct rst_info *r = system_get_rst_info();
+    INFO("Boot reason: %d\n", r->reason);
+    if (r->reason == REASON_WDT_RST || 
+            r->reason == REASON_EXCEPTION_RST ||
+            r->reason == REASON_SOFT_WDT_RST) {
+        
+        if (r->reason == REASON_EXCEPTION_RST) {
+            ERROR("Fatal exception (%d)", r->exccause);
+        }
+    
+        DEBUG("epc1=0x%08x, epc2=0x%08x, epc3=0x%08x, excvaddr=0x%08x, "
+                "depc=0x%08x\n", r->epc1, r->epc2, r->epc3, r->excvaddr, 
+                r->depc); //The address of the last crash is printed, which is used to debug garbled output.
+    }
 }
 
 
