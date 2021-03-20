@@ -10,20 +10,6 @@
 #include <mem.h>
 
 
-
-//#define HTML_HEADER \
-//    "<!DOCTYPE html><html>" \
-//    "<head><title>ESP8266 Firstboot config</title></head><body>\r\n" 
-//
-//#define HTML_FOOTER "\r\n</body></html>\r\n"
-//
-//#define HTML_INDEX \
-//    HTML_HEADER \
-//    "<h4>Welcome to %s Web Administration</h4><br />" \
-//    "<a href=\"/params\">Params</a><br />" \
-//    HTML_FOOTER
-
-
 #define WEBADMIN_ERR_FLASHREAD        -100
 #define WEBADMIN_ERR_SAVEPARAMS       -101
 #define WEBADMIN_UNKNOWNFIELD         -102
@@ -41,12 +27,13 @@
 #define INDEXHTML_SECTOR        0x170
 #endif
 
+#define SECTFMT     "0x%4X"
+
 
 static struct params *params;
 static char buff[WEBADMIN_BUFFSIZE];
 static size16_t bufflen;
 
-#define SECTFMT     "0x%4X"
 
 struct fileserve {
     uint32_t remain;
@@ -90,7 +77,6 @@ httpd_err_t _index_chunk_sent(struct httpd_session *s) {
     
     if (f->remain == 0){
         /* Finalize */
-        WDTCHECK(s);
         httpd_response_finalize(s, HTTPD_FLAG_NONE);
         goto retok;
     } 
@@ -104,7 +90,6 @@ retok:
     os_free(tmp);
     os_free(f);
     s->reverse = NULL;
-    WDTCHECK(s);
     return HTTPD_OK;
 
 reterr:
@@ -179,7 +164,6 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
     size32_t chunklen;
     size32_t wlen;
      
-    WDTCHECK(s);
     if ((avail < (SEC_SIZE - offset)) && more) {
         /* More */
         s->request.handlercalls--;
@@ -243,7 +227,6 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
 
 retok:
     /* Terminating. */
-    WDTCHECK(s);
     os_free(tmp);
     return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, NULL, 0);
 
@@ -510,15 +493,6 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 }
 
 
-//static ICACHE_FLASH_ATTR
-//httpd_err_t webadmin_index_get(struct httpd_session *s) {
-//    WDTCHECK(s);
-//    status_update(50, 100, 10, NULL);
-//    bufflen = os_sprintf(buff, HTML_INDEX, params->name);
-//    return HTTPD_RESPONSE_HTML(s, HTTPSTATUS_OK, buff, bufflen);
-//}
-
-
 static struct httpd_route routes[] = {
     /* Upgrade firmware over the air (wifi) */
     {"UPGRADE",    "/firmware",           webadmin_firmware_upgrade  },
@@ -527,7 +501,6 @@ static struct httpd_route routes[] = {
     {"DISCOVER",   "/uns",                webadmin_uns_discover      },
     {"POST",       "/params",             webadmin_params_post       },
     {"GET",        "/params.json",        webadmin_params_get        },
-//    {"GET",        "/favicon.ico",        webadmin_favicon           },
     {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
     {"INFO",       "/",                   webadmin_sysinfo           },
     {"GET",        "/",                   webadmin_index_get         },
