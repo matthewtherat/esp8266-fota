@@ -38,7 +38,19 @@ BINDIR = ./bin
 APPDIR = .
 LDDIR = $(SDK_PATH)/ld
 
-CCFLAGS += -Os -DSPI_SIZE_MAP=$(SPI_SIZE_MAP)
+INDEXHTML_SECTOR_MAP2 = 0x70
+INDEXHTML_SECTOR_MAP4 = 0x100
+INDEXHTML_SECTOR_MAP6 = 0x200
+INDEXHTML = webui/public/build/index.bundle.html
+INDEXHTML_BIN = $(INDEXHTML).bin
+INDEXHTML_DEFLATE = $(INDEXHTML).deflate
+
+CCFLAGS += \
+	-Os \
+	-DSPI_SIZE_MAP=$(SPI_SIZE_MAP) \
+	-DINDEXHTML_SECTOR_MAP6=$(INDEXHTML_SECTOR_MAP6) \
+	-DINDEXHTML_SECTOR_MAP4=$(INDEXHTML_SECTOR_MAP4) \
+	-DINDEXHTML_SECTOR_MAP2=$(INDEXHTML_SECTOR_MAP2) 
 
 TARGET_LDFLAGS =		\
 	-nostdlib		\
@@ -189,7 +201,7 @@ webui:
 	
 .PHONY: upload-webui
 upload-webui: webui
-	-uns http post dev.node :webui/public/build/index.bundle.html.deflate
+	-uns http post dev.node :$(INDEXHTML_DEFLATE)
 
 ##################
 # SPI MAP 2 common
@@ -242,11 +254,10 @@ cleanup_map2user1_params:
 		0x79000 $(SDK_PATH)/bin/blank.bin \
 		0x7a000 $(SDK_PATH)/bin/blank.bin 
 
-
 .PHONY: flash_map2webui
 flash_map2webui: webui
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
-		0x70000 webui/public/build/index.bundle.html.bin
+		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
 		
 ###############
 # SPI MAP 2 DIO
@@ -268,7 +279,7 @@ flash_map2user1dio: map2user1dio
 .PHONY: flash_map2webuidio
 flash_map2webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 1MB  \
-		0x70000 webui/public/build/index.bundle.html.bin
+		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
 
 ##################
 # SPI MAP 6 common
@@ -325,7 +336,7 @@ flash_map6user2: map6user2
 .PHONY: flash_map6webui
 flash_map6webui: webui
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		0xA0000 webui/public/build/index.bundle.html.bin
+		$(INDEXHTML_SECTOR_MAP6)000 $(INDEXHTML_BIN)
 
 .PHONY: cleanup_map6params
 cleanup_map6params:
@@ -354,7 +365,7 @@ flash_map6user1dio: map6user1dio
 .PHONY: flash_map6webuidio
 flash_map6webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
-		0xA0000 webui/public/build/index.bundle.html.bin
+		$(INDEXHTML_SECTOR_MAP6)000 $(INDEXHTML_BIN) 
 
 
 ##################
@@ -416,6 +427,12 @@ cleanup_map4params:
 		0x7D000 $(SDK_PATH)/bin/blank.bin \
 		0x7E000 $(SDK_PATH)/bin/blank.bin 
 
+.PHONY: flash_map4webui
+flash_map4webui: webui
+	$(ESPTOOL_WRITE) --flash_size 4MB \
+		$(INDEXHTML_SECTOR_MAP4)000 $(INDEXHTML_BIN)
+
+
 ###############
 # SPI MAP 4 DIO
 ###############
@@ -431,7 +448,7 @@ map4user2dio:
 
 .PHONY: flash_map4user1dio
 flash_map4user1dio: map4user1dio
-	$(ESPTOOL_WRITE_DIO) --flash_size 4MB  \
+	$(ESPTOOL_WRITE_DIO) --flash_size 4MB \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
 		0x1000  $(BINDIR)/upgrade/user1.4096.new.4.bin \
 		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
@@ -440,8 +457,14 @@ flash_map4user1dio: map4user1dio
 
 .PHONY: flash_map4user2dio
 flash_map4user2dio: map4user2dio
-	$(ESPTOOL_WRITE_DIO) --flash_size 4MB  \
+	$(ESPTOOL_WRITE_DIO) --flash_size 4MB \
 		0x081000  $(BINDIR)/upgrade/user2.4096.new.4.bin
+
+.PHONY: flash_map4webuidio
+flash_map4webuidio: webui
+	$(ESPTOOL_WRITE_DIO) --flash_size 4MB \
+		$(INDEXHTML_SECTOR_MAP4)000 $(INDEXHTML_BIN)
+
 
 .PHONY: cleanup_map6paramsdio
 cleanup_map4paramsdio:
