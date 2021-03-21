@@ -13,7 +13,6 @@
 @mixin column
   display: block
   float: $float
-  padding: $gutter
   border: $colborder  
   overflow: hidden
 
@@ -21,13 +20,6 @@
   @media (min-width: nth($size, 1)) and (max-width: nth($size, 2))
     html
       font-size: nth($size, 3)
-
-    .#{$name}c
-      margin: auto
-      @if nth($size, 1) > 0px
-        width: nth($size, 1)
-      @else
-        width: 100%
 
     .#{$name}0
       display: none !important
