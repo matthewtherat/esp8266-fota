@@ -1,0 +1,65 @@
+.center
+  margin: auto
+  text-align: center
+
+.row 
+  position: relative
+  border: $rowborder
+  &::after
+    display: block
+    clear: both
+    content: ""
+
+@mixin column
+  display: block
+  float: $float
+  padding: $gutter
+  border: $colborder  
+  overflow: hidden
+
+@each $name, $size in $devices
+  @media (min-width: nth($size, 1)) and (max-width: nth($size, 2))
+    html
+      font-size: nth($size, 3)
+
+    .#{$name}c
+      margin: auto
+      @if nth($size, 1) > 0px
+        width: nth($size, 1)
+      @else
+        width: 100%
+
+    .#{$name}0
+      display: none !important
+
+    .#{$name}25p
+      @include column
+      width: 25%
+
+    .#{$name}33p
+      @include column
+      width: 33.33%
+
+    @for $i from 1 through 10
+      .#{$name}#{$i} 
+        @include column
+        width: (10 * $i) * 1%
+
+
+@for $i from 1 through 10
+  .all#{$i} 
+    @include column
+    width: (10 * $i) * 1%
+
+  .all25p
+    @include column
+    width: 25%
+
+  .all33p
+    @include column
+    width: 33.33%
+
+  .row#{$i}
+    @extend .row
+    margin-top: $gutter * $i 
+

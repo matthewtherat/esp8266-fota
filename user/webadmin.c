@@ -22,12 +22,12 @@
 #if SPI_SIZE_MAP == 2
 #define INDEXHTML_SECTOR        0x70
 #elif SPI_SIZE_MAP == 4
-#define INDEXHTML_SECTOR        0x70
+#define INDEXHTML_SECTOR        0x100
 #elif SPI_SIZE_MAP == 6
-#define INDEXHTML_SECTOR        0xA0
+#define INDEXHTML_SECTOR        0x200
 #endif
 
-#define SECTFMT     "0x%4X"
+#define SECTFMT     "0x%X"
 
 
 static struct params *params;
@@ -37,17 +37,18 @@ static size16_t bufflen;
 
 struct fileserve {
     uint32_t remain;
-    uint32_t sect;
+    uint32_t addr;
 };
 
 
 static ICACHE_FLASH_ATTR
 httpd_err_t _index_chunk_sent(struct httpd_session *s) {
-    httpd_err_t err;
+    httpd_err_t err = HTTPD_OK;
     struct fileserve *f = (struct fileserve *) s->reverse;
     size16_t available = HTTPD_RESP_LEN(s);
-    uint16_t chunklen;
-
+    uint16_t readlen;
+    uint16_t sendlen;
+    
     if (available) {
         return HTTPD_OK;
     }
@@ -55,45 +56,44 @@ httpd_err_t _index_chunk_sent(struct httpd_session *s) {
     if (f == NULL) {
         return HTTPD_OK;
     }
-
-    char *tmp = os_zalloc(SEC_SIZE);
+    
+    /* Allocate a temp buff */
+    char *tmp = os_zalloc(HTTPD_CHUNK);
     if (f->remain) {
-        /* Read sector:  */
-        f->sect++;
-        err = spi_flash_read(f->sect * SEC_SIZE, (uint32_t*)tmp, SEC_SIZE);
+        sendlen = readlen = MIN(HTTPD_CHUNK, f->remain);
+        if (readlen % 4) {
+            readlen += 4 - (readlen % 4);
+        }
+        /* Reading a chunk, len: %d addr:  */
+        err = spi_flash_read(f->addr, (uint32_t*)tmp, readlen);
         if (err) {
             ERROR("SPI Flash read failed: %d", err);
             goto reterr;
         }
         
-        chunklen = MIN(f->remain, SEC_SIZE);
-        /* Remain: %u chunklen: %u */
-        err = httpd_send(s, tmp, chunklen);
+        /* Sending: %u bytes remain: %u */
+        err = httpd_send(s, tmp, sendlen);
         if (err) {
             goto reterr;
         }
-        f->remain -= chunklen;
+        f->addr += sendlen;
+        f->remain -= sendlen;
     }
     
-    if (f->remain == 0){
-        /* Finalize */
+    if (!f->remain){
+        /* Finalize, remain: %u */
         httpd_response_finalize(s, HTTPD_FLAG_NONE);
-        goto retok;
+        os_free(f);
+        s->reverse = NULL;
     } 
-    else if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
-        err = HTTPD_ERR_TASKQ_FULL;
-        goto reterr;
-    }
-
+    
 retok:
-    /* Free */
+    /* Free OK */
     os_free(tmp);
-    os_free(f);
-    s->reverse = NULL;
     return HTTPD_OK;
 
 reterr:
-    /* Free */
+    /* Free Err: %d */
     os_free(tmp);
     os_free(f);
     s->reverse = NULL;
@@ -104,55 +104,36 @@ reterr:
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_index_get(struct httpd_session *s) {
     httpd_err_t err;
-    size16_t sect;
-    char *tmp = os_zalloc(SEC_SIZE);
-    uint16_t chunklen;
-    uint8_t offset = sizeof(uint32_t);
-    uint32_t remain;
+    struct fileserve *f = os_zalloc(sizeof(struct fileserve));            
+    s->reverse = f;
+    f->addr = INDEXHTML_SECTOR * SEC_SIZE;
 
-    sect = INDEXHTML_SECTOR;
-    /* Read sector:  */
-    err = spi_flash_read(sect * SEC_SIZE, (uint32_t*)tmp, SEC_SIZE);
+    /* Read 4 bytes to determine the size  */
+    err = spi_flash_read(f->addr, &f->remain, sizeof(uint32_t));
     if (err) {
         ERROR("SPI Flash read failed: %d", err);
-        goto reterr;
+        return err;
     }
-    
-    /* Find file size */
-    remain = ((uint32_t*) tmp)[0];
-    //os_memcpy(&remain, tmp, 4);
-    
+    f->addr += sizeof(uint32_t);
+
     /* Response headers */
     struct httpd_header deflate = {"Content-Encoding", "deflate"};
     
     /* Start response: %u */
     s->sentcb = _index_chunk_sent;
     err = httpd_response_start(s, HTTPSTATUS_OK, &deflate, 1, 
-            HTTPHEADER_CONTENTTYPE_HTML, remain, HTTPD_FLAG_NONE);
+            HTTPHEADER_CONTENTTYPE_HTML, f->remain, HTTPD_FLAG_NONE);
     if (err) {
-        goto reterr;
+        return err;
     }
 
-    chunklen = MIN(remain, SEC_SIZE - offset);
-    err = httpd_send(s, tmp + offset, chunklen);
-    if (err) {
-        goto reterr;
-    }
-    remain -= chunklen;
-    struct fileserve *f = os_zalloc(sizeof(struct fileserve));            
-    f->remain = remain;
-    f->sect = sect;
-    s->reverse = f;
-
-retok:
-    os_free(tmp);
     return HTTPD_OK;
-
-reterr:
-    os_free(tmp);
-    return err;
 }
 
+
+struct filesave {
+    size16_t sect;
+};
 
 static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_index_post(struct httpd_session *s) {
@@ -160,7 +141,7 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
     size16_t avail = HTTPD_REQ_LEN(s);
     size16_t sect;
     size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
-    uint8_t offset = sizeof(uint32_t);
+    uint8_t offset;
     size32_t chunklen;
     size32_t wlen;
      
@@ -170,30 +151,41 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
         return HTTPD_MORE;
     }
    
+    struct filesave *f;
     char *tmp = os_zalloc(SEC_SIZE);
-    /* initialize, wc: %u */
     if (s->request.handlercalls == 1) {
+        f = os_zalloc(sizeof(struct filesave));
+        f->sect = INDEXHTML_SECTOR;
+        s->reverse = f;
+        offset = sizeof(uint32_t);
         os_memcpy(tmp, &s->request.contentlen, offset);
+        /* initialize: %u */
+    }
+    else {
+        offset = 0;
+        f = (struct filesave*) s->reverse;
     }
 
-    sect = INDEXHTML_SECTOR;
-
-    while (true) {
+    /* Request more data if buffer size is insufficient */
+    while ((avail >= (SEC_SIZE - offset)) || (!more && avail)) {
+        
+        /* Read a sector from request */
         chunklen = MIN(SEC_SIZE - offset, avail);
-        INFO("sector: "SECTFMT" chunklen: %04d More: %07d ", sect, chunklen, 
-                more);
+        //INFO("Sect: "SECTFMT" chunklen: %04d More: %07d ", f->sect, chunklen, 
+        //        more);
         HTTPD_RECV(s, tmp + offset, chunklen);
     
         /* Erase sector:  */
-        spi_flash_erase_protect_enable();
+        //spi_flash_erase_protect_enable();
         if (!spi_flash_erase_protect_disable()) {
             err = WEBADMIN_ERR_FLASHWRPROTECT;
             ERROR("Cannot spi_flash_erase_protect_disable(void)");
             goto reterr;
         }
-        err = spi_flash_erase_sector(INDEXHTML_SECTOR + sect);
+        
+        err = spi_flash_erase_sector(f->sect);
         if (err) {
-            ERROR("Erase sector "SECTFMT" error: %d: ", sect, err);
+            ERROR("Erase sector "SECTFMT" error: %d: ", f->sect, err);
             goto reterr;
         }
 
@@ -201,19 +193,17 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
         if (wlen % 4) {
             wlen += 4 - (wlen % 4);
         }
-        /* Write sector:  */
-        
-        err = spi_flash_write(sect * SEC_SIZE, (uint32_t*)tmp, wlen);
+
+        /* Write sector: %u */
+        err = spi_flash_write(f->sect * SEC_SIZE, (uint32_t*)tmp, wlen);
         if (err) {
             goto reterr;
         }
         
+        /* Clear offset */
         avail = HTTPD_REQ_LEN(s);
-        if ((!avail) && (!more)) {
-            goto retok;
-        }
         offset = 0;
-        sect++; 
+        f->sect++; 
     }; 
     
     if (more) {
@@ -222,12 +212,13 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
             err = HTTPD_ERR_TASKQ_FULL;
             goto reterr;
         }
+        goto retmore;
     }
-    goto retmore;
 
-retok:
     /* Terminating. */
     os_free(tmp);
+    os_free(f);
+    s->reverse = NULL;
     return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, NULL, 0);
 
 retmore:
