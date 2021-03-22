@@ -244,56 +244,64 @@ httpd_err_t _firmware_write(struct httpd_session *s, size16_t len) {
     if (!len) {
         return HTTPD_OK;
     }
-    system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
     /* Reading */
     system_soft_wdt_feed();
     HTTPD_RECV(s, tmp, len);
-    system_upgrade(tmp, len);
     return HTTPD_OK;
 }
 
 
+struct upgradestate {
+    char buff[SEC_SIZE];
+    uint32_t len;
+};
+
 static ICACHE_FLASH_ATTR
-httpd_err_t webadmin_firmware_upgrade(struct httpd_session *s) {
+httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
     httpd_err_t err;
     size16_t avail = HTTPD_REQ_LEN(s);
     size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
     size32_t chunk;
+    struct upgradestate *u;
      
-    /* initialize */
-    if (s->req_rb.writecounter == 0) {
+    if (s->request.handlercalls == 1) {
+        INFO("Initialize system upgrade");
         system_upgrade_init();
         system_upgrade_flag_set(UPGRADE_FLAG_START);
+        u = os_zalloc(sizeof(struct upgradestate)); 
+        u->len = 0;
+        s->reverse = u;
     }
-    
-    if ((avail < SPI_FLASH_SEC_SIZE) && more) {
-        return HTTPD_MORE;
+    else {
+        u = (struct upgradestate*) s->reverse;
     }
-    
-    do {
-        if ((!avail) && (!more)) {
-            /* Terminating. */
-            status_update(200, 200, 5, _toggleboot);
-            return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, "Rebooting"CR, 11);
-        }
 
-        /* Write */
-        chunk = MIN(SPI_FLASH_SEC_SIZE, avail);
-        INFO("FW: %04d More: %07d ", chunk, more);
-        system_soft_wdt_feed();
-        err = _firmware_write(s, chunk);
-        if (err) {
-            return err;
-        }
-        
+    while (avail) {
+        u->len += HTTPD_RECV(s, u->buff + u->len, 
+                MIN(avail, SEC_SIZE - u->len));
         avail = HTTPD_REQ_LEN(s);
-    } while((avail >= SPI_FLASH_SEC_SIZE) || (!more));
-    
-    if (more) {
-        /* Unhold */
-        if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
-            return HTTPD_ERR_TASKQ_FULL;
+        
+        if ((u->len == SEC_SIZE) || (u->len && (!more) && (!avail))) {
+            system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
+            DEBUG("W: more: %6u avail: %6u wlen: %4u", more, avail, 
+                    u->len);
+            system_upgrade(u->buff, u->len);
+            u->len = 0;
+            if (more) {
+                /* Unhold */
+                if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
+                    return HTTPD_ERR_TASKQ_FULL;
+                }
+            }
         }
+    }
+    
+    if (!more) {
+        /* Terminating. */
+        status_update(200, 200, 5, _toggleboot);
+        s->reverse = NULL;
+        os_free(u);
+        return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, "Rebooting"CR, 11);
     }
     return HTTPD_MORE;
 }
@@ -524,7 +532,7 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 
 static struct httpd_route routes[] = {
     /* Upgrade firmware over the air (wifi) */
-    {"UPGRADE",    "/firmware",           webadmin_firmware_upgrade  },
+    {"UPGRADE",    "/firmware",           webadmin_fw_upgrade        },
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                webadmin_uns_discover      },
