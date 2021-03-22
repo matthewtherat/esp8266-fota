@@ -17,22 +17,50 @@ function changeComponent(event) {
 <style type="text/sass" global>
 @import 'styles/global.sass'
 #header
-  padding: $gutter * 3
+  >div
+    height: 200px
+
+#middle
+  >div:first-child
+    padding-left: $gutter * 6
+  height: 100%
+  min-height: 100%    
+
+#comp, #hcomp
+  >div:nth-child(2)
+    background: $bgdark
+    height: 100%
+    min-height: 100%
+
+#hcomp
+  line-height: 200px
+  svg
+    height: 100px
+    margin-top: 35px
+    margin-bottom: 20px
+    padding-right: $gutter * 4
+    fill: $forecolor
+  h2
+    padding: 0px 0px 0px $gutter * 5
+  >div:nth-child(2)
+    border-top-left-radius: 19px
+
+#comp
+  height: 100%
+  min-height: 100%
+  >div:nth-child(2)
+    padding: $gutter * 6
 
 nav 
-  float: $float
-  padding-left: $gutter * 3
   a 
     display: block
     height: 40px
-    line-height: 40px
+    line-height: 40px - $gutter * 2
+    margin-bottom: $gutter * 2
     vertical-align: middle
     cursor: pointer
     *
       pointer-events: none
-    h4
-      bottom: 0px
-      padding-left: $gutter
     svg 
       display: block
       width: 100%
@@ -41,35 +69,46 @@ nav
     &.active
       svg 
         fill: $orange
+    &:hover
+      background: $bgdark
 </style>
 
 <Icons />
+<!-- Header -->
 <div id="header" class="row">
-  <!-- Header -->
-  <div class="all10">
+  <div class="lg2"></div>
+  <div class="lg2"></div>
+  <div id="hcomp" class="lg5">
+    <div class="lg1"></div>
+    <div class="lg9">
+      <h2 class="lg8">{selected.title}</h2>
+      <svg class="lg2"><use xlink:href={"#icon-" + selected.icon}></use></svg>
+    </div>
+  </div>
+  <div class="lg1"></div>
+</div>
+<div id="middle" class="row">
+  <div class="lg2">
     <h1>{title}</h1>
   </div>
-</div>
-
-<div class="row">
   <!-- App navigation -->
   <nav class="lg2">
   	{#each navOptions as n, i}
       <a title={n.title} id={i} 
-         class={intSelected==i ? "active row4" : "row4"} 
+         class={intSelected==i ? "active row" : "row"} 
          on:click={changeComponent}>
         <svg class="lg2"><use xlink:href={"#icon-" + n.icon}></use></svg>
-        <h4 class="lg8">{n.title}</h4>
+        <h6 class="lg8">{n.title}</h6>
       </a>
   	{/each}
   </nav>
-
-	<!-- Content wrapper -->
-	<div class="lg7">
-		<div class="row4">
-				<h2>{selected.title}</h2>
-				<!-- this is where our main content is placed -->
-				<svelte:component this={selected.component}/>
-		</div>
-	</div>
+  <div id="comp" class="lg5">
+    <div class="lg1"></div>
+    <div class="lg9">
+		  <!-- this is where our main content is placed -->
+		  <svelte:component this={selected.component}/>
+    </div>
+  </div>
+  <div class="lg1"></div>
 </div>
+

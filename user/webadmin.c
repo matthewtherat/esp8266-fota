@@ -458,8 +458,33 @@ void httpcb(int status, char *body, void *arg) {
     "Boot:       user%d"CR \
     "Version:    %s"CR \
     "Uptime:     %u"CR \
-    "Free mem:   %d"CR \
+    "Free mem:   %u"CR \
     "RTC:        %u"CR
+
+#define SYSINFO_JSON "{" \
+  "\"zone\": \"%s\"," \
+  "\"name\": \"%s\"," \
+  "\"uptime\": %u," \
+  "\"boot\": \"user%d\"," \
+  "\"version\": \"%s\"," \
+  "\"free\": %u," \
+  "\"rtc\": %u" \
+"}"
+
+static ICACHE_FLASH_ATTR
+httpd_err_t webadmin_sysinfo_json(struct httpd_session *s) {
+    uint8_t image = system_upgrade_userbin_check();
+    bufflen = os_sprintf(buff, SYSINFO_JSON, 
+        params->zone,
+        params->name,
+        system_get_time(),
+        image + 1,
+        __version__,
+        system_get_free_heap_size(),
+        system_get_rtc_time()
+    );
+    return HTTPD_RESPONSE_JSON(s, HTTPSTATUS_OK, buff, bufflen);
+}
 
 
 static ICACHE_FLASH_ATTR
@@ -493,6 +518,7 @@ static struct httpd_route routes[] = {
     {"POST",       "/params",             webadmin_params_post       },
     {"GET",        "/params.json",        webadmin_params_get        },
     {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
+    {"GET",        "/status.json",        webadmin_sysinfo_json      },
     {"INFO",       "/",                   webadmin_sysinfo           },
     {"GET",        "/",                   webadmin_index_get         },
     {"POST",       "/",                   webadmin_index_post        },

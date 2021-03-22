@@ -14,6 +14,7 @@
   display: block
   float: $float
   border: $colborder  
+  padding: $gutter
   overflow: hidden
 
 @each $name, $size in $devices
@@ -50,8 +51,4 @@
   .all33p
     @include column
     width: 33.33%
-
-  .row#{$i}
-    @extend .row
-    margin-top: $gutter * $i 
 
