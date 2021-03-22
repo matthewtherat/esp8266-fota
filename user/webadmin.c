@@ -290,6 +290,7 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
             if (more) {
                 /* Unhold */
                 if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
+                    os_free(u);
                     return HTTPD_ERR_TASKQ_FULL;
                 }
             }
