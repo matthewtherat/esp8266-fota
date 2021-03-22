@@ -283,7 +283,7 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
         
         if ((u->len == SEC_SIZE) || (u->len && (!more) && (!avail))) {
             system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
-            DEBUG("W: more: %6u avail: %6u wlen: %4u", more, avail, 
+            DEBUG("W: more: %6u avail: %4u wlen: %4u", more, avail, 
                     u->len);
             system_upgrade(u->buff, u->len);
             u->len = 0;
@@ -531,20 +531,34 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 }
 
 
+#include "webtest.c"
+
 static struct httpd_route routes[] = {
+
+
     /* Upgrade firmware over the air (wifi) */
-    {"UPGRADE",    "/firmware",           webadmin_fw_upgrade        },
+    {"UPGRADE",    "/firmware",           webadmin_fw_upgrade     },
+
+    /* Under test, needed by webtest.sg &| make test */
+    {"DOWNLOAD",   "/demo/multipartstreams", demo_download_stream   },
+    {"UPLOAD",     "/demo/multipartstreams", demo_multipart_stream  },
+    {"ECHO",       "/demo/multipartforms",   demo_multipart         },
+    {"ECHO",       "/demo/urlencodedforms",  demo_urlencoded        },
+    {"ECHO",       "/demo/queries",          demo_querystring       },
+    {"ECHO",       "/demo/headers",          demo_headersecho       },
+    {"DOWNLOAD",   "/demo",                  demo_download          },
+    {"GET",        "/demo",                  demo_index             },
 
     /* Feel free to change these handlers */
-    {"DISCOVER",   "/uns",                webadmin_uns_discover      },
-    {"POST",       "/params",             webadmin_params_post       },
-    {"GET",        "/params.json",        webadmin_params_get        },
-    {"TOGGLE",     "/boots",              webadmin_toggle_boot       },
-    {"GET",        "/status.json",        webadmin_sysinfo_json      },
-    {"INFO",       "/",                   webadmin_sysinfo           },
-    {"GET",        "/",                   webadmin_index_get         },
-    {"POST",       "/",                   webadmin_index_post        },
-    {"REBOOT",     "/",                   webadmin_reboot            },
+    {"DISCOVER",   "/uns",                webadmin_uns_discover   },
+    {"POST",       "/params",             webadmin_params_post    },
+    {"GET",        "/params.json",        webadmin_params_get     },
+    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
+    {"GET",        "/status.json",        webadmin_sysinfo_json   },
+    {"INFO",       "/",                   webadmin_sysinfo        },
+    {"GET",        "/",                   webadmin_index_get      },
+    {"POST",       "/",                   webadmin_index_post     },
+    {"REBOOT",     "/",                   webadmin_reboot         },
     { NULL }
 };
 
