@@ -444,6 +444,19 @@ httpd_err_t webadmin_toggle_boot(struct httpd_session *s) {
 }
 
 
+static ICACHE_FLASH_ATTR
+httpd_err_t webadmin_reboot(struct httpd_session *s) {
+    httpd_err_t err;
+    bufflen = os_sprintf(buff, "Rebooting..."CR);
+    err = HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, buff, bufflen);
+    if (err) {
+        return err;
+    }
+    status_update(500, 500, 1, system_restart);
+    return HTTPD_OK;
+}
+
+
 static
 void httpcb(int status, char *body, void *arg) {
     struct httpd_session *s = (struct httpd_session *) arg;
@@ -522,6 +535,7 @@ static struct httpd_route routes[] = {
     {"INFO",       "/",                   webadmin_sysinfo           },
     {"GET",        "/",                   webadmin_index_get         },
     {"POST",       "/",                   webadmin_index_post        },
+    {"REBOOT",     "/",                   webadmin_reboot            },
     { NULL }
 };
 

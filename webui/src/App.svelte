@@ -23,7 +23,6 @@ function changeComponent(event) {
 #middle
   >div:first-child
     padding-left: $gutter * 6
-  height: 100%
   min-height: 100%    
 
 #comp, #hcomp
@@ -39,7 +38,6 @@ function changeComponent(event) {
     margin-top: 35px
     margin-bottom: 20px
     padding-right: $gutter * 4
-    fill: $forecolor
   h2
     padding: 0px 0px 0px $gutter * 5
   >div:nth-child(2)
@@ -65,7 +63,6 @@ nav
       display: block
       width: 100%
       height: 100%
-      fill: $forecolor
     &.active
       svg 
         fill: $orange
