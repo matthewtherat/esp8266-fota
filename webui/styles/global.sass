@@ -19,16 +19,26 @@ a
     text-decoration: underline
 
 button
-  background-color: $bgdark
-  padding: 2px
+  background-color: $bglight
+  font-weight: bold
+  padding: 6px
   cursor: pointer
   float: $far
+  color: $forecolor
+  border: 2px solid $bg
+  outline: none
+  border-radius: 5px
   &:hover
-    color: $orange
+    outline: none
+    border: 2px solid $forecolor
     svg
-      fill: $orange
+      fill: $forecolor
   &:focus
-    background-color: $gray
+    outline: none
+    border: 2px solid $bgdarker
+  &:active
+    outline: none
+    background-color: $bg
 
 input
   width: 100%

@@ -45,9 +45,11 @@ async function reboot(event) {
   margin-top: 0px
 
 #index 
-  button svg
-    width: 20px
-    height: 20px
+  button 
+    padding: 3px 3px 0px 3px !important
+    svg
+      width: 20px
+      height: 20px
 </style>
 
 <div id="index">
