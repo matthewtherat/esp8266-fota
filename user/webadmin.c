@@ -132,6 +132,8 @@ httpd_err_t webadmin_index_get(struct httpd_session *s) {
 
 
 struct filesave {
+    char buff[SEC_SIZE];
+    uint32_t len;
     size16_t sect;
 };
 
@@ -139,94 +141,83 @@ static ICACHE_FLASH_ATTR
 httpd_err_t webadmin_index_post(struct httpd_session *s) {
     httpd_err_t err;
     size16_t avail = HTTPD_REQ_LEN(s);
-    size16_t sect;
     size32_t more = HTTPD_REQUESTBODY_REMAINING(s);
-    uint8_t offset;
-    size32_t chunklen;
     size32_t wlen;
-     
-    if ((avail < (SEC_SIZE - offset)) && more) {
-        /* More */
-        s->request.handlercalls--;
-        return HTTPD_MORE;
-    }
-   
     struct filesave *f;
-    char *tmp = os_zalloc(SEC_SIZE);
-    if (s->request.handlercalls == 1) {
-        f = os_zalloc(sizeof(struct filesave));
-        f->sect = INDEXHTML_SECTOR;
-        s->reverse = f;
-        offset = sizeof(uint32_t);
-        os_memcpy(tmp, &s->request.contentlen, offset);
-        /* initialize: %u */
-    }
-    else {
-        offset = 0;
-        f = (struct filesave*) s->reverse;
-    }
-
-    /* Request more data if buffer size is insufficient */
-    while ((avail >= (SEC_SIZE - offset)) || (!more && avail)) {
-        
-        /* Read a sector from request */
-        chunklen = MIN(SEC_SIZE - offset, avail);
-        //INFO("Sect: "SECTFMT" chunklen: %04d More: %07d ", f->sect, chunklen, 
-        //        more);
-        HTTPD_RECV(s, tmp + offset, chunklen);
     
-        /* Erase sector:  */
-        //spi_flash_erase_protect_enable();
+    if (s->request.handlercalls == 1) {
+        /* initialize */
+        /* Disable flash erase protect */
         if (!spi_flash_erase_protect_disable()) {
             err = WEBADMIN_ERR_FLASHWRPROTECT;
             ERROR("Cannot spi_flash_erase_protect_disable(void)");
             goto reterr;
         }
-        
-        err = spi_flash_erase_sector(f->sect);
-        if (err) {
-            ERROR("Erase sector "SECTFMT" error: %d: ", f->sect, err);
-            goto reterr;
-        }
 
-        wlen = chunklen + offset;
-        if (wlen % 4) {
-            wlen += 4 - (wlen % 4);
-        }
-
-        /* Write sector: %u */
-        err = spi_flash_write(f->sect * SEC_SIZE, (uint32_t*)tmp, wlen);
-        if (err) {
-            goto reterr;
-        }
-        
-        /* Clear offset */
-        avail = HTTPD_REQ_LEN(s);
-        offset = 0;
-        f->sect++; 
-    }; 
-    
-    if (more) {
-        /* Unhold */
-        if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
-            err = HTTPD_ERR_TASKQ_FULL;
-            goto reterr;
-        }
-        goto retmore;
+        /* Alocate memory */
+        f = os_zalloc(sizeof(struct filesave));
+        f->sect = INDEXHTML_SECTOR;
+        f->len = sizeof(uint32_t);
+        os_memcpy(f->buff, &s->request.contentlen, f->len);
+        s->reverse = f;
+    }
+    else {
+        f = (struct filesave*) s->reverse;
     }
 
-    /* Terminating. */
-    os_free(tmp);
-    os_free(f);
-    s->reverse = NULL;
-    return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, NULL, 0);
+    while (avail) {
+        /* Read from request */
+        f->len += HTTPD_RECV(s, f->buff + f->len, 
+                MIN(avail, SEC_SIZE - f->len));
+        avail = HTTPD_REQ_LEN(s);
 
-retmore:
-    os_free(tmp);
+        /* Decide to write a sector or not */
+        if ((f->len == SEC_SIZE) || (f->len && (!more) && (!avail))) {
+            err = spi_flash_erase_sector(f->sect);
+            if (err) {
+                ERROR("Erase sector "SECTFMT" error: %d: ", f->sect, err);
+                goto reterr;
+            }
+            DEBUG("W Index: Sect: "SECTFMT" more: %6u avail: %4u wlen: %4u", 
+                    f->sect, more, avail, f->len);
+            
+            wlen = f->len;
+            if (wlen % 4) {
+                wlen += 4 - (wlen % 4);
+            }
+
+            /* Write sector: %u */
+            err = spi_flash_write(f->sect * SEC_SIZE, (uint32_t*)f->buff, 
+                    wlen);
+            if (err) {
+                goto reterr;
+            }
+            f->len = 0;
+            f->sect++; 
+            if (more) {
+                /* Unhold */
+                if(!HTTPD_SCHEDULE(HTTPD_SIG_RECVUNHOLD, s)) {
+                    err = HTTPD_ERR_TASKQ_FULL;
+                    goto reterr;
+                }
+            }
+        }
+    } 
+    if (!more) {
+        /* Terminating. */
+        s->reverse = NULL;
+        os_free(f);
+        return HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, "Done"CR, 6);
+    }
     return HTTPD_MORE;
 
 reterr:
-    os_free(tmp);
+    if (f) { 
+        os_free(f);
+    }
+    if (s->reverse) {
+        os_free(s->reverse);
+    }
     return err;
 }
 
@@ -235,19 +226,6 @@ static ICACHE_FLASH_ATTR
 void _toggleboot() {
     system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
     system_upgrade_reboot();
-}
-
-
-static ICACHE_FLASH_ATTR
-httpd_err_t _firmware_write(struct httpd_session *s, size16_t len) {
-    char tmp[SPI_FLASH_SEC_SIZE];
-    if (!len) {
-        return HTTPD_OK;
-    }
-    /* Reading */
-    system_soft_wdt_feed();
-    HTTPD_RECV(s, tmp, len);
-    return HTTPD_OK;
 }
 
 
@@ -283,7 +261,7 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
         
         if ((u->len == SEC_SIZE) || (u->len && (!more) && (!avail))) {
             system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
-            DEBUG("W: more: %6u avail: %4u wlen: %4u", more, avail, 
+            DEBUG("FW: more: %6u avail: %4u wlen: %4u", more, avail, 
                     u->len);
             system_upgrade(u->buff, u->len);
             u->len = 0;

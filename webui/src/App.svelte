@@ -1,16 +1,20 @@
 <script>
-import { navOptions } from  './Nav.svelte';
+import { routes } from  './Nav.svelte';
 import Icons from './Icons.svelte';
 
 export let title;
-let selected = navOptions[0];
-let intSelected = 0;
+
+let selectedIndex = routes.findIndex(e => e.path == window.location.pathname)
+let selected = routes[selectedIndex];
 
 function changeComponent(event) {
   let i = event.srcElement.id;
-  console.log(event);
-	selected = navOptions[i];
-	intSelected = i;
+	selected = routes[i];
+	selectedIndex = i;
+  window.history.pushState({}, 
+    selected.title, 
+    `${window.location.origin}${selected.path}`
+  );
 }
 </script>
 
@@ -90,9 +94,9 @@ nav
   </div>
   <!-- App navigation -->
   <nav class="lg2">
-  	{#each navOptions as n, i}
+  	{#each routes as n, i}
       <a title={n.title} id={i} 
-         class={intSelected==i ? "active row" : "row"} 
+         class={selectedIndex==i ? "active row" : "row"} 
          on:click={changeComponent}>
         <svg class="lg2"><use xlink:href={"#icon-" + n.icon}></use></svg>
         <h6 class="lg8">{n.title}</h6>
