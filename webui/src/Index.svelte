@@ -56,8 +56,8 @@ const sysinfo = [
   <Section title="System Status" icon="stats-dots" />
   {#each sysinfo as n, i}
     <div class="all10 row">
-      <div class="xg2 lg2">{n.title}:</div>
-      <div class="xg2 lg2">{p[n.value]}</div>
+      <div class="xg2 lg3 md4 sm5">{n.title}:</div>
+      <div class="xg8 lg7 md6 sm5">{p[n.value]}</div>
     </div>
   {/each}
 

@@ -2,6 +2,9 @@
 import { createEventDispatcher } from 'svelte';
 export let title = '';
 export let icon;
+export let cls = '';
+export let id = '';
+export let style = '';
 const dispatch = createEventDispatcher();
 
 function click() {
@@ -17,6 +20,7 @@ function click() {
 button
   float: left
   padding: 6px
+  margin-right: $gutter
   height: 30px
   line-height: 16px
   vertical-align: middle
@@ -30,7 +34,7 @@ button
     margin-left: $gutter
 
 </style> 
-<button on:click={click}>
+<button class={cls} {id} {style} on:click={click}>
   <svg><use xlink:href={"#icon-" + icon}></use></svg>
   {#if title}
     <span>{title}</span>

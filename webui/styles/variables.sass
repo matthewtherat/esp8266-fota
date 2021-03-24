@@ -9,8 +9,9 @@ $nav-hover-bg: $content-bg
 
 /* Grid */
 $gutter: 8px
-$devices:                     ("sm": (  0px,  768px, 13px))
-$devices:                     ("md": (769px, 1024px, 13px))
+
+$devices:                     ("sm": (   0px,  768px, 12px))
+$devices: map-merge($devices, ("md": ( 769px, 1024px, 12px)))
 $devices: map-merge($devices, ("lg": (1025px, 1200px, 13px)))
 $devices: map-merge($devices, ("xg": (1201px, 4096px, 13px)))
 $colshadow: none

@@ -22,8 +22,18 @@ function changeComponent(event) {
     selected.title, 
     `${window.location.origin}${selected.path}`
   );
+  menu = false;
 }
 
+function closeMenu(event) {
+  menu = false;
+}
+
+function toggleMenu(event) {
+  console.log('toggle', menu);
+  menu = !menu;
+  console.log('toggle', menu);
+}
 </script>
 
 <style type="text/sass" global>
@@ -49,45 +59,65 @@ h1, h2
   vertical-align: middle
   float: left
 
-.header
+.logo
   margin-bottom: $gutter
+
 
 #contentHeader button
   margin-right: $gutter * 2
 
-.visible
-  display: block
+@media (max-width: 768px)
+  #leftBar
+    display: none
+    z-index: 50
+    height: 100%
+    position: fixed
+    top: 0px
+    buttom: 0px
+    left: 0px
 
-.hide
-  display: none !important
+@media (min-width: 769px)
+  #leftBar
+    display: block
+
+#closeButton
+  position: absolute
+  right: $gutter * 2
+  bottom: $gutter * 2
 </style>
+
 
 <Icons />
 <!-- Left Bar -->
-<div class={"xg2 lg2 " + (menu? "visible" : "hide")} >
+<div id="leftBar" 
+     class="xg2 lg2 md3 sm6"
+     style={menu? 'display: block !important': ''} >
 
   <!-- Main Title -->
-  <div class="all10 p3 header">
+  <div class="all10 p3 header logo">
     <h1>{title}</h1>
   </div>
 
   <!-- App navigation -->
   <nav class="all10 p3">
-      {#each routes as n, i}
-        <a title={n.title} id={i} 
-           class={'nav-item ' + (selectedIndex==i ? 'active' : '')} 
-           on:click={changeComponent}>
-          <svg class="all2"><use xlink:href={"#icon-" + n.icon}></use></svg>
-          <h5 class="all8">{n.title}</h5>
-        </a>
-      {/each}
-    </nav>
+    {#each routes as n, i}
+      <a title={n.title} id={i} 
+         class={selectedIndex==i ? 'nav-item active' : 'nav-item'} 
+         on:click={changeComponent}>
+        <svg class="all2"><use xlink:href={"#icon-" + n.icon}></use></svg>
+        <h5 class="all8">{n.title}</h5>
+      </a>
+    {/each}
+  </nav>
+  <div class="sm7"></div>
+  <Button id="closeButton" icon="arrow-left" cls="mobile sm2" 
+      on:click={closeMenu} />
 </div>
 
 <!-- Content -->
-<div class="xg6 lg6">
+<div class="xg6 lg7 md7">
   <div id="contentHeader" class="all10 p3 header">
-    <Button icon="menu" on:click={e => menu = !menu} />
+    <Button icon="menu" cls="mobile" on:click={toggleMenu} />
     <h2>{selected.title}</h2>
   </div>
   <div id="content" class="all10 p3">
