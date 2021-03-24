@@ -10,6 +10,7 @@ cd $HERE && npm run build
 truncate -s0 $OUT
 
 echo -n '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' >> $OUT
+echo -n '<meta name="viewport" content="width=device-width">' >> $OUT
 echo -n '<link rel="icon" type="image/png" ' >> $OUT
 echo -n 'href="data:image/png;base64,' >> $OUT
 base64 -w0 $SDIR/favicon-32x32.png >> $OUT

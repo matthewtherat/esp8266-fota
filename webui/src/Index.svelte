@@ -29,27 +29,27 @@ async function reboot(event) {
 
 <style type="text/sass">
 @import 'styles/variables.sass'
-#index .row
-    line-height: 28px
-
-#index .row.h
-  margin-top: $gutter * 5 !important
-  padding-left: 0px
-  svg
-    height: 51px
-    padding-left: 0px
-  h4
-    line-height: 50px - $gutter * 2
-
-#index hr
-  margin-top: 0px
-
-#index 
-  button 
-    padding: 3px 3px 0px 3px !important
-    svg
-      width: 20px
-      height: 20px
+//#index .row
+//    line-height: 28px
+//
+//#index .row.h
+//  margin-top: $gutter * 5 !important
+//  padding-left: 0px
+//  svg
+//    height: 51px
+//    padding-left: 0px
+//  h4
+//    line-height: 50px - $gutter * 2
+//
+//#index hr
+//  margin-top: 0px
+//
+//#index 
+//  button 
+//    padding: 3px 3px 0px 3px !important
+//    svg
+//      width: 20px
+//      height: 20px
 </style>
 
 <div id="index">

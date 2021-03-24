@@ -1,0 +1,47 @@
+body
+  background-color: $bg
+  font-family: $font
+  color: $forecolor
+
+a
+  text-decoration: none
+  cursor: pointer
+  &:visited, &:hover, &:link, &:active
+    color: $forecolor
+  &:hover
+    text-decoration: underline
+
+button
+  background-color: $button-bg
+  font-weight: bold
+  padding: 6px
+  cursor: pointer
+  color: $forecolor
+  border: 2px solid $bg
+  outline: none
+  border-radius: 5px
+  &:hover
+    border: 2px solid $jingool
+    svg
+      fill: $jingool
+  &:focus
+    border: 2px solid $forecolor
+  &:active
+    background-color: $bg
+
+.nav-item
+  svg 
+    fill: $forecolor
+  &.active
+    svg 
+      fill: $jingool
+  &:hover
+    background: $nav-hover-bg
+
+
+#content
+  background: $content-bg
+
+#contentHeader
+  background: $content-bg
+  

@@ -1,10 +1,5 @@
-.center
-  margin: auto
-  text-align: center
-
 .row 
   position: relative
-  border: $rowborder
   &::after
     display: block
     clear: both
@@ -12,9 +7,8 @@
 
 @mixin column
   display: block
-  float: $float
-  border: $colborder  
-  padding: $gutter
+  float: left
+  box-shadow: $colshadow  
   overflow: hidden
 
 @each $name, $size in $devices
@@ -52,3 +46,5 @@
     @include column
     width: 33.33%
 
+  .p#{$i}
+    padding: $gutter * $i

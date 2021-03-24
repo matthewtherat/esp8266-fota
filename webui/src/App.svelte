@@ -1,115 +1,84 @@
 <script>
-import { routes } from  './Nav.svelte';
 import Icons from './Icons.svelte';
+import Home from './Index.svelte';
+import Wifi from './Wifi.svelte';
 
 export let title;
+const routes = [
+    { title: 'Home', component: Home, path: '/',     icon: 'home'       },
+    { title: 'Wifi', component: Wifi, path: '/wifi', icon: 'connection' },
+];
 
 let selectedIndex = routes.findIndex(e => e.path == window.location.pathname)
 let selected = routes[selectedIndex];
 
-function changeComponent(event) {
+export function changeComponent(event) {
+  console.log(event);
   let i = event.srcElement.id;
-	selected = routes[i];
-	selectedIndex = i;
+  selected = routes[i];
+  selectedIndex = i;
   window.history.pushState({}, 
     selected.title, 
     `${window.location.origin}${selected.path}`
   );
 }
+
 </script>
 
 <style type="text/sass" global>
 @import 'styles/global.sass'
-#header
-  >div
-    height: 200px
 
-#middle
-  >div:first-child
-    padding-left: $gutter * 6
-  min-height: 100%    
-
-#comp, #hcomp
-  >div:nth-child(2)
-    background: $bgdark
-    height: 100%
-    min-height: 100%
-
-#hcomp
-  line-height: 200px
-  svg
-    height: 100px
-    margin-top: 35px
-    margin-bottom: 20px
-    padding-right: $gutter * 4
-  h2
-    padding: 0px 0px 0px $gutter * 5
-  >div:nth-child(2)
-    border-top-left-radius: 19px
-
-#comp
-  height: 100%
-  min-height: 100%
-  >div:nth-child(2)
-    padding: $gutter * 6
-
-nav 
-  a 
+.nav-item
+  display: block
+  float: left
+  margin-bottom: $gutter * 3
+  *
+    pointer-events: none
+  h5
+    line-height: 40px
+    vertical-align: middle
+    padding-left: $gutter * 2
+  svg 
     display: block
     height: 40px
-    line-height: 40px - $gutter * 2
-    margin-bottom: $gutter * 2
-    vertical-align: middle
-    cursor: pointer
-    *
-      pointer-events: none
-    svg 
-      display: block
-      width: 100%
-      height: 100%
-    &.active
-      svg 
-        fill: $orange
-    &:hover
-      background: $bgdark
+
+h1, h2
+  line-height: 100px
+  vertical-align: middle
+
 </style>
 
 <Icons />
-<!-- Header -->
-<div id="header" class="row">
-  <div class="lg2"></div>
-  <div class="lg2"></div>
-  <div id="hcomp" class="lg5">
-    <div class="lg1"></div>
-    <div class="lg9">
-      <h2 class="lg8">{selected.title}</h2>
-      <svg class="lg2"><use xlink:href={"#icon-" + selected.icon}></use></svg>
-    </div>
-  </div>
-  <div class="lg1"></div>
-</div>
-<div id="middle" class="row">
-  <div class="lg2">
+<!-- Left Bar -->
+<div class="lg2">
+
+  <!-- Main Title -->
+  <div class="all10 p3">
     <h1>{title}</h1>
   </div>
+
   <!-- App navigation -->
-  <nav class="lg2">
-  	{#each routes as n, i}
-      <a title={n.title} id={i} 
-         class={selectedIndex==i ? "active row" : "row"} 
-         on:click={changeComponent}>
-        <svg class="lg2"><use xlink:href={"#icon-" + n.icon}></use></svg>
-        <h6 class="lg8">{n.title}</h6>
-      </a>
-  	{/each}
-  </nav>
-  <div id="comp" class="lg5">
-    <div class="lg1"></div>
-    <div class="lg9">
-		  <!-- this is where our main content is placed -->
-		  <svelte:component this={selected.component}/>
-    </div>
-  </div>
-  <div class="lg1"></div>
+  <nav class="lg10 p3">
+      {#each routes as n, i}
+        <a title={n.title} id={i} 
+           class={selectedIndex==i ? "nav-item active" : "nav-item"} 
+           on:click={changeComponent}>
+          <svg class="lg2"><use xlink:href={"#icon-" + n.icon}></use></svg>
+          <h5 class="lg8">{n.title}</h5>
+        </a>
+      {/each}
+    </nav>
 </div>
+
+<!-- Content -->
+<div class="lg7">
+  <div id="contentHeader" class="all10 p3">
+    <h2>{selected.title}</h2>
+  </div>
+  <div id="content" class="all10 p3">
+    <!-- this is where our main content is placed -->
+    <svelte:component this={selected.component}/>
+  </div>
+</div>
+<div class="lg1"></div>
 
