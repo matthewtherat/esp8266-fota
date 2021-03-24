@@ -1,15 +1,16 @@
 <script>
 import { onMount } from 'svelte';
+import Section from './Section.svelte';
+import Button from './Button.svelte';
 
 let loading = true;
-let title;
 let p = {};
 
 onMount(async () => {
   const res = await fetch(`/status.json`);
   if (res.ok) {
     p = await res.json();
-    title = `${p.zone}.${p.name}`;
+    p.title = `${p.zone}.${p.name}`;
     loading = false;
   }
   else {
@@ -19,12 +20,23 @@ onMount(async () => {
 
 
 async function toggleBoot(event) {
+  console.log('Toggle boot');
   const res = await fetch('/boots', {method: 'TOGGLE'});
 }
 
 async function reboot(event) {
+  console.log('Reboot');
   const res = await fetch('/', {method: 'REBOOT'});
 }
+
+const sysinfo = [
+  { title: 'Name', value: 'title'},
+  { title: 'Uptime', value: 'uptime'},
+  { title: 'Boot', value: 'boot'},
+  { title: 'Version', value: 'version'},
+  { title: 'Free Memory', value: 'free'},
+  { title: 'RTC', value: 'rtc'},
+];
 </script>
 
 <style type="text/sass">
@@ -34,48 +46,28 @@ async function reboot(event) {
   > div:first-child
     padding-right: $gutter * 2
     text-align: right
+  > div
+    height: 100% 
+    line-height: $nav-icon-size
+    vertical-align
 </style>
 
 <div id="index">
-  <h4 class="all10 section">
-    <svg class="lg1"><use xlink:href="#icon-spinner2"></use></svg>
-    System Status
-  </h4>
-  <div class="all10 row">
-    <div class="lg1">Name:</div>
-    <div class="lg2">{title}</div>
-  </div>
-  <div class="all10 row">
-    <div class="lg1">Uptime:</div>
-    <div class="lg2">{p.uptime}</div>
-    <div class="lg1">
-      <a href="" on:click={reboot}>Reboot</a>
+  <Section title="System Status" icon="stats-dots" />
+  {#each sysinfo as n, i}
+    <div class="all10 row">
+      <div class="xg2 lg2">{n.title}:</div>
+      <div class="xg2 lg2">{p[n.value]}</div>
     </div>
-  </div>
+  {/each}
+
+  <Section title="System Actions" icon="hammer" />
   <div class="all10 row">
-    <div class="lg1">Boot:</div>
-    <div class="lg2">{p.boot}</div>
-    <div class="lg1">
-      <a href="" on:click={toggleBoot}>Toggle</a>
-    </div>
-  </div>
-  <div class="all10 row">
-    <div class="lg1">Version:</div>
-    <div class="lg2">{p.version}</div>
-  </div>
-  <div class="all10 row">
-    <div class="lg1">Free Memory:</div>
-    <div class="lg2">{p.free} Bytes</div>
-  </div>
-  <div class="all10 row">
-    <div class="lg1">RTC Clock:</div>
-    <div class="lg2">{p.rtc}</div>
+    <Button title="Reboot" icon="switch" on:click={reboot} />
+    <Button title="Toggle Boot" icon="loop2" on:click={toggleBoot} />
   </div>
 
-  <h4 class="all10 section">
-    <svg class="lg1"><use xlink:href="#icon-github"></use></svg>
-    Source Code
-  </h4>
+  <Section title="Source Code" icon="github" />
   <p>
    Checkout these repositories to find the source code and figure out how to 
    cook it!
@@ -91,20 +83,14 @@ async function reboot(event) {
     </li>
   </ul>
 
-  <h4 class="all10 section">
-    <svg class="lg1"><use xlink:href="#icon-bug"></use></svg>
-    Bug Report
-  </h4>
+  <Section title="Bug Report" icon="bug" />
   <p>
     Visit 
     <a href="https://github.com/pylover/esp8266-fota/issues">here</a>
     to submit any issue.
   </p>
 
-  <h4 class="all10 section">
-    <svg class="lg1"><use xlink:href="#icon-terminal"></use></svg>
-    Command Line Interface
-  </h4>
+  <Section title="Command Line Interface" icon="terminal" />
   <p>
     You may install 
     <a href="https://github.com/pylover/unspy">unspy</a>

@@ -2,6 +2,7 @@
 import Icons from './Icons.svelte';
 import Home from './Index.svelte';
 import Wifi from './Wifi.svelte';
+import Button from './Button.svelte';
 
 export let title;
 const routes = [
@@ -11,9 +12,9 @@ const routes = [
 
 let selectedIndex = routes.findIndex(e => e.path == window.location.pathname)
 let selected = routes[selectedIndex];
+let menu = false;
 
-export function changeComponent(event) {
-  console.log(event);
+function changeComponent(event) {
   let i = event.srcElement.id;
   selected = routes[i];
   selectedIndex = i;
@@ -31,7 +32,8 @@ export function changeComponent(event) {
 .nav-item
   display: block
   float: left
-  margin-bottom: $gutter * 3
+  padding: $gutter
+  margin-bottom: $gutter 
   *
     pointer-events: none
   h5
@@ -43,17 +45,26 @@ export function changeComponent(event) {
     height: $nav-icon-size
 
 h1, h2
-  line-height: 72px
+  line-height: 28px
   vertical-align: middle
+  float: left
 
 .header
   margin-bottom: $gutter
 
+#contentHeader button
+  margin-right: $gutter * 2
+
+.visible
+  display: block
+
+.hide
+  display: none !important
 </style>
 
 <Icons />
 <!-- Left Bar -->
-<div class="lg2">
+<div class={"xg2 lg2 " + (menu? "visible" : "hide")} >
 
   <!-- Main Title -->
   <div class="all10 p3 header">
@@ -61,21 +72,22 @@ h1, h2
   </div>
 
   <!-- App navigation -->
-  <nav class="lg10 p3">
+  <nav class="all10 p3">
       {#each routes as n, i}
         <a title={n.title} id={i} 
-           class={selectedIndex==i ? "nav-item active" : "nav-item"} 
+           class={'nav-item ' + (selectedIndex==i ? 'active' : '')} 
            on:click={changeComponent}>
-          <svg class="lg2"><use xlink:href={"#icon-" + n.icon}></use></svg>
-          <h5 class="lg8">{n.title}</h5>
+          <svg class="all2"><use xlink:href={"#icon-" + n.icon}></use></svg>
+          <h5 class="all8">{n.title}</h5>
         </a>
       {/each}
     </nav>
 </div>
 
 <!-- Content -->
-<div class="lg7">
+<div class="xg6 lg6">
   <div id="contentHeader" class="all10 p3 header">
+    <Button icon="menu" on:click={e => menu = !menu} />
     <h2>{selected.title}</h2>
   </div>
   <div id="content" class="all10 p3">
@@ -83,5 +95,4 @@ h1, h2
     <svelte:component this={selected.component}/>
   </div>
 </div>
-<div class="lg1"></div>
 

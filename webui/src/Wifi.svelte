@@ -1,5 +1,7 @@
 <script>
 import { onMount } from 'svelte';
+import Button from './Button.svelte';
+
 let disabled = true;
 let p = {};
 
@@ -52,7 +54,7 @@ async function submit(event) {
 
 
 <h4 class="all10 section">
-  <svg class="lg1"><use xlink:href="#icon-connection"></use></svg>
+  <svg class="all1"><use xlink:href="#icon-connection"></use></svg>
   WIFI Settings
 </h4>
 
@@ -62,40 +64,38 @@ async function submit(event) {
 <div id="wifi" class="row" style="display: {disabled? 'none': 'block'}">
   <form>
   <div class="row all10">
-    <div class="lg10">Zone:</div>
-    <div class="lg10">
+    <div class="all10">Zone:</div>
+    <div class="all10">
       <input name="zone" bind:value="{p.zone}" {disabled}/>
     </div>
   </div>
   <div class="row all10">
-    <div class="lg10">Name:</div>
-    <div class="lg10">
+    <div class="all10">Name:</div>
+    <div class="all10">
       <input name="name" bind:value="{p.name}" {disabled}/>    
     </div>
   </div>
   <div class="row all10">
-    <div class="lg10">Access Point PSK</div>
-    <div class="lg10">
+    <div class="all10">Access Point PSK</div>
+    <div class="all10">
       <input name="ap_psk" bind:value="{p.apPsk}" {disabled}/>
     </div>
   </div>
   <div class="row all10">
-    <div class="lg10">SSID</div>
-    <div class="lg10">
+    <div class="all10">SSID</div>
+    <div class="all10">
       <input name="ssid" bind:value="{p.ssid}" {disabled}/>    
     </div>
   </div>
   <div class="row all10">
-    <div class="lg10">PSK</div>
-    <div class="lg10">
+    <div class="all10">PSK</div>
+    <div class="all10">
       <input name="psk" bind:value="{p.psk}" {disabled}/>    
     </div>
   </div>
   <div class="row all10">
-    <div class="lg10">
-      <button type="button" {disabled} on:click={submit} >
-        Save & Reboot
-      </button>
+    <div class="all10">
+      <Button title="Save & Reboot" icon="floppy-disk" on:click={submit} />
     </div>
   </div>
   </form> 
