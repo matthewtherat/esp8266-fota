@@ -29,78 +29,56 @@ async function reboot(event) {
 
 <style type="text/sass">
 @import 'styles/variables.sass'
-//#index .row
-//    line-height: 28px
-//
-//#index .row.h
-//  margin-top: $gutter * 5 !important
-//  padding-left: 0px
-//  svg
-//    height: 51px
-//    padding-left: 0px
-//  h4
-//    line-height: 50px - $gutter * 2
-//
-//#index hr
-//  margin-top: 0px
-//
-//#index 
-//  button 
-//    padding: 3px 3px 0px 3px !important
-//    svg
-//      width: 20px
-//      height: 20px
+#index > .row
+  height: $nav-icon-size
+  > div:first-child
+    padding-right: $gutter * 2
+    text-align: right
 </style>
 
 <div id="index">
-  <div class="row h">
+  <h4 class="all10 section">
     <svg class="lg1"><use xlink:href="#icon-spinner2"></use></svg>
-    <h4 class="lg9">System Status</h4>
+    System Status
+  </h4>
+  <div class="all10 row">
+    <div class="lg1">Name:</div>
+    <div class="lg2">{title}</div>
   </div>
-  <hr />
-  <div class="row">
-    <div class="lg4">Name:</div>
-    <div class="lg4">{title}</div>
-  </div>
-  <div class="row">
-    <div class="lg4">Uptime:</div>
-    <div class="lg4">{p.uptime}</div>
-    <div class="lg2">
-      <button on:click={reboot}>
-        <svg><use xlink:href="#icon-switch"></use></svg>
-      </button>
+  <div class="all10 row">
+    <div class="lg1">Uptime:</div>
+    <div class="lg2">{p.uptime}</div>
+    <div class="lg1">
+      <a href="" on:click={reboot}>Reboot</a>
     </div>
   </div>
-  <div class="row">
-    <div class="lg4">Boot:</div>
-    <div class="lg4">{p.boot}</div>
-    <div class="lg2">
-      <button on:click={toggleBoot}>
-        <svg><use xlink:href="#icon-loop2"></use></svg>
-      </button>
+  <div class="all10 row">
+    <div class="lg1">Boot:</div>
+    <div class="lg2">{p.boot}</div>
+    <div class="lg1">
+      <a href="" on:click={toggleBoot}>Toggle</a>
     </div>
   </div>
-  <div class="row">
-    <div class="lg4">Version:</div>
-    <div class="lg4">{p.version}</div>
+  <div class="all10 row">
+    <div class="lg1">Version:</div>
+    <div class="lg2">{p.version}</div>
   </div>
-  <div class="row">
-    <div class="lg4">Free Memory:</div>
-    <div class="lg4">{p.free} Bytes</div>
+  <div class="all10 row">
+    <div class="lg1">Free Memory:</div>
+    <div class="lg2">{p.free} Bytes</div>
   </div>
-  <div class="row">
-    <div class="lg4">RTC Clock:</div>
-    <div class="lg4">{p.rtc}</div>
+  <div class="all10 row">
+    <div class="lg1">RTC Clock:</div>
+    <div class="lg2">{p.rtc}</div>
   </div>
 
-  <div class="row h">
+  <h4 class="all10 section">
     <svg class="lg1"><use xlink:href="#icon-github"></use></svg>
-    <h4 class="lg9">Source Code</h4>
-  </div>
-  <hr>
+    Source Code
+  </h4>
   <p>
-  Checkout these repositories to find the source code and figure out how to 
-  cook it!
+   Checkout these repositories to find the source code and figure out how to 
+   cook it!
   </p>
   <ul>
     <li>
@@ -113,29 +91,25 @@ async function reboot(event) {
     </li>
   </ul>
 
-  <div class="row h">
+  <h4 class="all10 section">
     <svg class="lg1"><use xlink:href="#icon-bug"></use></svg>
-    <h4 class="lg9">Bug Report</h4>
-  </div>
-  <hr>
+    Bug Report
+  </h4>
   <p>
-  Visit 
-  <a href="https://github.com/pylover/esp8266-fota/issues">here</a>
-  to submit any issue.
+    Visit 
+    <a href="https://github.com/pylover/esp8266-fota/issues">here</a>
+    to submit any issue.
   </p>
 
-  <div class="row h">
+  <h4 class="all10 section">
     <svg class="lg1"><use xlink:href="#icon-terminal"></use></svg>
-    <h4 class="lg9">Command Line Interface</h4>
-  </div>
-  <hr>
+    Command Line Interface
+  </h4>
   <p>
-  You may install 
-  <a href="https://github.com/pylover/unspy">unspy</a>
-  to control the device via CLI.
+    You may install 
+    <a href="https://github.com/pylover/unspy">unspy</a>
+    to control the device via CLI.
   </p>
-
-
 </div>
 
 

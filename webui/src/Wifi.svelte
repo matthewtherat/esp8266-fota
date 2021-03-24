@@ -43,48 +43,56 @@ async function submit(event) {
 
 }
 </script>
+<style type="text/sass">
+@import 'styles/variables.sass'
 
-<h4>WIFI Parameters</h4>
-<hr>
+#wifi form > .row
+  margin-bottom: $gutter * 2
+</style>
+
+
+<h4 class="all10 section">
+  <svg class="lg1"><use xlink:href="#icon-connection"></use></svg>
+  WIFI Settings
+</h4>
 
 <p style="display: {disabled? 'block': 'none'}" >
   Cannot load params.
 </p>
-<div class="row" style="display: {disabled? 'none': 'block'}">
+<div id="wifi" class="row" style="display: {disabled? 'none': 'block'}">
   <form>
-  <div class="row">
-    <div class="lg4">Zone:</div>
-    <div class="lg6">
+  <div class="row all10">
+    <div class="lg10">Zone:</div>
+    <div class="lg10">
       <input name="zone" bind:value="{p.zone}" {disabled}/>
     </div>
   </div>
-  <div class="row">
-    <div class="lg4">Name:</div>
-    <div class="lg6">
+  <div class="row all10">
+    <div class="lg10">Name:</div>
+    <div class="lg10">
       <input name="name" bind:value="{p.name}" {disabled}/>    
     </div>
   </div>
-  <div class="row">
-    <div class="lg4">Access Point PSK</div>
-    <div class="lg6">
+  <div class="row all10">
+    <div class="lg10">Access Point PSK</div>
+    <div class="lg10">
       <input name="ap_psk" bind:value="{p.apPsk}" {disabled}/>
     </div>
   </div>
-  <div class="row">
-    <div class="lg4">SSID</div>
-    <div class="lg6">
+  <div class="row all10">
+    <div class="lg10">SSID</div>
+    <div class="lg10">
       <input name="ssid" bind:value="{p.ssid}" {disabled}/>    
     </div>
   </div>
-  <div class="row">
-    <div class="lg4">PSK</div>
-    <div class="lg6">
+  <div class="row all10">
+    <div class="lg10">PSK</div>
+    <div class="lg10">
       <input name="psk" bind:value="{p.psk}" {disabled}/>    
     </div>
   </div>
-  <div class="row">
-    <div class="lg4"></div>
-    <div class="lg6">
+  <div class="row all10">
+    <div class="lg10">
       <button type="button" {disabled} on:click={submit} >
         Save & Reboot
       </button>

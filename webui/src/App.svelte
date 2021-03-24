@@ -35,16 +35,19 @@ export function changeComponent(event) {
   *
     pointer-events: none
   h5
-    line-height: 40px
+    line-height: $nav-icon-size
     vertical-align: middle
-    padding-left: $gutter * 2
+    padding-left: $gutter
   svg 
     display: block
-    height: 40px
+    height: $nav-icon-size
 
 h1, h2
-  line-height: 100px
+  line-height: 72px
   vertical-align: middle
+
+.header
+  margin-bottom: $gutter
 
 </style>
 
@@ -53,7 +56,7 @@ h1, h2
 <div class="lg2">
 
   <!-- Main Title -->
-  <div class="all10 p3">
+  <div class="all10 p3 header">
     <h1>{title}</h1>
   </div>
 
@@ -72,7 +75,7 @@ h1, h2
 
 <!-- Content -->
 <div class="lg7">
-  <div id="contentHeader" class="all10 p3">
+  <div id="contentHeader" class="all10 p3 header">
     <h2>{selected.title}</h2>
   </div>
   <div id="content" class="all10 p3">
