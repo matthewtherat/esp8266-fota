@@ -21,13 +21,13 @@ button
   float: left
   padding: 6px
   margin-right: $gutter
-  height: 30px
-  line-height: 16px
+  height: 32px
+  line-height: 18px
   vertical-align: middle
   svg
     display: block
     float: left
-    margin-top: -2px
+    margin-top: -1px
     width: 18px
     height: 18px
   span

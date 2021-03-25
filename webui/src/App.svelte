@@ -81,6 +81,7 @@ h1, h2
 @media (min-width: 768px)
   #leftBar
     display: block
+    border-right: 0px !important
 
 #closeButton
   position: absolute

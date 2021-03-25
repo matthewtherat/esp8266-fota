@@ -454,8 +454,8 @@ void httpcb(int status, char *body, void *arg) {
 }
 
 #define SYSINFO \
-    "zone: %s," \
-    "name: %s," \
+    "zone:       %s,"CR \
+    "name:       %s,"CR \
     "Boot:       user%d"CR \
     "Version:    %s"CR \
     "Uptime:     %u"CR \

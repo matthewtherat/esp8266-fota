@@ -42,7 +42,7 @@ const sysinfo = [
 <style type="text/sass">
 @import 'styles/variables.sass'
 #index > .row
-  height: $nav-icon-size
+  min-height: $nav-icon-size
   > div:first-child
     padding-right: $gutter * 2
     text-align: right
