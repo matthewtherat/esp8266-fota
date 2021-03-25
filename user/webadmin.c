@@ -454,7 +454,8 @@ void httpcb(int status, char *body, void *arg) {
 }
 
 #define SYSINFO \
-    "Image:      %s"CR \
+    "zone: %s," \
+    "name: %s," \
     "Boot:       user%d"CR \
     "Version:    %s"CR \
     "Uptime:     %u"CR \
@@ -492,7 +493,8 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
     if (strlen(s->request.path) <= 1) {
         uint8_t image = system_upgrade_userbin_check();
         bufflen = os_sprintf(buff, SYSINFO, 
-            __name__,
+            params->zone,
+            params->name,
             image + 1,
             __version__,
             system_get_time(),

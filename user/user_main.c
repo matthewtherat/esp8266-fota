@@ -51,7 +51,7 @@ ICACHE_FLASH_ATTR
 void boothello() {
     uint8_t image = system_upgrade_userbin_check();
     INFO("");
-    INFO(__name__" version: "__version__);
+    INFO("%s.%s version: "__version__, params.zone, params.name);
     INFO("My full name is: %s.%s", params.zone, params.name);
     INFO("Boot image: user%d", image + 1);
     INFO("Free memory: %d KB", system_get_free_heap_size());
