@@ -65,6 +65,9 @@ h1, h2
 #contentHeader button
   margin-right: $gutter * 2
 
+#leftBar
+  display: none
+
 @media (max-width: 768px)
   #leftBar
     display: none
@@ -75,7 +78,7 @@ h1, h2
     buttom: 0px
     left: 0px
 
-@media (min-width: 769px)
+@media (min-width: 768px)
   #leftBar
     display: block
 
@@ -101,6 +104,7 @@ h1, h2
   <nav class="all10 p3">
     {#each routes as n, i}
       <a title={n.title} id={i} 
+         href={n.path}
          class={selectedIndex==i ? 'nav-item active' : 'nav-item'} 
          on:click={changeComponent}>
         <svg class="all2"><use xlink:href={"#icon-" + n.icon}></use></svg>
