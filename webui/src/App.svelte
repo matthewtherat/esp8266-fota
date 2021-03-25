@@ -59,9 +59,8 @@ h1, h2
   vertical-align: middle
   float: left
 
-.logo
+.header
   margin-bottom: $gutter
-
 
 #contentHeader button
   margin-right: $gutter * 2
