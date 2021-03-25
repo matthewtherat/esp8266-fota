@@ -201,7 +201,7 @@ webui:
 	
 .PHONY: upload-webui
 upload-webui: webui
-	-uns http post dev.node :$(INDEXHTML_DEFLATE)
+	-uns http post $(HOST) :$(INDEXHTML_DEFLATE)
 
 ##################
 # SPI MAP 2 common
@@ -246,6 +246,11 @@ flash_map2user1: map2user1
 		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0xfb000 $(SDK_PATH)/bin/blank.bin \
 		0xfe000 $(SDK_PATH)/bin/blank.bin
+
+flash_map2user2: map2user2
+	$(ESPTOOL_WRITE) --flash_size 1MB  \
+		0x81000  $(BINDIR)/upgrade/user2.1024.new.2.bin \
+
 
 .PHONY: cleanup_map2user1_params
 cleanup_map2user1_params:
