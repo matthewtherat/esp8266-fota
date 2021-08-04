@@ -372,6 +372,13 @@ flash_map6webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
 		$(INDEXHTML_SECTOR_MAP6)000 $(INDEXHTML_BIN) 
 
+.PHONY: cleanup_map6paramsdio
+cleanup_map6paramsdio:
+	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
+		0xf8000 $(SDK_PATH)/bin/blank.bin \
+		0xf9000 $(SDK_PATH)/bin/blank.bin \
+		0xfa000 $(SDK_PATH)/bin/blank.bin 
+
 
 ##################
 # SPI MAP 4 common
@@ -425,7 +432,7 @@ flash_map4user2: map4user2
 	$(ESPTOOL_WRITE) --flash_size 4MB  \
 		0x081000  $(BINDIR)/upgrade/user2.4096.new.4.bin
 
-.PHONY: cleanup_map6params
+.PHONY: cleanup_map4params
 cleanup_map4params:
 	$(ESPTOOL_WRITE) --flash_size 4MB  \
 		0x7C000 $(SDK_PATH)/bin/blank.bin \
@@ -471,7 +478,7 @@ flash_map4webuidio: webui
 		$(INDEXHTML_SECTOR_MAP4)000 $(INDEXHTML_BIN)
 
 
-.PHONY: cleanup_map6paramsdio
+.PHONY: cleanup_map4paramsdio
 cleanup_map4paramsdio:
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB  \
 		0x7C000 $(SDK_PATH)/bin/blank.bin \
