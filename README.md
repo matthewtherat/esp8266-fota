@@ -23,14 +23,7 @@ cd ..
 
 git clone --recursive https://github.com/pylover/esp8266-fota.git
 cd esp8266-fota 
-bash gen_misc.sh
-```
-
-Or use predefined make macros:
-
-```bash
 make clean
 make flash_map6webui
 make flash_map6user1 
-
 ```
