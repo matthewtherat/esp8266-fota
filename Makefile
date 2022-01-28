@@ -252,8 +252,8 @@ flash_map2user2: map2user2
 		0x81000  $(BINDIR)/upgrade/user2.1024.new.2.bin \
 
 
-.PHONY: cleanup_map2user1_params
-cleanup_map2user1_params:
+.PHONY: cleanup_map2params
+cleanup_map2params:
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
 		0x78000 $(SDK_PATH)/bin/blank.bin \
 		0x79000 $(SDK_PATH)/bin/blank.bin \

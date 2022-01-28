@@ -8,7 +8,7 @@ Formware over the air transmission using HTTP Multipart from.
 ### Prerequisites
 
 ```bash
-sudo apt install sassc cleancss
+sudo apt install sassc cleancss qpdf
 ```
 
 ### Environment
