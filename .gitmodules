@@ -16,6 +16,3 @@
 [submodule "debug"]
 	path = debug
 	url = git@github.com:pylover/esp8266-debug.git
-[submodule "fs"]
-	path = fs
-	url = git@github.com:pylover/esp8266-fs.git
