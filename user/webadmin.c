@@ -513,8 +513,8 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
 
 #include "webtest.c"
 
-static struct httpd_route routes[] = {
 
+static struct httpd_route routes[] = {
 
     /* Upgrade firmware over the air (wifi) */
     {"UPGRADE",    "/firmware",           webadmin_fw_upgrade     },
@@ -528,6 +528,8 @@ static struct httpd_route routes[] = {
     {"ECHO",       "/demo/headers",          demo_headersecho       },
     {"DOWNLOAD",   "/demo",                  demo_download          },
     {"GET",        "/demo",                  demo_index             },
+    /* TLS Test */
+    {"TEST",       "/connection",            demo_conn_test         },
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                webadmin_uns_discover   },
@@ -559,4 +561,3 @@ ICACHE_FLASH_ATTR
 void webadmin_stop() {
     httpd_deinit();
 }
-

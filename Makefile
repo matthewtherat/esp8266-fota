@@ -38,19 +38,32 @@ BINDIR = ./bin
 APPDIR = .
 LDDIR = $(SDK_PATH)/ld
 
+TLS_CA_CRT_SECTOR_MAP2=0x69
 INDEXHTML_SECTOR_MAP2 = 0x70
+
+TLS_CA_CRT_SECTOR_MAP4=0xFF
 INDEXHTML_SECTOR_MAP4 = 0x100
+
+TLS_CA_CRT_SECTOR_MAP6=0x1FF
 INDEXHTML_SECTOR_MAP6 = 0x200
+
+TLS_CA_CRT_BIN = certificates/bin/esp_ca_cert.bin
 INDEXHTML = webui/public/build/index.bundle.html
 INDEXHTML_BIN = $(INDEXHTML).bin
 INDEXHTML_DEFLATE = $(INDEXHTML).deflate
+
 
 CCFLAGS += \
 	-Os \
 	-DSPI_SIZE_MAP=$(SPI_SIZE_MAP) \
 	-DINDEXHTML_SECTOR_MAP6=$(INDEXHTML_SECTOR_MAP6) \
 	-DINDEXHTML_SECTOR_MAP4=$(INDEXHTML_SECTOR_MAP4) \
-	-DINDEXHTML_SECTOR_MAP2=$(INDEXHTML_SECTOR_MAP2) 
+	-DINDEXHTML_SECTOR_MAP2=$(INDEXHTML_SECTOR_MAP2) \
+	-DTLS_CA_CRT_SECTOR_MAP2=$(TLS_CA_CRT_SECTOR_MAP2) \
+	-DTLS_CA_CRT_SECTOR_MAP4=$(TLS_CA_CRT_SECTOR_MAP4) \
+	-DTLS_CA_CRT_SECTOR_MAP6=$(TLS_CA_CRT_SECTOR_MAP6) \
+	-DTLS_ENABLED=1
+
 
 TARGET_LDFLAGS =		\
 	-nostdlib		\
@@ -90,6 +103,7 @@ LINKFLAGS_eagle.app.v6 = \
 	-llwip	\
 	-lwpa	\
 	-lcrypto	\
+	-lssl \
 	-lmain	\
 	-lupgrade\
 	-ldriver \
@@ -263,7 +277,12 @@ cleanup_map2params:
 flash_map2webui: webui
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
 		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
-		
+
+.PHONY: flash_map2cacert
+flash_map2cacert:
+	$(ESPTOOL_WRITE) --flash_size 1MB  \
+		$(TLS_CA_CRT_SECTOR_MAP2)000 $(TLS_CA_CRT_BIN)
+
 ###############
 # SPI MAP 2 DIO
 ###############
