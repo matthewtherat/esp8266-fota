@@ -22,7 +22,49 @@ static wificb wifiCb = NULL;
 #define WIFI_CHECKINTERVAL_STABLE       5000
 #define WIFI_CHECKINTERVAL              1000
 
-static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
+
+#ifdef SNTP_ENABLED
+
+#define SNTP_STOPPED    0
+#define SNTP_STARTED    1
+#define SNTP_ACQUIRED   2
+
+static uint8_t sntp_status = SNTP_STOPPED;
+
+static void ICACHE_FLASH_ATTR 
+_sntp_stop() {
+    sntp_stop();
+    sntp_status = SNTP_STOPPED;
+}
+
+static void ICACHE_FLASH_ATTR 
+_sntp_check(){
+    
+    if (sntp_status == SNTP_STOPPED) {
+        sntp_setservername(0, "us.pool.ntp.org"); 
+        sntp_setservername(1, "ntp.sjtu.edu.cn"); 
+        sntp_init();
+        sntp_status = SNTP_STARTED;
+        INFO("SNTP initialized");
+        return;
+    }
+
+    uint32 current_stamp;
+    current_stamp = sntp_get_current_timestamp();
+    if(current_stamp == 0) {
+        ERROR("SNTP time fetch failed!");
+    } 
+    else {
+        sntp_status = SNTP_ACQUIRED;
+        os_printf("sntp: %d, %s \n", current_stamp, 
+                sntp_get_real_time(current_stamp));
+    }
+}
+
+#endif
+
+static void ICACHE_FLASH_ATTR 
+wifi_check_ip(void *arg) {
     struct ip_info ipConfig;
 
     os_timer_disarm(&WiFiLinker);
@@ -32,9 +74,15 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
         uns_cleanup();
         os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
         os_timer_arm(&WiFiLinker, WIFI_CHECKINTERVAL_STABLE, 0);
+#ifdef SNTP_ENABLED
+        if (sntp_status != SNTP_ACQUIRED) {
+            _sntp_check();
+        }
+#endif
     }
     else
     {
+        _sntp_stop();
         if(wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
             INFO("STATION_WRONG_PASSWORD");
             wifi_station_connect();
@@ -47,9 +95,9 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg) {
             INFO("STATION_CONNECT_FAIL");
             wifi_station_connect();
         }
-        //else {
-        //    INFO("STATION_IDLE");
-        //}
+        else {
+            //INFO("STATION_IDLE");
+        }
 
         os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
         os_timer_arm(&WiFiLinker, WIFI_CHECKINTERVAL, 0);

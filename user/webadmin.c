@@ -508,6 +508,7 @@ httpd_err_t webadmin_sysinfo(struct httpd_session *s) {
     pattern++;
     DEBUG("Trying UNS for: %s\n", pattern);
     http_nobody_uns(pattern, "INFO", "/", httpcb, s);
+    return HTTPD_MORE;
 }
 
 

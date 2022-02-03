@@ -238,9 +238,12 @@ httpd_err_t demo_index(struct httpd_session *s) {
 
 static
 void demo_httpcb(int status, char *body, void *arg) {
+    DEBUG("%s\n", body);
     struct httpd_session *s = (struct httpd_session *) arg;
-    httpd_err_t err = HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, body, strlen(body));
+    httpd_err_t err = HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, body, 
+            strlen(body));
     if (err) {
+        DEBUG("response error\n");
         httpd_tcp_print_err(err);
     }
 }
@@ -248,4 +251,5 @@ void demo_httpcb(int status, char *body, void *arg) {
 static ICACHE_FLASH_ATTR
 httpd_err_t demo_conn_test(struct httpd_session *s) {
     https_get("airmon.dobisel.com", "/", "", "", demo_httpcb, s);
+    return HTTPD_MORE;
 }
