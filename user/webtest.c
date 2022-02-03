@@ -238,7 +238,6 @@ httpd_err_t demo_index(struct httpd_session *s) {
 
 static
 void demo_httpcb(int status, char *body, void *arg) {
-    DEBUG("%s\n", body);
     struct httpd_session *s = (struct httpd_session *) arg;
     httpd_err_t err = HTTPD_RESPONSE_TEXT(s, HTTPSTATUS_OK, body, 
             strlen(body));
