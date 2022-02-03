@@ -2,8 +2,8 @@
 
 source testing.sh
 
-ADDR=192.168.8.162
-NAME="dev.node"
+ADDR=192.168.1.158
+NAME="dev.fota"
 
 assert-eq "UNS resolve" ${ADDR} `uns resolve --short ${NAME}`
 assert-eq "Simple GET" \
@@ -79,6 +79,10 @@ else
   rm ${tmp1}
   rm ${tmp2}
 fi
+
+assert-eq "SSL client test" \
+  'ESP8266 FOTA SSL' \
+  `uns http test ${NAME}/tlsclient`
 
 
 echo -e "$LK"

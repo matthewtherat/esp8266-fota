@@ -249,7 +249,7 @@ void demo_httpcb(int status, char *body, void *arg) {
 }
 
 static ICACHE_FLASH_ATTR
-httpd_err_t demo_conn_test(struct httpd_session *s) {
-    https_get("airmon.dobisel.com", "/", "", "", demo_httpcb, s);
+httpd_err_t demo_tls_test(struct httpd_session *s) {
+    https_get("fotassl.dobisel.com", "/", "", "", demo_httpcb, s);
     return HTTPD_MORE;
 }

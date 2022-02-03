@@ -530,7 +530,7 @@ static struct httpd_route routes[] = {
     {"DOWNLOAD",   "/demo",                  demo_download          },
     {"GET",        "/demo",                  demo_index             },
     /* TLS Test */
-    {"TEST",       "/connection",            demo_conn_test         },
+    {"TEST",       "/tlsclient",             demo_tls_test          },
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                webadmin_uns_discover   },
