@@ -519,6 +519,16 @@ static struct httpd_route routes[] = {
 
     /* Upgrade firmware over the air (wifi) */
     {"UPGRADE",    "/firmware",           webadmin_fw_upgrade     },
+    
+    /* Webadmin */
+    {"POST",       "/params",             webadmin_params_post    },
+    {"GET",        "/params.json",        webadmin_params_get     },
+    {"GET",        "/status.json",        webadmin_sysinfo_json   },
+    {"INFO",       "/",                   webadmin_sysinfo        },
+    {"GET",        "/",                   webadmin_index_get      },
+    {"POST",       "/",                   webadmin_index_post     },
+    {"REBOOT",     "/",                   webadmin_reboot         },
+    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
 
     /* Under test, needed by webtest.sg &| make test */
     {"DOWNLOAD",   "/demo/multipartstreams", demo_download_stream   },
@@ -533,15 +543,7 @@ static struct httpd_route routes[] = {
     {"TEST",       "/tlsclient",             demo_tls_test          },
 
     /* Feel free to change these handlers */
-    {"DISCOVER",   "/uns",                webadmin_uns_discover   },
-    {"POST",       "/params",             webadmin_params_post    },
-    {"GET",        "/params.json",        webadmin_params_get     },
-    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
-    {"GET",        "/status.json",        webadmin_sysinfo_json   },
-    {"INFO",       "/",                   webadmin_sysinfo        },
-    {"GET",        "/",                   webadmin_index_get      },
-    {"POST",       "/",                   webadmin_index_post     },
-    {"REBOOT",     "/",                   webadmin_reboot         },
+    {"DISCOVER",   "/uns",                   webadmin_uns_discover  },
     { NULL }
 };
 
