@@ -41,11 +41,18 @@ LDDIR = $(SDK_PATH)/ld
 TLS_CA_CRT_SECTOR_MAP2 = 0x69
 INDEXHTML_SECTOR_MAP2 = 0x70
 
+TLS_CA_CRT_SECTOR_MAP3 = 0x69
+INDEXHTML_SECTOR_MAP3 = 0x70
+
 TLS_CA_CRT_SECTOR_MAP4 = 0xFF
 INDEXHTML_SECTOR_MAP4 = 0x100
 
 TLS_CA_CRT_SECTOR_MAP6 = 0x1FF
 INDEXHTML_SECTOR_MAP6 = 0x200
+
+TLS_CA_CRT_SECTOR_MAP8 = 0x1FF
+INDEXHTML_SECTOR_MAP8 = 0x200
+
 
 TLS_CA_CRT_BIN = certificates/bin/esp_ca_cert.bin
 INDEXHTML = webui/public/build/index.bundle.html
@@ -56,12 +63,16 @@ INDEXHTML_DEFLATE = $(INDEXHTML).deflate
 CCFLAGS += \
 	-Os \
 	-DSPI_SIZE_MAP=$(SPI_SIZE_MAP) \
-	-DINDEXHTML_SECTOR_MAP6=$(INDEXHTML_SECTOR_MAP6) \
-	-DINDEXHTML_SECTOR_MAP4=$(INDEXHTML_SECTOR_MAP4) \
 	-DINDEXHTML_SECTOR_MAP2=$(INDEXHTML_SECTOR_MAP2) \
+	-DINDEXHTML_SECTOR_MAP3=$(INDEXHTML_SECTOR_MAP3) \
+	-DINDEXHTML_SECTOR_MAP4=$(INDEXHTML_SECTOR_MAP4) \
+	-DINDEXHTML_SECTOR_MAP6=$(INDEXHTML_SECTOR_MAP6) \
+	-DINDEXHTML_SECTOR_MAP8=$(INDEXHTML_SECTOR_MAP8) \
 	-DTLS_CA_CRT_SECTOR_MAP2=$(TLS_CA_CRT_SECTOR_MAP2) \
+	-DTLS_CA_CRT_SECTOR_MAP3=$(TLS_CA_CRT_SECTOR_MAP3) \
 	-DTLS_CA_CRT_SECTOR_MAP4=$(TLS_CA_CRT_SECTOR_MAP4) \
 	-DTLS_CA_CRT_SECTOR_MAP6=$(TLS_CA_CRT_SECTOR_MAP6) \
+	-DTLS_CA_CRT_SECTOR_MAP8=$(TLS_CA_CRT_SECTOR_MAP8) \
 	-DSNTP_ENABLED=1 \
 	-DTLS_ENABLED=1
 
@@ -182,14 +193,21 @@ ESPTOOL_WRITE_DIO = $(ESPTOOL)  write_flash -u --flash_mode dio --flash_freq 40m
 ############################
 # Project specific variables
 ############################
-MAP2FILE1 = $(BINDIR)/upgrade/user2.1024.new.2.bin
-MAP2FILE2 = $(BINDIR)/upgrade/user1.1024.new.2.bin
+MAP2FILE1 = $(BINDIR)/upgrade/user1.1024.new.2.bin
+MAP2FILE2 = $(BINDIR)/upgrade/user2.1024.new.2.bin
 
-MAP4FILE1 = $(BINDIR)/upgrade/user2.4096.new.4.bin
-MAP4FILE2 = $(BINDIR)/upgrade/user1.4096.new.4.bin
+MAP3FILE1 = $(BINDIR)/upgrade/user1.2048.new.3.bin
+MAP3FILE2 = $(BINDIR)/upgrade/user2.2048.new.3.bin
 
-MAP6FILE1 = $(BINDIR)/upgrade/user2.4096.new.6.bin
-MAP6FILE2 = $(BINDIR)/upgrade/user1.4096.new.6.bin
+MAP4FILE1 = $(BINDIR)/upgrade/user1.4096.new.4.bin
+MAP4FILE2 = $(BINDIR)/upgrade/user2.4096.new.4.bin
+
+MAP6FILE1 = $(BINDIR)/upgrade/user1.4096.new.6.bin
+MAP6FILE2 = $(BINDIR)/upgrade/user2.4096.new.6.bin
+
+MAP8FILE1 = $(BINDIR)/upgrade/user1.8192.new.8.bin
+MAP8FILE2 = $(BINDIR)/upgrade/user2.8192.new.8.bin
+
 
 ############################
 # Common flash & debug tools
@@ -305,6 +323,73 @@ flash_map2user1dio: map2user1dio
 flash_map2webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 1MB  \
 		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
+
+
+##################
+# SPI MAP 8 common
+##################
+.PHONY: boot_user1map8
+boot_user1map8:
+	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map8-user1-3ff.bin
+	printf '\x01' \
+		| dd of=$(BINDIR)/map8-user1-3ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 8MB \
+		0x3ff000 $(BINDIR)/map8-user1-3ff.bin
+
+.PHONY: boot_user2map8
+boot_user2map8:
+	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map8-user2-3ff.bin
+	printf '\x00' \
+		| dd of=$(BINDIR)/map8-user2-3ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 4MB \
+		0x3ff000 $(BINDIR)/map8-user2-3ff.bin
+
+.PHONY: fotamap8
+fotamap8: map8user1 map8user2
+	-uns http upgrade $(HOST)/firmware :$(MAP8FILE$(shell uns h info $(HOST) \
+		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
+
+
+###############
+# SPI MAP 8 QIO
+###############
+map8user1:
+	make clean
+	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=8
+
+map8user2:
+	make clean
+	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=8
+
+flash_map8user1: map8user1
+	$(ESPTOOL_WRITE) --flash_size 8MB \
+		0x0 	 $(SDK_PATH)/bin/boot_v1.7.bin \
+		0x1000   $(MAP8FILE1) \
+		0x7fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0x7fb000 $(SDK_PATH)/bin/blank.bin \
+		0x7fe000 $(SDK_PATH)/bin/blank.bin
+
+flash_map8user2: map8user2
+	$(ESPTOOL_WRITE) --flash_size 8MB \
+		0x101000 $(MAP8FILE2) 
+
+.PHONY: flash_map8webui
+flash_map8webui: webui
+	$(ESPTOOL_WRITE) --flash_size 8MB  \
+		$(INDEXHTML_SECTOR_MAP8)000 $(INDEXHTML_BIN)
+
+.PHONY: cleanup_map8params
+cleanup_map8params:
+	$(ESPTOOL_WRITE) --flash_size 8MB  \
+		0xf8000 $(SDK_PATH)/bin/blank.bin \
+		0xf9000 $(SDK_PATH)/bin/blank.bin \
+		0xfa000 $(SDK_PATH)/bin/blank.bin
+
+.PHONY: flash_map8cacert
+flash_map8cacert:
+	$(ESPTOOL_WRITE) --flash_size 8MB  \
+		$(TLS_CA_CRT_SECTOR_MAP8)000 $(TLS_CA_CRT_BIN)
+
 
 ##################
 # SPI MAP 6 common
