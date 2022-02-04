@@ -330,19 +330,19 @@ flash_map2webuidio: webui
 ##################
 .PHONY: boot_user1map8
 boot_user1map8:
-	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map8-user1-3ff.bin
+	$(ESPTOOL) read_flash 0x7ff000 0x1000 $(BINDIR)/map8-user1-7ff.bin
 	printf '\x01' \
-		| dd of=$(BINDIR)/map8-user1-3ff.bin bs=1 count=1 conv=notrunc
+		| dd of=$(BINDIR)/map8-user1-7ff.bin bs=1 count=1 conv=notrunc
 	$(ESPTOOL_WRITE) --flash_size 8MB \
-		0x3ff000 $(BINDIR)/map8-user1-3ff.bin
+		0x7ff000 $(BINDIR)/map8-user1-7ff.bin
 
 .PHONY: boot_user2map8
 boot_user2map8:
-	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map8-user2-3ff.bin
+	$(ESPTOOL) read_flash 0x7ff000 0x1000 $(BINDIR)/map8-user2-7ff.bin
 	printf '\x00' \
-		| dd of=$(BINDIR)/map8-user2-3ff.bin bs=1 count=1 conv=notrunc
-	$(ESPTOOL_WRITE) --flash_size 4MB \
-		0x3ff000 $(BINDIR)/map8-user2-3ff.bin
+		| dd of=$(BINDIR)/map8-user2-7ff.bin bs=1 count=1 conv=notrunc
+	$(ESPTOOL_WRITE) --flash_size 8MB \
+		0x8ff000 $(BINDIR)/map8-user2-7ff.bin
 
 .PHONY: fotamap8
 fotamap8: map8user1 map8user2
