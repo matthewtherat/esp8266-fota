@@ -109,11 +109,11 @@ void user_init(void) {
     /* Status LED */
     status_init();
 
+    /* Disable wifi led */
+    wifi_status_led_uninstall();
+
     /* Start WIFI */
     wifi_start(&params, wifi_connect_cb);
-
-    /* Disable wifi led before infrared */
-    wifi_status_led_uninstall();
 
     status_update(100, 400, 5, boothello);
 }
