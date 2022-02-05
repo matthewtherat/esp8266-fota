@@ -239,7 +239,7 @@ struct upgradestate {
     uint32_t len;
 };
 
-static ICACHE_FLASH_ATTR
+static
 httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
     httpd_err_t err;
     size16_t avail = HTTPD_REQ_LEN(s);
@@ -265,7 +265,7 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
         avail = HTTPD_REQ_LEN(s);
         
         if ((u->len == SEC_SIZE) || (u->len && (!more) && (!avail))) {
-            system_upgrade_erase_flash(SPI_FLASH_SEC_SIZE);
+            system_upgrade_erase_flash(SEC_SIZE);
             DEBUG("FW: more: %6u avail: %4u wlen: %4u", more, avail, 
                     u->len);
             system_upgrade(u->buff, u->len);
@@ -409,7 +409,7 @@ httpd_err_t webadmin_params_get(struct httpd_session *s) {
 //    char buf[4 * 124];
 //    //os_memset(buff, 0, 4 * 124);
 //    int result = spi_flash_read(
-//            FAVICON_FLASH_SECTOR * SPI_FLASH_SEC_SIZE,
+//            FAVICON_FLASH_SECTOR * SEC_SIZE,
 //            (uint32_t*) buf,
 //            4 * 124
 //        );
@@ -525,16 +525,6 @@ static struct httpd_route routes[] = {
     /* Upgrade firmware over the air (wifi) */
     {"UPGRADE",    "/firmware",           webadmin_fw_upgrade     },
     
-    /* Webadmin */
-    {"POST",       "/params",             webadmin_params_post    },
-    {"GET",        "/params.json",        webadmin_params_get     },
-    {"GET",        "/status.json",        webadmin_sysinfo_json   },
-    {"INFO",       "/",                   webadmin_sysinfo        },
-    {"GET",        "/",                   webadmin_index_get      },
-    {"POST",       "/",                   webadmin_index_post     },
-    {"REBOOT",     "/",                   webadmin_reboot         },
-    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
-
     /* Under test, needed by webtest.sg &| make test */
     {"DOWNLOAD",   "/demo/multipartstreams", demo_download_stream   },
     {"UPLOAD",     "/demo/multipartstreams", demo_multipart_stream  },
@@ -544,11 +534,22 @@ static struct httpd_route routes[] = {
     {"ECHO",       "/demo/headers",          demo_headersecho       },
     {"DOWNLOAD",   "/demo",                  demo_download          },
     {"GET",        "/demo",                  demo_index             },
+
     /* TLS Test */
     {"TEST",       "/tlsclient",             demo_tls_test          },
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                   webadmin_uns_discover  },
+
+    /* Webadmin */
+    {"POST",       "/params",             webadmin_params_post    },
+    {"GET",        "/params.json",        webadmin_params_get     },
+    {"GET",        "/status.json",        webadmin_sysinfo_json   },
+    {"INFO",       "/",                   webadmin_sysinfo        },
+    {"GET",        "/",                   webadmin_index_get      },
+    {"POST",       "/",                   webadmin_index_post     },
+    {"REBOOT",     "/",                   webadmin_reboot         },
+    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
     { NULL }
 };
 
