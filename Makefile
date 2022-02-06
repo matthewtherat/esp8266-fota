@@ -11,10 +11,11 @@
 #     a generated lib/image xxx.a ()
 #
 
-HOST ?= dev.fota
+HOST ?= dev.fota8
+#HOST ?= h.airmon
 COMPILE ?= gcc
+SPI_SIZE_MAP := 8
 
-SPI_SIZE_MAP := 6
 TARGET = eagle
 #FLAVOR = release
 FLAVOR = debug
@@ -208,10 +209,28 @@ MAP6FILE2 = $(BINDIR)/upgrade/user2.4096.new.6.bin
 MAP8FILE1 = $(BINDIR)/upgrade/user1.8192.new.8.bin
 MAP8FILE2 = $(BINDIR)/upgrade/user2.8192.new.8.bin
 
+##################
+# common
+##################
 
-############################
-# Common flash & debug tools
-############################
+.PHONY: clean
+clean::
+	rm -rf $(BINDIR)/*
+
+.PHONY: fotamap%
+fotamap%: 
+	$(eval CURIMG = $(shell uns h info $(HOST) | grep --color=never -oP '^Boot:\s+\w+\K\d'))
+	$(eval NEWIMG = $(shell python3 -c 'print([2, 1][$(CURIMG) - 1])'))
+	$(eval SPIMAP = $(subst fotamap,,$@))
+	make clean map$(SPIMAP)user$(NEWIMG)
+	uns http upgrade $(HOST)/firmware :$(MAP$(SPIMAP)FILE$(NEWIMG))
+
+.PHONY: rom-%
+rom-%:
+	$(eval SPIMAP = $(shell echo $@ | sed -r 's/^rom-spimap([[:digit:]])user[[:digit:]](q|d)io$$/\1/'))
+	$(eval APP = $(shell echo $@ | sed -r 's/^rom-spimap[[:digit:]]user([[:digit:]])(q|d)io$$/\1/'))
+	$(eval SPI_MODE = $(shell echo $@ | sed -r 's/^rom-spimap[[:digit:]]user[[:digit:]]((q|d)io)$$/\1/'))
+	make COMPILE=gcc BOOT=new APP=$(APP) SPI_SPEED=40 SPI_MODE=$(SPI_MODE) SPI_SIZE_MAP=$(SPIMAP)
 
 .PHONY: erase_flash
 erase_flash:
@@ -228,6 +247,7 @@ toggleboot:
 ########
 # Web UI
 ########
+
 .PHONY: webui
 webui:
 	-webui/build.sh
@@ -239,6 +259,7 @@ upload-webui: webui
 ##################
 # SPI MAP 2 common
 ##################
+
 .PHONY: boot_user1map2
 boot_user1map2:
 	$(ESPTOOL) read_flash 0xff000 0x1000 $(BINDIR)/map2-user1-0ff.bin
@@ -255,21 +276,15 @@ boot_user2map2:
 	$(ESPTOOL_WRITE) --flash_size 1MB \
 		0xff000 $(BINDIR)/map2-user2-0ff.bin
 
-.PHONY: fotamap2
-fotamap2: map2user1 map2user2 
-	-uns http upgrade $(HOST)/firmware :$(MAP2FILE$(shell uns h info $(HOST) \
-		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
-
 
 ###############
 # SPI MAP 2 QIO
 ###############
+
 map2user1:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
 
 map2user2:
-	make clean
 	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=2
 
 flash_map2user1: map2user1
@@ -307,7 +322,6 @@ flash_map2cacert:
 ###############
 .PHONY: map2user1dio
 map2user1dio:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=DIO SPI_SIZE_MAP=2
 
 .PHONY: flash_map2user1dio
@@ -325,40 +339,13 @@ flash_map2webuidio: webui
 		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
 
 
-##################
-# SPI MAP 8 common
-##################
-.PHONY: boot_user1map8
-boot_user1map8:
-	$(ESPTOOL) read_flash 0x7ff000 0x1000 $(BINDIR)/map8-user1-7ff.bin
-	printf '\x01' \
-		| dd of=$(BINDIR)/map8-user1-7ff.bin bs=1 count=1 conv=notrunc
-	$(ESPTOOL_WRITE) --flash_size 8MB \
-		0x7ff000 $(BINDIR)/map8-user1-7ff.bin
-
-.PHONY: boot_user2map8
-boot_user2map8:
-	$(ESPTOOL) read_flash 0x7ff000 0x1000 $(BINDIR)/map8-user2-7ff.bin
-	printf '\x00' \
-		| dd of=$(BINDIR)/map8-user2-7ff.bin bs=1 count=1 conv=notrunc
-	$(ESPTOOL_WRITE) --flash_size 8MB \
-		0x8ff000 $(BINDIR)/map8-user2-7ff.bin
-
-.PHONY: fotamap8
-fotamap8: map8user1 map8user2
-	-uns http upgrade $(HOST)/firmware :$(MAP8FILE$(shell uns h info $(HOST) \
-		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
-
-
 ###############
 # SPI MAP 8 QIO
 ###############
 map8user1:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=8
 
 map8user2:
-	make clean
 	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=8
 
 flash_map8user1: map8user1
@@ -391,42 +378,16 @@ flash_map8cacert:
 		$(TLS_CA_CRT_SECTOR_MAP8)000 $(TLS_CA_CRT_BIN)
 
 
-##################
-# SPI MAP 6 common
-##################
-.PHONY: boot_user1map6
-boot_user1map6:
-	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map6-user1-3ff.bin
-	printf '\x01' \
-		| dd of=$(BINDIR)/map6-user1-3ff.bin bs=1 count=1 conv=notrunc
-	$(ESPTOOL_WRITE) --flash_size 4MB-c1 \
-		0x3ff000 $(BINDIR)/map6-user1-3ff.bin
-
-.PHONY: boot_user2map6
-boot_user2map6:
-	$(ESPTOOL) read_flash 0x3ff000 0x1000 $(BINDIR)/map6-user2-3ff.bin
-	printf '\x00' \
-		| dd of=$(BINDIR)/map6-user2-3ff.bin bs=1 count=1 conv=notrunc
-	$(ESPTOOL_WRITE) --flash_size 4MB-c1 \
-		0x3ff000 $(BINDIR)/map6-user2-3ff.bin
-
-.PHONY: fotamap6
-fotamap6: map6user1 map6user2 
-	-uns http upgrade $(HOST)/firmware :$(MAP6FILE$(shell uns h info $(HOST) \
-		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
-
-
 ###############
 # SPI MAP 6 QIO
 ###############
+
 .PHONY: map6user1
 map6user1:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
 
 .PHONY: map6user2
 map6user2:
-	make clean
 	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=6
 
 .PHONY: flash_map6user1
@@ -458,9 +419,9 @@ cleanup_map6params:
 ###############
 # SPI MAP 6 DIO
 ###############
+
 .PHONY: map6user1dio
 map6user1dio:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=DIO SPI_SIZE_MAP=6
 
 .PHONY: flash_map6user1dio
@@ -504,23 +465,16 @@ boot_user2map4:
 	$(ESPTOOL_WRITE) --flash_size 4MB \
 		0x3ff000 $(BINDIR)/map4-user2-3ff.bin
 
-.PHONY: fotamap4
-fotamap4: map4user1 map4user2
-	-uns http upgrade $(HOST)/firmware :$(MAP4FILE$(shell uns h info $(HOST) \
-		| grep --color=never -oP '^Boot:\s+\w+\K\d'))
-
 
 ###############
 # SPI MAP 4 QIO
 ###############
 .PHONY: map4user1
 map4user1:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=4
 
 .PHONY: map6user2
 map4user2:
-	make clean
 	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=QIO SPI_SIZE_MAP=4
 
 .PHONY: flash_map4user1
@@ -555,12 +509,10 @@ flash_map4webui: webui
 ###############
 .PHONY: map4user1dio
 map4user1dio:
-	make clean
 	make COMPILE=gcc BOOT=new APP=1 SPI_SPEED=40 SPI_MODE=DIO SPI_SIZE_MAP=4
 
 .PHONY: map6user2dio
 map4user2dio:
-	make clean
 	make COMPILE=gcc BOOT=new APP=2 SPI_SPEED=40 SPI_MODE=DIO SPI_SIZE_MAP=4
 
 .PHONY: flash_map4user1dio
