@@ -23,13 +23,6 @@ static bool configured;
 static struct params params;
 
 
-static ICACHE_FLASH_ATTR 
-void reboot_appmode() {
-	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
-	system_upgrade_reboot();
-}
-
-
 void wifi_connect_cb(uint8_t status) {
     if(status == STATION_GOT_IP) {
         char hostname[UNS_HOSTNAME_MAXLEN];

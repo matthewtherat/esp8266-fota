@@ -94,7 +94,7 @@ LINKFLAGS_eagle.app.v6 = \
 	-lcrypto	\
 	-lssl \
 	-lmain	\
-	-lupgrade\
+	-lupgrade \
 	-ldriver \
 	-lhal					\
 	$(DEP_LIBS_eagle.app.v6)					\
