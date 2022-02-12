@@ -2,7 +2,7 @@
 
 source testing.sh
 
-ADDR=192.168.1.165
+ADDR=192.168.1.158
 NAME="dev.fota"
 
 assert-eq "UNS resolve" ${ADDR} `uns resolve --short ${NAME}`

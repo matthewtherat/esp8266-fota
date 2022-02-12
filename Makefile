@@ -14,7 +14,7 @@
 HOST ?= dev.fota
 #HOST ?= h.airmon
 COMPILE ?= gcc
-SPI_SIZE_MAP := 8
+SPI_SIZE_MAP := 2
 
 TARGET = eagle
 #FLAVOR = release
@@ -39,15 +39,6 @@ BINDIR = ./bin
 APPDIR = .
 LDDIR = $(SDK_PATH)/ld
 
-TLS_CA_CRT_SECTOR_MAP2 = 0x69
-
-TLS_CA_CRT_SECTOR_MAP3 = 0x69
-
-TLS_CA_CRT_SECTOR_MAP4 = 0xFF
-
-TLS_CA_CRT_SECTOR_MAP6 = 0x1FF
-
-TLS_CA_CRT_SECTOR_MAP8 = 0x1FF
 
 
 TLS_CA_CRT_BIN = certificates/bin/esp_ca_cert.bin
@@ -59,11 +50,6 @@ INDEXHTML_DEFLATE = $(INDEXHTML).deflate
 CCFLAGS += \
 	-Os \
 	-DSPI_SIZE_MAP=$(SPI_SIZE_MAP) \
-	-DTLS_CA_CRT_SECTOR_MAP2=$(TLS_CA_CRT_SECTOR_MAP2) \
-	-DTLS_CA_CRT_SECTOR_MAP3=$(TLS_CA_CRT_SECTOR_MAP3) \
-	-DTLS_CA_CRT_SECTOR_MAP4=$(TLS_CA_CRT_SECTOR_MAP4) \
-	-DTLS_CA_CRT_SECTOR_MAP6=$(TLS_CA_CRT_SECTOR_MAP6) \
-	-DTLS_CA_CRT_SECTOR_MAP8=$(TLS_CA_CRT_SECTOR_MAP8) \
 	-DSNTP_ENABLED=1 \
 	-DTLS_ENABLED=1
 
@@ -306,7 +292,7 @@ flash_map2webui: webui
 .PHONY: flash_map2cacert
 flash_map2cacert:
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
-		$(TLS_CA_CRT_SECTOR_MAP2)000 $(TLS_CA_CRT_BIN)
+		0x079000 $(TLS_CA_CRT_BIN)
 
 ###############
 # SPI MAP 2 DIO
@@ -366,7 +352,7 @@ cleanup_map8params:
 .PHONY: flash_map8cacert
 flash_map8cacert:
 	$(ESPTOOL_WRITE) --flash_size 8MB  \
-		$(TLS_CA_CRT_SECTOR_MAP8)000 $(TLS_CA_CRT_BIN)
+		0x0f9000 $(TLS_CA_CRT_BIN)
 
 
 ###############
