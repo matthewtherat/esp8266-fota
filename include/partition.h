@@ -16,9 +16,6 @@ Flash Maps
 9=16384KB(1024KB+1024KB)
 */
 
-// TODO: params addr
-// TODO: indexhtml
-// TODO: ssl cert
 // TODO: upgrade.a
 // TODO: what is irom.text
 
