@@ -329,9 +329,10 @@ flash_map8user1: map8user1
 	$(ESPTOOL_WRITE) --flash_size 8MB \
 		0x0 	 $(SDK_PATH)/bin/boot_v1.7.bin \
 		0x1000   $(MAP8FILE1) \
-		0x7fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0x7fb000 $(SDK_PATH)/bin/blank.bin \
-		0x7fe000 $(SDK_PATH)/bin/blank.bin
+		0x7fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0x7fe000 $(SDK_PATH)/bin/blank.bin \
+		0x7ff000 $(SDK_PATH)/bin/blank.bin
 
 flash_map8user2: map8user2
 	$(ESPTOOL_WRITE) --flash_size 8MB \
@@ -372,9 +373,10 @@ flash_map6user1: map6user1
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
 		0x1000  $(BINDIR)/upgrade/user1.4096.new.6.bin \
-		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0x3fb000 $(SDK_PATH)/bin/blank.bin \
-		0x3fe000 $(SDK_PATH)/bin/blank.bin 
+		0x3fc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0x3fe000 $(SDK_PATH)/bin/blank.bin \
+		0x3ff000 $(SDK_PATH)/bin/blank.bin 
 
 .PHONY: flash_map6user2
 flash_map6user2: map6user2
