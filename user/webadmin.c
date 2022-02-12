@@ -16,23 +16,6 @@
 #define WEBADMIN_ERR_FLASHWRITE       -103
 #define WEBADMIN_ERR_FLASHWRPROTECT   -104
 #define WEBADMIN_BUFFSIZE             1024
-#define SEC_SIZE                      SPI_FLASH_SEC_SIZE
-
-
-#if SPI_SIZE_MAP == 2
-#define INDEXHTML_SECTOR      INDEXHTML_SECTOR_MAP2
-#elif SPI_SIZE_MAP == 3
-#define INDEXHTML_SECTOR      INDEXHTML_SECTOR_MAP3
-#elif SPI_SIZE_MAP == 4
-#define INDEXHTML_SECTOR      INDEXHTML_SECTOR_MAP4
-#elif SPI_SIZE_MAP == 6
-#define INDEXHTML_SECTOR      INDEXHTML_SECTOR_MAP6
-#elif SPI_SIZE_MAP == 8
-#define INDEXHTML_SECTOR      INDEXHTML_SECTOR_MAP8
-
-#endif
-
-#define SECTFMT     "0x%X"
 
 
 static struct params *params;
@@ -111,7 +94,7 @@ httpd_err_t webadmin_index_get(struct httpd_session *s) {
     httpd_err_t err;
     struct fileserve *f = os_zalloc(sizeof(struct fileserve));            
     s->reverse = f;
-    f->addr = INDEXHTML_SECTOR * SEC_SIZE;
+    f->addr = USER_INDEXHTML_ADDR;
 
     /* Read 4 bytes to determine the size  */
     err = spi_flash_read(f->addr, &f->remain, sizeof(uint32_t));
@@ -137,7 +120,7 @@ httpd_err_t webadmin_index_get(struct httpd_session *s) {
 
 
 struct filesave {
-    char buff[SEC_SIZE];
+    char buff[SECT_SIZE];
     uint32_t len;
     size16_t sect;
 };
@@ -161,7 +144,7 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
 
         /* Alocate memory */
         f = os_zalloc(sizeof(struct filesave));
-        f->sect = INDEXHTML_SECTOR;
+        f->sect = USER_INDEXHTML_ADDR / SECT_SIZE;
         f->len = sizeof(uint32_t);
         os_memcpy(f->buff, &s->request.contentlen, f->len);
         s->reverse = f;
@@ -173,11 +156,11 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
     while (avail) {
         /* Read from request */
         f->len += HTTPD_RECV(s, f->buff + f->len, 
-                MIN(avail, SEC_SIZE - f->len));
+                MIN(avail, SECT_SIZE - f->len));
         avail = HTTPD_REQ_LEN(s);
 
         /* Decide to write a sector or not */
-        if ((f->len == SEC_SIZE) || (f->len && (!more) && (!avail))) {
+        if ((f->len == SECT_SIZE) || (f->len && (!more) && (!avail))) {
             err = spi_flash_erase_sector(f->sect);
             if (err) {
                 ERROR("Erase sector "SECTFMT" error: %d: ", f->sect, err);
@@ -192,7 +175,7 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
             }
 
             /* Write sector: %u */
-            err = spi_flash_write(f->sect * SEC_SIZE, (uint32_t*)f->buff, 
+            err = spi_flash_write(f->sect * SECT_SIZE, (uint32_t*)f->buff, 
                     wlen);
             if (err) {
                 goto reterr;
@@ -235,7 +218,7 @@ void _toggleboot() {
 
 
 struct upgradestate {
-    char buff[SEC_SIZE];
+    char buff[SECT_SIZE] STORE_ATTR;
     uint32_t len;
 };
 
@@ -261,11 +244,11 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
 
     while (avail) {
         u->len += HTTPD_RECV(s, u->buff + u->len, 
-                MIN(avail, SEC_SIZE - u->len));
+                MIN(avail, SECT_SIZE - u->len));
         avail = HTTPD_REQ_LEN(s);
         
-        if ((u->len == SEC_SIZE) || (u->len && (!more) && (!avail))) {
-            system_upgrade_erase_flash(SEC_SIZE);
+        if ((u->len == SECT_SIZE) || (u->len && (!more) && (!avail))) {
+            system_upgrade_erase_flash(SECT_SIZE);
             DEBUG("FW: more: %6u avail: %4u wlen: %4u", more, avail, 
                     u->len);
             system_upgrade(u->buff, u->len);
@@ -409,7 +392,7 @@ httpd_err_t webadmin_params_get(struct httpd_session *s) {
 //    char buf[4 * 124];
 //    //os_memset(buff, 0, 4 * 124);
 //    int result = spi_flash_read(
-//            FAVICON_FLASH_SECTOR * SEC_SIZE,
+//            FAVICON_FLASH_SECTOR * SECT_SIZE,
 //            (uint32_t*) buf,
 //            4 * 124
 //        );
@@ -537,6 +520,16 @@ static struct httpd_route routes[] = {
 
     /* TLS Test */
     {"TEST",       "/tlsclient",             demo_tls_test          },
+
+    /* Webadmin */
+    {"POST",       "/params",             webadmin_params_post    },
+    {"GET",        "/params.json",        webadmin_params_get     },
+    {"GET",        "/status.json",        webadmin_sysinfo_json   },
+    {"INFO",       "/",                   webadmin_sysinfo        },
+    {"GET",        "/",                   webadmin_index_get      },
+    {"POST",       "/",                   webadmin_index_post     },
+    {"REBOOT",     "/",                   webadmin_reboot         },
+    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                   webadmin_uns_discover  },

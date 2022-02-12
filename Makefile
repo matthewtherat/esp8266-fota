@@ -40,19 +40,14 @@ APPDIR = .
 LDDIR = $(SDK_PATH)/ld
 
 TLS_CA_CRT_SECTOR_MAP2 = 0x69
-INDEXHTML_SECTOR_MAP2 = 0x70
 
 TLS_CA_CRT_SECTOR_MAP3 = 0x69
-INDEXHTML_SECTOR_MAP3 = 0x70
 
 TLS_CA_CRT_SECTOR_MAP4 = 0xFF
-INDEXHTML_SECTOR_MAP4 = 0x100
 
 TLS_CA_CRT_SECTOR_MAP6 = 0x1FF
-INDEXHTML_SECTOR_MAP6 = 0x200
 
 TLS_CA_CRT_SECTOR_MAP8 = 0x1FF
-INDEXHTML_SECTOR_MAP8 = 0x200
 
 
 TLS_CA_CRT_BIN = certificates/bin/esp_ca_cert.bin
@@ -64,11 +59,6 @@ INDEXHTML_DEFLATE = $(INDEXHTML).deflate
 CCFLAGS += \
 	-Os \
 	-DSPI_SIZE_MAP=$(SPI_SIZE_MAP) \
-	-DINDEXHTML_SECTOR_MAP2=$(INDEXHTML_SECTOR_MAP2) \
-	-DINDEXHTML_SECTOR_MAP3=$(INDEXHTML_SECTOR_MAP3) \
-	-DINDEXHTML_SECTOR_MAP4=$(INDEXHTML_SECTOR_MAP4) \
-	-DINDEXHTML_SECTOR_MAP6=$(INDEXHTML_SECTOR_MAP6) \
-	-DINDEXHTML_SECTOR_MAP8=$(INDEXHTML_SECTOR_MAP8) \
 	-DTLS_CA_CRT_SECTOR_MAP2=$(TLS_CA_CRT_SECTOR_MAP2) \
 	-DTLS_CA_CRT_SECTOR_MAP3=$(TLS_CA_CRT_SECTOR_MAP3) \
 	-DTLS_CA_CRT_SECTOR_MAP4=$(TLS_CA_CRT_SECTOR_MAP4) \
@@ -291,9 +281,10 @@ flash_map2user1: map2user1
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
 		0x0 	$(SDK_PATH)/bin/boot_v1.7.bin \
 		0x1000  $(BINDIR)/upgrade/user1.1024.new.2.bin \
-		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
 		0xfb000 $(SDK_PATH)/bin/blank.bin \
-		0xfe000 $(SDK_PATH)/bin/blank.bin
+		0xfc000 $(SDK_PATH)/bin/esp_init_data_default_v08.bin \
+		0xfe000 $(SDK_PATH)/bin/blank.bin \
+		0xff000 $(SDK_PATH)/bin/blank.bin
 
 flash_map2user2: map2user2
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
@@ -303,14 +294,14 @@ flash_map2user2: map2user2
 .PHONY: cleanup_map2params
 cleanup_map2params:
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
-		0x78000 $(SDK_PATH)/bin/blank.bin \
-		0x79000 $(SDK_PATH)/bin/blank.bin \
-		0x7a000 $(SDK_PATH)/bin/blank.bin 
+		0x07d000 $(SDK_PATH)/bin/blank.bin \
+		0x07e000 $(SDK_PATH)/bin/blank.bin \
+		0x07f000 $(SDK_PATH)/bin/blank.bin 
 
 .PHONY: flash_map2webui
 flash_map2webui: webui
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
-		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
+		0x7A000 $(INDEXHTML_BIN)
 
 .PHONY: flash_map2cacert
 flash_map2cacert:
@@ -336,7 +327,7 @@ flash_map2user1dio: map2user1dio
 .PHONY: flash_map2webuidio
 flash_map2webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 1MB  \
-		$(INDEXHTML_SECTOR_MAP2)000 $(INDEXHTML_BIN)
+		0x7A000 $(INDEXHTML_BIN)
 
 
 ###############
@@ -363,14 +354,14 @@ flash_map8user2: map8user2
 .PHONY: flash_map8webui
 flash_map8webui: webui
 	$(ESPTOOL_WRITE) --flash_size 8MB  \
-		$(INDEXHTML_SECTOR_MAP8)000 $(INDEXHTML_BIN)
+		0xFA000 $(INDEXHTML_BIN)
 
 .PHONY: cleanup_map8params
 cleanup_map8params:
 	$(ESPTOOL_WRITE) --flash_size 8MB  \
-		0xf8000 $(SDK_PATH)/bin/blank.bin \
-		0xf9000 $(SDK_PATH)/bin/blank.bin \
-		0xfa000 $(SDK_PATH)/bin/blank.bin
+		0x0fd000 $(SDK_PATH)/bin/blank.bin \
+		0x0fe000 $(SDK_PATH)/bin/blank.bin \
+		0x0ff000 $(SDK_PATH)/bin/blank.bin
 
 .PHONY: flash_map8cacert
 flash_map8cacert:
@@ -407,14 +398,14 @@ flash_map6user2: map6user2
 .PHONY: flash_map6webui
 flash_map6webui: webui
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		$(INDEXHTML_SECTOR_MAP6)000 $(INDEXHTML_BIN)
+		0xFA000 $(INDEXHTML_BIN)
 
 .PHONY: cleanup_map6params
 cleanup_map6params:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
-		0xf8000 $(SDK_PATH)/bin/blank.bin \
-		0xf9000 $(SDK_PATH)/bin/blank.bin \
-		0xfa000 $(SDK_PATH)/bin/blank.bin 
+		0x0fd000 $(SDK_PATH)/bin/blank.bin \
+		0x0fe000 $(SDK_PATH)/bin/blank.bin \
+		0x0ff000 $(SDK_PATH)/bin/blank.bin 
 
 ###############
 # SPI MAP 6 DIO
@@ -436,14 +427,14 @@ flash_map6user1dio: map6user1dio
 .PHONY: flash_map6webuidio
 flash_map6webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
-		$(INDEXHTML_SECTOR_MAP6)000 $(INDEXHTML_BIN) 
+		0xFA000 $(INDEXHTML_BIN) 
 
 .PHONY: cleanup_map6paramsdio
 cleanup_map6paramsdio:
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB-c1  \
-		0xf8000 $(SDK_PATH)/bin/blank.bin \
-		0xf9000 $(SDK_PATH)/bin/blank.bin \
-		0xfa000 $(SDK_PATH)/bin/blank.bin 
+		0x0fd000 $(SDK_PATH)/bin/blank.bin \
+		0x0fe000 $(SDK_PATH)/bin/blank.bin \
+		0x0ff000 $(SDK_PATH)/bin/blank.bin 
 
 
 ##################
@@ -494,14 +485,14 @@ flash_map4user2: map4user2
 .PHONY: cleanup_map4params
 cleanup_map4params:
 	$(ESPTOOL_WRITE) --flash_size 4MB  \
-		0x7C000 $(SDK_PATH)/bin/blank.bin \
-		0x7D000 $(SDK_PATH)/bin/blank.bin \
-		0x7E000 $(SDK_PATH)/bin/blank.bin 
+		0x07d000 $(SDK_PATH)/bin/blank.bin \
+		0x07e000 $(SDK_PATH)/bin/blank.bin \
+		0x07f000 $(SDK_PATH)/bin/blank.bin 
 
 .PHONY: flash_map4webui
 flash_map4webui: webui
 	$(ESPTOOL_WRITE) --flash_size 4MB \
-		$(INDEXHTML_SECTOR_MAP4)000 $(INDEXHTML_BIN)
+		0x7A000 $(INDEXHTML_BIN)
 
 
 ###############
@@ -532,15 +523,12 @@ flash_map4user2dio: map4user2dio
 .PHONY: flash_map4webuidio
 flash_map4webuidio: webui
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB \
-		$(INDEXHTML_SECTOR_MAP4)000 $(INDEXHTML_BIN)
+		0x7A000 $(INDEXHTML_BIN)
 
 
 .PHONY: cleanup_map4paramsdio
 cleanup_map4paramsdio:
 	$(ESPTOOL_WRITE_DIO) --flash_size 4MB  \
-		0x7C000 $(SDK_PATH)/bin/blank.bin \
-		0x7D000 $(SDK_PATH)/bin/blank.bin \
-		0x7E000 $(SDK_PATH)/bin/blank.bin 
-
-
-
+		0x07d000 $(SDK_PATH)/bin/blank.bin \
+		0x07e000 $(SDK_PATH)/bin/blank.bin \
+		0x07f000 $(SDK_PATH)/bin/blank.bin 

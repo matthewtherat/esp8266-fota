@@ -1,7 +1,12 @@
+#include "partition.h"
 #include "params.h"
 #include "common.h"
 
 #include <user_interface.h>
+
+
+#define PARAMS_SECTOR (USER_PARTITION_PARAMS_ADDR / SECT_SIZE) 
+#define PARAMS_MAGIC '@'
 
 
 ICACHE_FLASH_ATTR 

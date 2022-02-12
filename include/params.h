@@ -9,10 +9,6 @@
 #include <user_interface.h>
 
 
-#define PARAMS_SECTOR SYSTEM_PARTITION_PARAMS_ADDR / 4096 
-
-#define PARAMS_MAGIC '@'
-
 
 #define PARAMS_PRINT(p) INFO(CR"%s.%s, ssid: %s psk: %s ap-psk: %s", \
 			p.zone, \
@@ -22,13 +18,8 @@
 			p.ap_psk \
 		)
 
-#ifndef PARAMS_ZONE_MAXLEN
 #define PARAMS_ZONE_MAXLEN  32
-#endif
-
-#ifndef PARAMS_NAME_MAXLEN
 #define PARAMS_NAME_MAXLEN  32
-#endif
 
 
 struct params {
