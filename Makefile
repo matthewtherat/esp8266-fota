@@ -393,6 +393,12 @@ cleanup_map6params:
 		0x0fe000 $(SDK_PATH)/bin/blank.bin \
 		0x0ff000 $(SDK_PATH)/bin/blank.bin 
 
+.PHONY: flash_map6cacert
+flash_map6cacert:
+	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
+		0x0F9000 $(TLS_CA_CRT_BIN)
+
+
 ###############
 # SPI MAP 6 DIO
 ###############

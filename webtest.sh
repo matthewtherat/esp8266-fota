@@ -4,6 +4,8 @@ source testing.sh
 
 ADDR=192.168.1.158
 NAME="dev.fota"
+#ADDR=192.168.1.162
+#NAME="dev.fota6"
 
 assert-eq "UNS resolve" ${ADDR} `uns resolve --short ${NAME}`
 assert-eq "Simple GET" \
