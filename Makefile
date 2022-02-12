@@ -11,7 +11,7 @@
 #     a generated lib/image xxx.a ()
 #
 
-HOST ?= dev.fota8
+HOST ?= dev.fota
 #HOST ?= h.airmon
 COMPILE ?= gcc
 SPI_SIZE_MAP := 8
