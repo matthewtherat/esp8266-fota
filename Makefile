@@ -14,7 +14,7 @@
 HOST ?= dev.fota
 #HOST ?= h.airmon
 COMPILE ?= gcc
-SPI_SIZE_MAP := 2
+SPI_SIZE_MAP := 6
 
 TARGET = eagle
 #FLAVOR = release

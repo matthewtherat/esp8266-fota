@@ -237,6 +237,19 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
         u = os_zalloc(sizeof(struct upgradestate)); 
         u->len = 0;
         s->reverse = u;
+        
+        /* Erase flash */
+        INFO("Erasing flash");
+        uint32_t toerase = more;
+        while (true) {
+            if (toerase >= LIMIT_ERASE_SIZE) {
+                system_upgrade_erase_flash(0xFFFF);
+                toerase -= LIMIT_ERASE_SIZE;
+                continue;
+            }
+            system_upgrade_erase_flash(toerase);
+            break;
+        }
     }
     else {
         u = (struct upgradestate*) s->reverse;
@@ -248,7 +261,6 @@ httpd_err_t webadmin_fw_upgrade(struct httpd_session *s) {
         avail = HTTPD_REQ_LEN(s);
         
         if ((u->len == SECT_SIZE) || (u->len && (!more) && (!avail))) {
-            system_upgrade_erase_flash(SECT_SIZE);
             DEBUG("FW: more: %6u avail: %4u wlen: %4u", more, avail, 
                     u->len);
             system_upgrade(u->buff, u->len);
