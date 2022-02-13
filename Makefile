@@ -228,10 +228,6 @@ toggleboot:
 webui:
 	-webui/build.sh
 	
-.PHONY: upload-webui
-upload-webui: webui
-	-uns http post $(HOST) :$(INDEXHTML_DEFLATE)
-
 ##################
 # SPI MAP 2 common
 ##################
@@ -288,6 +284,10 @@ cleanup_map2params:
 flash_map2webui: webui
 	$(ESPTOOL_WRITE) --flash_size 1MB  \
 		0x7A000 $(INDEXHTML_BIN)
+
+.PHONY: upload_map2webui
+upload_map2webui: webui
+	-uns http post $(HOST)/0x7a :$(INDEXHTML_DEFLATE)
 
 .PHONY: flash_map2cacert
 flash_map2cacert:
@@ -355,6 +355,10 @@ flash_map8cacert:
 	$(ESPTOOL_WRITE) --flash_size 8MB  \
 		0x0f9000 $(TLS_CA_CRT_BIN)
 
+.PHONY: upload_map8webui
+upload_map8webui: webui
+	-uns http post $(HOST)/0xfa :$(INDEXHTML_DEFLATE)
+
 
 ###############
 # SPI MAP 6 QIO
@@ -400,6 +404,9 @@ flash_map6cacert:
 	$(ESPTOOL_WRITE) --flash_size 4MB-c1  \
 		0x0F9000 $(TLS_CA_CRT_BIN)
 
+.PHONY: upload_map6webui
+upload_map6webui: webui
+	-uns http post $(HOST)/0xfa :$(INDEXHTML_DEFLATE)
 
 ###############
 # SPI MAP 6 DIO
@@ -449,6 +456,10 @@ boot_user2map4:
 		| dd of=$(BINDIR)/map4-user2-3ff.bin bs=1 count=1 conv=notrunc
 	$(ESPTOOL_WRITE) --flash_size 4MB \
 		0x3ff000 $(BINDIR)/map4-user2-3ff.bin
+
+.PHONY: upload_map4webui
+upload_map4webui: webui
+	-uns http post $(HOST)/0x7a :$(INDEXHTML_DEFLATE)
 
 
 ###############

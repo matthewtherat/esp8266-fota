@@ -4,6 +4,7 @@
 #include "httpd.h"
 #include "uns.h"
 #include "http.h"
+#include "helpers.c"
 
 #include <upgrade.h>
 #include <osapi.h>
@@ -144,7 +145,13 @@ httpd_err_t webadmin_index_post(struct httpd_session *s) {
 
         /* Alocate memory */
         f = os_zalloc(sizeof(struct filesave));
-        f->sect = USER_INDEXHTML_ADDR / SECT_SIZE;
+
+        char *sector = rindex(s->request.path, '/') + 1;
+        if (sector == NULL) {
+            ERROR("Please provide a sector");
+            goto reterr;
+        }
+        f->sect = parse_uint(sector);
         f->len = sizeof(uint32_t);
         os_memcpy(f->buff, &s->request.contentlen, f->len);
         s->reverse = f;
@@ -532,16 +539,6 @@ static struct httpd_route routes[] = {
 
     /* TLS Test */
     {"TEST",       "/tlsclient",             demo_tls_test          },
-
-    /* Webadmin */
-    {"POST",       "/params",             webadmin_params_post    },
-    {"GET",        "/params.json",        webadmin_params_get     },
-    {"GET",        "/status.json",        webadmin_sysinfo_json   },
-    {"INFO",       "/",                   webadmin_sysinfo        },
-    {"GET",        "/",                   webadmin_index_get      },
-    {"POST",       "/",                   webadmin_index_post     },
-    {"REBOOT",     "/",                   webadmin_reboot         },
-    {"TOGGLE",     "/boots",              webadmin_toggle_boot    },
 
     /* Feel free to change these handlers */
     {"DISCOVER",   "/uns",                   webadmin_uns_discover  },
