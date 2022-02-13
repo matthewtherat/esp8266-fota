@@ -23,8 +23,6 @@ Flash Maps
 #define SECTFMT                         "0x%X"
 #define SECT_SIZE                       0x1000
 #define SYSTEM_PARTITION_OTA1_ADDR      0x01000
-#define USER_PARTITION_PARAMS           SYSTEM_PARTITION_CUSTOMER_BEGIN
-#define USER_PARTITION_PARAMS_SIZE      (SECT_SIZE * 3)
 
 
 #if ((SPI_FLASH_SIZE_MAP == 0) || (SPI_FLASH_SIZE_MAP == 1))
@@ -138,11 +136,6 @@ static const partition_item_t at_partition_table[] = {
         SYSTEM_PARTITION_SSL_CLIENT_CA_ADDR,
         SECT_SIZE
     },
-    // { 
-    //     USER_PARTITION_PARAMS, 
-    //     USER_PARTITION_PARAMS_ADDR, 
-    //     USER_PARTITION_PARAMS_SIZE, 
-    // },
 };
 
 #endif
