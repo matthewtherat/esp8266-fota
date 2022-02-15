@@ -82,7 +82,9 @@ wifi_check_ip(void *arg) {
     }
     else
     {
+#ifdef SNTP_ENABLED
         _sntp_stop();
+#endif
         if(wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
             INFO("STATION_WRONG_PASSWORD");
             wifi_station_connect();

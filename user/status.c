@@ -45,6 +45,12 @@ status_update(uint16_t onms, uint16_t offms, uint8_t repeat,
 }
 
 
+void ICACHE_FLASH_ATTR
+status_stop() {
+    os_timer_disarm(&t);
+}
+
+
 ICACHE_FLASH_ATTR
 void status_init() {
 	// LED
