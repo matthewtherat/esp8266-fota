@@ -30,21 +30,26 @@ function grn () {
 function ylw () {
   echo -e "${Y}$@${C}"
 }
-
+function hex () {
+  echo -e "$@" | xxd
+}
 # ANSI COLORS end
 
 
 function assert-eq () {
-  local exp="${2}"
-  local act="${@:3}"
-
-  if [[ ${exp} == ${act} ]]; then 
+  local exp=$(echo ${2} | sed 's/\r$//g')
+  local act=$(echo ${@:3} | sed 's/\r$//g')
+  
+  if [[ "${exp}" == "${act}" ]]; then 
     grn "Passed:${C} ${1}"
   else
     red "Failed:${C} ${1} ${Y}(Values are not equal)"
     nor "  exptected: -> ${exp}"
     nor "  actual:    -> ${act}"
-    nor
+    
+    red "Binary:"
+    hex "${exp}"
+    hex "${act}"
   fi
 }
 
@@ -58,5 +63,3 @@ function binsize() {
   local s=$(ls -l $1 | cut -d' ' -f5)
   printf "${LB}%7d ${LM}Bytes${C} => %s\n" $s $(basename $1)
 }
-
-
