@@ -55,7 +55,8 @@ void boothello() {
             params.name
         );
     }
-    status_update(100, 1300, INFINITE, NULL);
+    //status_update(100, 1300, INFINITE, NULL);
+    status_stop();
 
     /* Web UI */
 	webadmin_start(&params);

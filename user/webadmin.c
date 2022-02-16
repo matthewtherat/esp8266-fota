@@ -310,24 +310,24 @@ httpd_err_t webadmin_uns_discover(struct httpd_session *s) {
 
 static ICACHE_FLASH_ATTR
 httpd_err_t _params_cb(struct httpd_session *s, const char *field, 
-        const char *value) {
+        const char *value, struct params *p) {
     char *target;
     /* Compare: %s */
     system_soft_wdt_feed();
     if (os_strcmp(field, "zone") == 0) {
-        target = params->zone;
+        target = p->zone;
     }
     else if (os_strcmp(field, "name") == 0) {
-        target = params->name;
+        target = p->name;
     }
     else if (os_strcmp(field, "ap_psk") == 0) {
-        target = params->ap_psk;
+        target = p->ap_psk;
     }
     else if (os_strcmp(field, "ssid") == 0) {
-        target = params->station_ssid;
+        target = p->station_ssid;
     }
     else if (os_strcmp(field, "psk") == 0) {
-        target = params->station_psk;
+        target = p->station_psk;
     }
     else {
         return WEBADMIN_UNKNOWNFIELD;;
@@ -354,7 +354,7 @@ httpd_err_t webadmin_params_post(struct httpd_session *s) {
     }
    
     /* parse */
-    err = httpd_form_urlencoded_parse(s, _params_cb);
+    err = httpd_form_urlencoded_parse(s, _params_cb, &params);
     if (err) {
         return err;
     }
